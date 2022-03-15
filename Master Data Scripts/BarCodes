@@ -1,0 +1,39 @@
+USE [D365Migration]
+GO
+/****** Object:  StoredProcedure [dbo].[BarCodes_GPToD365DB]    Script Date: 3/14/2022 9:14:18 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER Procedure [dbo].[BarCodes_GPToD365DB]
+as
+INSERT INTO [dbo].[BarCodes]
+           ([DataAreaId]
+           ,[ItemNumber]
+           ,[ProductQuantity]
+           ,[PRODUCTQUANTITYUNITSYMBOL]
+           ,[BARCODESETUPID]
+           ,[BARCODE]
+           ,[ISDEFAULTSCANNEDBARCODE]
+           ,[ISDEFAULTPRINTEDBARCODE]
+           ,[ISDEFAULTDISPLAYEDBARCODE])
+(
+select 
+'GICT' as DataAreaId,
+item as ItemNumber,
+0 as ProductQuantity,
+'ea' as PRODUCTQUANTITYUNITSYMBOL,
+'' as BARCODESETUPID,
+code as BarCode,
+0 ISDEFAULTSCANNEDBARCODE,
+0 ISDEFAULTPRINTEDBARCODE,
+0 ISDEFAULTDISPLAYEDBARCODE
+from [posdatabase].SiriusSQL.dbo.i_mcode
+where item in (
+select I.ITEMNMBR AS ITEMNUMBER
+FROM gwc.dbo.[IV00101] I
+left join gwc.dbo.GL00105 gl5
+on gl5.ACTINDX = i.IVIVINDX
+WHERE I.ITEMTYPE = 1
+AND I.ITMCLSCD != 'Delete'))
+

@@ -1,0 +1,29 @@
+USE [D365Migration]
+GO
+/****** Object:  StoredProcedure [dbo].[AssortmentProductLines_GPToD365DB]    Script Date: 3/14/2022 9:13:54 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER Procedure [dbo].[AssortmentProductLines_GPToD365DB]
+
+as 
+INSERT INTO [dbo].[AssortmentProductLines]
+           ([ItemId]
+           ,[AssortmentId]
+           ,[LineNumber]
+           ,[LineType],
+		   [status])
+
+SELECT 
+trim(I.ITEMNMBR) as ItemId, --AS ITEMNUMBER,
+'Default' as assortmentId,
+ROW_NUMBER() over (order by ITEMNMBR) as linenumber,
+'Include' as LineType
+,''
+FROM [GWC].[dbo].[IV00101] I
+WHERE I.ITEMTYPE = 1
+AND I.ITMCLSCD = 'NEWGOODS'
+
+
