@@ -1,0 +1,227 @@
+USE [D365Migration]
+GO
+/****** Object:  StoredProcedure [dbo].[PurchaseOrderLines_GPToD365DB]    Script Date: 3/14/2022 9:20:19 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER Procedure [dbo].[PurchaseOrderLines_GPToD365DB] as
+
+INSERT INTO [dbo].[PURCHASEORDERLines]
+           ([DataAreaId]
+           ,[PurchaseOrderNumber]
+		   ,linenumber
+           ,[ItemNumber]
+           ,[ReceivingWarehouseId]
+           ,[PurchaseUnitSymbol]
+           ,[LineAmount]
+           ,[DeliveryAddressStreet]
+           ,[DeliveryAddressCity]
+           ,[DeliveryAddressStateID]
+           ,[DeliveryAddressZipCode]
+           ,[DeliveryAddressCountryRegionIsoCode]
+           ,[DeliveryAddressCountryRegionId]
+           ,[DeliveryAddressDescription]
+           ,[ORDEREDPURCHASEQUANTITY]
+           ,[NonInventoryItem])
+select 'GICT' as DataAreaId, poLine.PONUMBER as PURCHASEORDERNUMBER,
+poline.LineNumber,
+--poline.POLNESTA as PURCHASEORDERLINESTATUS,
+poline.ITEMNMBR as ItemNumber,
+--poLine.VENDORID as VendorNumber,
+--poLine.VNDITNUM, --needed?
+--poLine.NONINVEN, --noninventory, needed?
+poLine.LOCNCODE as ReceivingWarehouseId,
+poLine.UOFM as PurchaseUnitSymbol,
+poline.OPOSTSUB as LineAmount, --original posted subtotal, need to validate this is the correct mapping
+--poline.FREEONBOARD, --not sure what this is
+--poline.Change_Order_Flag, --needed?
+concat(poline.ADDRESS1,poline.address2, poline.address3) as DeliveryAddressStreet,
+poline.city as DeliveryAddressCity,
+poline.STATE as DeliveryAddressStateID,
+poline.ZIPCODE as DeliveryAddressZipCode,
+poline.CCode as DeliveryAddressCountryRegionIsoCode,
+case
+	when poline.country = ''
+		then 'USA'
+	else poline.country
+end as DeliveryAddressCountryRegionId,
+'Goodwill Industries Central Texas' as DeliveryAddressDescription,
+--Quantity fields
+poline.QTYORDER as ORDEREDPURCHASEQUANTITY
+--poline.QTYCANCE, --quantity cancelled?
+--poline.QTYUNCMTBASE --quantity uncommitted in base?
+--date fields?
+--Other questions
+--are comments/notes needed?
+--are costing fields needed?
+, case
+		when poline.ITEMNMBR not in (select i.ITEMNMBR
+									FROM gwc.dbo.[IV00101] I
+										left join gwc.dbo.GL00105 gl5
+										on gl5.ACTINDX = i.IVIVINDX
+										WHERE I.ITEMTYPE = 1
+										AND I.ITMCLSCD != 'Delete')
+			then 'Non-Inventory item'
+		else ''
+	end as NonInventoryItem
+from gwc.dbo.POP10110 poLine
+join gwc.dbo.pop10100 poHeader
+on poLine.PONUMBER = poHeader.ponumber
+where poHeader.POSTATUS in  (1,2,3)
+and poheader.VENDORID != ''
+
+Union
+
+select 'GTS' as DataAReaId, poLine.PONUMBER as PURCHASEORDERNUMBER,
+poline.LineNumber,
+--poline.POLNESTA as PURCHASEORDERLINESTATUS,
+poline.ITEMNMBR as ItemNumber,
+--poLine.VENDORID as VendorNumber,
+--poLine.VNDITNUM, --needed?
+--poLine.NONINVEN, --noninventory, needed?
+poLine.LOCNCODE as ReceivingWarehouseId,
+poLine.UOFM as PurchaseUnitSymbol,
+poline.OPOSTSUB as LineAmount, --original posted subtotal, need to validate this is the correct mapping
+--poline.FREEONBOARD, --not sure what this is
+--poline.Change_Order_Flag, --needed?
+concat(poline.ADDRESS1,poline.address2, poline.address3) as DeliveryAddressStreet,
+poline.city as DeliveryAddressCity,
+poline.STATE as DeliveryAddressStateID,
+poline.ZIPCODE as DeliveryAddressZipCode,
+poline.CCode as DeliveryAddressCountryRegionIsoCode,
+case
+	when poline.country = ''
+		then 'USA'
+	else poline.country
+end as DeliveryAddressCountryRegionId,
+'Goodwill Industries Central Texas' as DeliveryAddressDescription,
+--Quantity fields
+poline.QTYORDER as ORDEREDPURCHASEQUANTITY
+--poline.QTYCANCE, --quantity cancelled?
+--poline.QTYUNCMTBASE --quantity uncommitted in base?
+--date fields?
+--Other questions
+--are comments/notes needed?
+--are costing fields needed?
+, case
+		when poline.ITEMNMBR not in (select i.ITEMNMBR
+									FROM gss.dbo.[IV00101] I
+										left join gss.dbo.GL00105 gl5
+										on gl5.ACTINDX = i.IVIVINDX
+										WHERE I.ITEMTYPE = 1
+										AND I.ITMCLSCD != 'Delete')
+			then 'Non-Inventory item'
+		else ''
+	end as NonInventoryItem
+from gss.dbo.POP10110 poLine
+join gss.dbo.pop10100 poHeader
+on poLine.PONUMBER = poHeader.ponumber
+where poHeader.POSTATUS in  (1,2,3)
+and poheader.VENDORID != ''
+
+Union
+
+select 'BLUE' as DataAreaId, poLine.PONUMBER as PURCHASEORDERNUMBER,
+poline.LineNumber,
+--poline.POLNESTA as PURCHASEORDERLINESTATUS,
+poline.ITEMNMBR as ItemNumber,
+--poLine.VENDORID as VendorNumber,
+--poLine.VNDITNUM, --needed?
+--poLine.NONINVEN, --noninventory, needed?
+poLine.LOCNCODE as ReceivingWarehouseId,
+poLine.UOFM as PurchaseUnitSymbol,
+poline.OPOSTSUB as LineAmount, --original posted subtotal, need to validate this is the correct mapping
+--poline.FREEONBOARD, --not sure what this is
+--poline.Change_Order_Flag, --needed?
+concat(poline.ADDRESS1,poline.address2, poline.address3) as DeliveryAddressStreet,
+poline.city as DeliveryAddressCity,
+poline.STATE as DeliveryAddressStateID,
+poline.ZIPCODE as DeliveryAddressZipCode,
+poline.CCode as DeliveryAddressCountryRegionIsoCode,
+case
+	when poline.country = ''
+		then 'USA'
+	else poline.country
+end as DeliveryAddressCountryRegionId,
+'Goodwill Industries Central Texas' as DeliveryAddressDescription,
+--Quantity fields
+poline.QTYORDER as ORDEREDPURCHASEQUANTITY
+--poline.QTYCANCE, --quantity cancelled?
+--poline.QTYUNCMTBASE --quantity uncommitted in base?
+--date fields?
+--Other questions
+--are comments/notes needed?
+--are costing fields needed?
+, case
+		when poline.ITEMNMBR not in (select i.ITEMNMBR
+									FROM blue.dbo.[IV00101] I
+										left join blue.dbo.GL00105 gl5
+										on gl5.ACTINDX = i.IVIVINDX
+										WHERE I.ITEMTYPE = 1
+										AND I.ITMCLSCD != 'Delete')
+			then 'Non-Inventory item'
+		else ''
+	end as NonInventoryItem
+from blue.dbo.POP10110 poLine
+join blue.dbo.pop10100 poHeader
+on poLine.PONUMBER = poHeader.ponumber
+where poHeader.POSTATUS in  (1,2,3)
+and poheader.VENDORID != ''
+
+Union
+
+select 'GWFD' as DataAreaId, 
+poLine.PONUMBER as PURCHASEORDERNUMBER,
+poline.LineNumber,
+--poline.POLNESTA as PURCHASEORDERLINESTATUS,
+poline.ITEMNMBR as ItemNumber,
+--poLine.VENDORID as VendorNumber,
+--poLine.VNDITNUM, --needed?
+--poLine.NONINVEN, --noninventory, needed?
+poLine.LOCNCODE as ReceivingWarehouseId,
+poLine.UOFM as PurchaseUnitSymbol,
+poline.OPOSTSUB as LineAmount, --original posted subtotal, need to validate this is the correct mapping
+--poline.FREEONBOARD, --not sure what this is
+--poline.Change_Order_Flag, --needed?
+concat(poline.ADDRESS1,poline.address2, poline.address3) as DeliveryAddressStreet,
+poline.city as DeliveryAddressCity,
+poline.STATE as DeliveryAddressStateID,
+poline.ZIPCODE as DeliveryAddressZipCode,
+poline.CCode as DeliveryAddressCountryRegionIsoCode,
+case
+	when poline.country = ''
+		then 'USA'
+	else poline.country
+end as DeliveryAddressCountryRegionId,
+'Goodwill Industries Central Texas' as DeliveryAddressDescription,
+--Quantity fields
+poline.QTYORDER as ORDEREDPURCHASEQUANTITY
+--poline.QTYCANCE, --quantity cancelled?
+--poline.QTYUNCMTBASE --quantity uncommitted in base?
+--date fields?
+--Other questions
+--are comments/notes needed?
+--are costing fields needed?
+, case
+		when poline.ITEMNMBR not in (select i.ITEMNMBR
+									FROM excel.dbo.[IV00101] I
+										left join excel.dbo.GL00105 gl5
+										on gl5.ACTINDX = i.IVIVINDX
+										WHERE I.ITEMTYPE = 1
+										AND I.ITMCLSCD != 'Delete')
+			then 'Non-Inventory item'
+		else ''
+	end as NonInventoryItem
+from excel.dbo.POP10110 poLine
+join excel.dbo.pop10100 poHeader
+on poLine.PONUMBER = poHeader.ponumber
+where poHeader.POSTATUS in  (1,2,3)
+and poheader.VENDORID != ''
+
+
+
+
+
+
+

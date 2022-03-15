@@ -1,0 +1,233 @@
+USE [D365Migration]
+GO
+/****** Object:  StoredProcedure [dbo].[DataLake_PurchaseOrderHeaders_GPToD365DB]    Script Date: 3/14/2022 9:23:33 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[DataLake_PurchaseOrderHeaders_GPToD365DB]
+AS
+
+
+INSERT INTO [dbo].[DATALAKE_PurchaseOrderHeaders]
+           ([DataAreaId]
+           ,[PurchaseOrderNumber]
+           ,[ORDERVENDORACCOUNTNUMBER]
+           ,[PurchaseOrderName]
+           ,[DeliveryAddressCountryRegionId]
+           ,[DELIVERYADDRESSSTREET]
+           ,[DELIVERYADDRESSCITY]
+           ,[DELIVERYADDRESSSTATEID]
+           ,[DELIVERYADDRESSZIPCODE]
+           ,[DELIVERYADDRESSCOUNTRYREGIONISOCODE]
+           ,[PaymentTermsName]
+           ,[currencycode]
+           ,[AREPRICESINCLUDINGSALESTAX]
+           ,[iNVOICEADDRESSSTREET]
+           ,[INVOICEADDRESSCITY]
+           ,[INVOICEADDRESSSTATE]
+           ,[INVOICEADDRESSZIPCODE]
+           ,[REQUESTEDDELIVERYDATE]
+           ,[CONFIRMEDDELIVERYDATE]
+           ,[FixedDueDate])
+select 
+'GICT' as dataareaid,
+p.PONUMBEr as PurchaseOrderNumber,
+--p.POSTATUS as PurchaseOrderStatus,
+--p.POTYPE, --could map to delivery terms or mode 1=standard, 2= dropship, 3=blanket, 4=blanket drop ship
+--p.TXRGNNUM,
+p.vendorid AS ORDERVENDORACCOUNTNUMBER,
+p.VENDNAME as PurchaseOrderName
+--p.VADCDPAD --vendor address code
+--,CMPANYID --not sure what this would be used for
+--,contact
+,concat(trim(address1),' ', trim(address2),' ', trim(address3)) AS DELIVERYADDRESSSTREET
+,city DELIVERYADDRESSCITY
+,state as DELIVERYADDRESSSTATEID
+,ZIPCODE as DELIVERYADDRESSZIPCODE
+,CCode as DELIVERYADDRESSCOUNTRYREGIONISOCODE
+,country as DELIVERYADDRESSCOUNTRYREGIONID
+,PYMTRMID as PaymentTermsName
+,'USD' as currencycode
+--BUYERID --??
+--TXSCHSRC 
+,txengcld as AREPRICESINCLUDINGSALESTAX --verify
+--,Purchase_Freight_Taxable
+--,Purchase_Misc_Taxable
+,concat(trim(purchaddress1), ' ', trim(purchaddress2),' ', trim(purchaddress3)) AS iNVOICEADDRESSSTREET
+
+,PURCHCITY as INVOICEADDRESSCITY
+,PURCHSTATE AS INVOICEADDRESSSTATE
+,PURCHZIPCODE AS INVOICEADDRESSZIPCODE
+--DATES
+,p.PRMDATE as REQUESTEDDELIVERYDATE,
+p.PRMSHPDTE  as CONFIRMEDDELIVERYDATE,
+p.REQDATE AS FixedDueDate
+--DUEDATE as FixedDueDate,
+--AMOUNTS (only stored at line level in D365)
+--p.REMSUBTO
+--,OREMSUBT --Originating Remaining Subtotal
+--,ORSUBTOT --originating subtotal
+
+--Remaining Questions
+--do we need any of the workflow fields? 
+--do we need purhcase order notes?
+
+from gwc.dbo.pop10100 p
+where p.VENDORID != ''
+
+
+union
+
+select 
+'GTS' as dataareaid,
+p.PONUMBER as PurchaseOrderNumber,
+--p.POSTATUS as PurchaseOrderStatus,
+--p.POTYPE, --could map to delivery terms or mode 1=standard, 2= dropship, 3=blanket, 4=blanket drop ship
+--p.TXRGNNUM,
+p.vendorid AS ORDERVENDORACCOUNTNUMBER,
+p.VENDNAME as PurchaseOrderName
+--p.VADCDPAD --vendor address code
+--,CMPANYID --not sure what this would be used for
+--,contact
+,concat(trim(address1),' ', trim(address2),' ', trim(address3)) AS DELIVERYADDRESSSTREET
+,city DELIVERYADDRESSCITY
+,state as DELIVERYADDRESSSTATEID
+,ZIPCODE as DELIVERYADDRESSZIPCODE
+,CCode as DELIVERYADDRESSCOUNTRYREGIONISOCODE
+,country as DELIVERYADDRESSCOUNTRYREGIONID
+,PYMTRMID as PaymentTermsName
+,'USD' as currencycode
+--BUYERID --??
+--TXSCHSRC 
+,txengcld as AREPRICESINCLUDINGSALESTAX --verify
+--,Purchase_Freight_Taxable
+--,Purchase_Misc_Taxable
+,concat(trim(purchaddress1), ' ', trim(purchaddress2),' ', trim(purchaddress3)) AS iNVOICEADDRESSSTREET
+,PURCHCITY as INVOICEADDRESSCITY
+,PURCHSTATE AS INVOICEADDRESSSTATE
+,PURCHZIPCODE AS INVOICEADDRESSZIPCODE
+--DATES
+,p.PRMDATE as REQUESTEDDELIVERYDATE,
+p.PRMSHPDTE  as CONFIRMEDDELIVERYDATE,
+p.REQDATE AS FixedDueDate
+--DUEDATE as FixedDueDate,
+--AMOUNTS (only stored at line level in D365)
+--p.REMSUBTO
+--,OREMSUBT --Originating Remaining Subtotal
+--,ORSUBTOT --originating subtotal
+
+--Remaining Questions
+--do we need any of the workflow fields? 
+--do we need purhcase order notes?
+
+from GSS.dbo.pop10100 p
+where p.VENDORID != ''
+
+union
+
+select
+'BLUE' as dataareaid,
+p.PONUMBER as PurchaseOrderNumber,
+--p.POSTATUS as PurchaseOrderStatus,
+--p.POTYPE, --could map to delivery terms or mode 1=standard, 2= dropship, 3=blanket, 4=blanket drop ship
+--p.TXRGNNUM,
+p.vendorid AS ORDERVENDORACCOUNTNUMBER,
+p.VENDNAME as PurchaseOrderName
+--p.VADCDPAD --vendor address code
+--,CMPANYID --not sure what this would be used for
+--,contact
+,concat(trim(address1),' ', trim(address2),' ', trim(address3)) AS DELIVERYADDRESSSTREET
+,city DELIVERYADDRESSCITY
+,state as DELIVERYADDRESSSTATEID
+,ZIPCODE as DELIVERYADDRESSZIPCODE
+,CCode as DELIVERYADDRESSCOUNTRYREGIONISOCODE
+,country as DELIVERYADDRESSCOUNTRYREGIONID
+,PYMTRMID as PaymentTermsName
+,'USD' as currencycode
+--BUYERID --??
+--TXSCHSRC 
+,txengcld as AREPRICESINCLUDINGSALESTAX --verify
+--,Purchase_Freight_Taxable
+--,Purchase_Misc_Taxable
+,concat(trim(purchaddress1), ' ', trim(purchaddress2),' ', trim(purchaddress3)) AS iNVOICEADDRESSSTREET
+,PURCHCITY as INVOICEADDRESSCITY
+,PURCHSTATE AS INVOICEADDRESSSTATE
+,PURCHZIPCODE AS INVOICEADDRESSZIPCODE
+--DATES
+,p.PRMDATE as REQUESTEDDELIVERYDATE,
+p.PRMSHPDTE  as CONFIRMEDDELIVERYDATE,
+p.REQDATE AS FixedDueDate
+--DUEDATE as FixedDueDate,
+--AMOUNTS (only stored at line level in D365)
+--p.REMSUBTO
+--,OREMSUBT --Originating Remaining Subtotal
+--,ORSUBTOT --originating subtotal
+
+--Remaining Questions
+--do we need any of the workflow fields? 
+--do we need purhcase order notes?
+
+from blue.dbo.pop10100 p
+where p.VENDORID != ''
+
+union
+
+select
+'GWFD' as dataareaid,
+p.PONUMBER as PurchaseOrderNumber,
+--p.POSTATUS as PurchaseOrderStatus,
+--p.POTYPE, --could map to delivery terms or mode 1=standard, 2= dropship, 3=blanket, 4=blanket drop ship
+--p.TXRGNNUM,
+p.vendorid AS ORDERVENDORACCOUNTNUMBER,
+p.VENDNAME as PurchaseOrderName
+--p.VADCDPAD --vendor address code
+--,CMPANYID --not sure what this would be used for
+--,contact
+,concat(trim(address1),' ', trim(address2),' ', trim(address3)) AS DELIVERYADDRESSSTREET
+,city DELIVERYADDRESSCITY
+,state as DELIVERYADDRESSSTATEID
+,ZIPCODE as DELIVERYADDRESSZIPCODE
+,CCode as DELIVERYADDRESSCOUNTRYREGIONISOCODE
+,country as DELIVERYADDRESSCOUNTRYREGIONID
+,PYMTRMID as PaymentTermsName
+,'USD' as currencycode
+--BUYERID --??
+--TXSCHSRC 
+,txengcld as AREPRICESINCLUDINGSALESTAX --verify
+--,Purchase_Freight_Taxable
+--,Purchase_Misc_Taxable
+,concat(trim(purchaddress1), ' ', trim(purchaddress2),' ', trim(purchaddress3)) AS iNVOICEADDRESSSTREET
+,PURCHCITY as INVOICEADDRESSCITY
+,PURCHSTATE AS INVOICEADDRESSSTATE
+,PURCHZIPCODE AS INVOICEADDRESSZIPCODE
+--DATES
+,p.PRMDATE as REQUESTEDDELIVERYDATE,
+p.PRMSHPDTE  as CONFIRMEDDELIVERYDATE,
+p.REQDATE AS FixedDueDate
+--DUEDATE as FixedDueDate,
+--AMOUNTS (only stored at line level in D365)
+--p.REMSUBTO
+--,OREMSUBT --Originating Remaining Subtotal
+--,ORSUBTOT --originating subtotal
+
+--Remaining Questions
+--do we need any of the workflow fields? 
+--do we need purhcase order notes?
+
+from excel.dbo.pop10100 p
+where p.VENDORID != ''
+
+
+
+
+
+
+
+
+
+
+
+
+
+

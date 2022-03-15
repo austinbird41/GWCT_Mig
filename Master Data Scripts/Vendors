@@ -1,0 +1,354 @@
+USE [D365Migration]
+GO
+/****** Object:  StoredProcedure [dbo].[Vendors_GPToD365DB]    Script Date: 3/14/2022 9:21:45 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+/*
+For all new goods vendors (we will likely use the vendor group once we get that mapping figured out) 
+we should set the Matching policy level to be Vendor and the Line matching policy to be Three-way matching - these fields are config-tables that are accessible from the Vendor master
+
+all "New-goods" vendors make a note in your script that they'll we will need to populate the default site & warehouse fields to be '100' in site '10' 
+
+*/
+
+ALTER PROCEDURE [dbo].[Vendors_GPToD365DB]
+as
+INSERT INTO [dbo].[Vendors]
+           ([DataAreaId],
+		   VendorPartyNumber
+           ,[vendoraccountnumber]
+           ,[vendorsearchname]
+           ,[vendororganizationname]
+           --,[AddressStreet]
+           --,[addresscity]
+           --,[addressstateid]
+           --,[addresscountryregionid]
+           --,[ADDRESSCOUNTRYREGIONISOCODE]
+           --,[addresszipcode]
+           --,[PrimaryPhoneNumber]
+           --,[PrimaryFaxNumber]
+           ,[VendorGroupID]
+           ,[CurrencyCode]
+           ,[DEFAULTPAYMENTTERMSNAME]
+		   ,DEFAULTVENDORPAYMENTMETHODNAME
+           ,[OnHoldStatus]
+           ,[TAX1099IDTYPE]
+           ,[IsReportingTax1099]
+           ,[CreditRating]
+		    ,[DEFAULTPROCUMENTWAREHOUSEID]
+		    ,[DEFAULTPURCHASESITEID]
+			,[VENDORINVOICELINEMATCHINGPOLICY]
+           ,[TAX1099DOINGBUSINESSASNAME]
+           ,TAX1099NAMETOUSE
+		   ,TAX1099FEDERALTAXID
+		   ,bankaccountId
+		   )
+
+select 
+'GICT' as DataAreaId,
+Concat('Party-', 'GICT-',VENDORID) as VendorPartyNumber,
+vt.VENDORID as vendoraccountnumber,
+vendname as vendorsearchname,
+vendname as vendororganizationname,
+	case 
+		when ACNMVNDR = 'New goods'
+			then '100'
+		when ACNMVNDR = 'Rent'
+			then '200'
+		when ACNMVNDR = 'Standard'
+			then '300'
+		when ACNMVNDR = 'Utility'
+			then '400'
+		when ACNMVNDR = 'Priority'
+			then '500'
+		when ACNMVNDR = 'Carrier'
+			then '600'
+		when ACNMVNDR = 'Software'
+			then '700'
+		when ACNMVNDR = 'Client Assist'
+			then '800'
+		when ACNMVNDR = 'CONTRACTOR'
+			then '825'
+		when ACNMVNDR = 'GCTA Instructor'
+			then '850'
+		when ACNMVNDR = 'Garnishments'
+			then 900
+	end as VendorGroupID,
+'USD' as CurrencyCode,
+--PYMTRMID as DEFAULTPAYMENTTERMSNAME,
+vt.COMMENT1 as DEFAULTPAYMENTTERMSNAME,
+vt.comment2 as DEFAULTVENDORPAYMENTMETHODNAME,
+hold as OnHoldStatus,
+ten99type as TAX1099IDTYPE,
+case
+	when UserDef1 like '%1099%'
+		then 'Yes'
+	else 'No'
+end as IsReportingTax1099,
+CREDTLMT as CreditRating,
+	case 
+		when VNDCLSID = 'New goods'
+			then '100'
+		else ''
+	end as DEFAULTPROCUMENTWAREHOUSEID,
+	case 
+		when VNDCLSID = 'New goods'
+			then '10'
+		else ''
+	end as DEFAULTPURCHASESITEID,
+	case 
+		when VNDCLSID = 'New goods'
+			then 1
+		else ''
+	end as VENDORINVOICELINEMATCHINGPOLICY
+,VNDCHKNM as TAX1099DOINGBUSINESSASNAME
+,1 as TAX1099NAMETOUSE
+,TXIDNMBR AS TAX1099FEDERALTAXID
+,'' AS BANKACCOUNTID --CHEKBKID
+from gwc.dbo.PM00200 vt
+where vt.vendstts = 1
+
+union
+
+select 
+'BLUE' as DataAreaId,
+Concat('Party-', 'BLUE-',VENDORID) as VendorPartyNumber,
+vt.VENDORID as vendoraccountnumber,
+vendname as vendorsearchname,
+vendname as vendororganizationname,
+	case 
+		when ACNMVNDR = 'New goods'
+			then '100'
+		when ACNMVNDR = 'Rent'
+			then '200'
+		when ACNMVNDR = 'Standard'
+			then '300'
+		when ACNMVNDR = 'Utility'
+			then '400'
+		when ACNMVNDR = 'Priority'
+			then '500'
+		when ACNMVNDR = 'Carrier'
+			then '600'
+		when ACNMVNDR = 'Software'
+			then '700'
+		when ACNMVNDR = 'Client Assist'
+			then '800'
+		when ACNMVNDR = 'CONTRACTOR'
+			then '825'
+		when ACNMVNDR = 'GCTA Instructor'
+			then '850'
+		when ACNMVNDR = 'Garnishments'
+			then 900
+	end as VendorGroupID,
+
+'USD' as CurrencyCode,
+--PYMTRMID as DEFAULTPAYMENTTERMSNAME,
+vt.COMMENT1 as DEFAULTPAYMENTTERMSNAME,
+vt.comment2 as DEFAULTVENDORPAYMENTMETHODNAME,
+hold as OnHoldStatus,
+ten99type as  TAX1099IDTYPE,
+case
+	when UserDef1 like '%1099%'
+		then 'Yes'
+	else 'No'
+end as IsReportingTax1099,
+CREDTLMT as CreditRating,
+	case 
+		when VNDCLSID = 'New goods'
+			then '100'
+		else ''
+	end as DEFAULTPROCUMENTWAREHOUSEID,
+	case 
+		when VNDCLSID = 'New goods'
+			then '10'
+		else ''
+	end as DEFAULTPURCHASESITEID,
+	case 
+		when VNDCLSID = 'New goods'
+			then 1
+		else ''
+	end as VENDORINVOICELINEMATCHINGPOLICY
+,VNDCHKNM as TAX1099DOINGBUSINESSASNAME
+,1 as TAX1099NAMETOUSE
+,TXIDNMBR AS TAX1099FEDERALTAXID
+
+,'' AS BANKACCOUNTID --CHEKBKID 
+from blue.dbo.PM00200 vt
+where vt.vendstts = 1
+
+union
+
+select 
+'GWFD' as DataAreaId,
+Concat('Party-', 'GWFD-',VENDORID) as VendorPartyNumber,
+vt.VENDORID as vendoraccountnumber,
+vendname as vendorsearchname,
+vendname as vendororganizationname,
+	case 
+		when ACNMVNDR = 'New goods'
+			then '100'
+		when ACNMVNDR = 'Rent'
+			then '200'
+		when ACNMVNDR = 'Standard'
+			then '300'
+		when ACNMVNDR = 'Utility'
+			then '400'
+		when ACNMVNDR = 'Priority'
+			then '500'
+		when ACNMVNDR = 'Carrier'
+			then '600'
+		when ACNMVNDR = 'Software'
+			then '700'
+		when ACNMVNDR = 'Client Assist'
+			then '800'
+		when ACNMVNDR = 'CONTRACTOR'
+			then '825'
+		when ACNMVNDR = 'GCTA Instructor'
+			then '850'
+		when ACNMVNDR = 'Garnishments'
+			then 900
+	end as VendorGroupID,
+
+'USD' as CurrencyCode,
+--PYMTRMID as DEFAULTPAYMENTTERMSNAME,
+vt.COMMENT1 as DEFAULTPAYMENTTERMSNAME,
+vt.comment2 as DEFAULTVENDORPAYMENTMETHODNAME,
+hold as OnHoldStatus,
+ten99type as TAX1099IDTYPE,
+case
+	when UserDef1 like '%1099%'
+		then 'Yes'
+	else 'No'
+end as IsReportingTax1099,
+CREDTLMT as CreditRating ,
+	case 
+		when VNDCLSID = 'New goods'
+			then '100'
+		else ''
+	end as DEFAULTPROCUMENTWAREHOUSEID,
+	case 
+		when VNDCLSID = 'New goods'
+			then '10'
+		else ''
+	end as DEFAULTPURCHASESITEID,
+	case 
+		when VNDCLSID = 'New goods'
+			then 1
+		else ''
+	end as VENDORINVOICELINEMATCHINGPOLICY
+,VNDCHKNM as TAX1099DOINGBUSINESSASNAME
+,1 as TAX1099NAMETOUSE
+,TXIDNMBR AS TAX1099FEDERALTAXID
+
+,'' AS BANKACCOUNTID --CHEKBKID
+from excel.dbo.PM00200 vt
+where vt.vendstts = 1
+
+
+union
+
+select 
+'GTS' as DataAreaId,
+Concat('Party-', 'GTS-',VENDORID) as VendorPartyNumber,
+vt.VENDORID as vendoraccountnumber,
+vendname as vendorsearchname,
+vendname as vendororganizationname,
+--Concat(Address1,address2,address3) as AddressStreet
+--,city as addresscity
+--,state as addressstateid
+--,case 
+--	when country = 'Canada' or CCode = 'Canada'
+--		then 'CAN'
+--	else 'USA'
+--end as addresscountryregionid, 
+--case
+--	when country = 'Canada' or CCode = 'Canada'
+--		then 'CA'
+--	else 'US' --addresscountryregionid
+--end as ADDRESSCOUNTRYREGIONISOCODE,
+--zipcode as addresszipcode,
+--case
+--	when PHNUMBR1 like '00%' 
+--		then ''
+--	else left(PHNUMBR1,10)
+--end as PrimaryPhoneNumber,
+--FAXNUMBR as PrimaryFaxNumber,
+	--case 
+	--	when VNDCLSID = 'New goods'
+	--		then '100'
+	--	when VNDCLSID = 'Rent'
+	--		then '200'
+	--	when VNDCLSID = 'Tuition'
+	--		then '300'
+	--	when VNDCLSID = 'utilities'
+	--		then '400'
+	--	when VNDCLSID = 'Safe place voucher'
+	--		then '500'
+	--	when VNDCLSID = 'Trade accounts payable'
+	--		then '600'
+	--	else '700'
+	--end as VendorGroupID,
+	case 
+		when ACNMVNDR = 'New goods'
+			then '100'
+		when ACNMVNDR = 'Rent'
+			then '200'
+		when ACNMVNDR = 'Standard'
+			then '300'
+		when ACNMVNDR = 'Utility'
+			then '400'
+		when ACNMVNDR = 'Priority'
+			then '500'
+		when ACNMVNDR = 'Carrier'
+			then '600'
+		when ACNMVNDR = 'Software'
+			then '700'
+		when ACNMVNDR = 'Client Assist'
+			then '800'
+		when ACNMVNDR = 'CONTRACTOR'
+			then '825'
+		when ACNMVNDR = 'GCTA Instructor'
+			then '850'
+		when ACNMVNDR = 'Garnishments'
+			then 900
+	end as VendorGroupID,
+
+'USD' as CurrencyCode,
+--PYMTRMID as DEFAULTPAYMENTTERMSNAME,
+vt.COMMENT1 as DEFAULTPAYMENTTERMSNAME,
+vt.comment2 as DEFAULTVENDORPAYMENTMETHODNAME,
+hold as OnHoldStatus,
+ten99type as TAX1099IDTYPE,
+case
+	when UserDef1 like '%1099%'
+		then 'Yes'
+	else 'No'
+end as IsReportingTax1099,
+CREDTLMT as CreditRating,
+	case 
+		when VNDCLSID = 'New goods'
+			then '100'
+		else ''
+	end as DEFAULTPROCUMENTWAREHOUSEID,
+	case 
+		when VNDCLSID = 'New goods'
+			then '10'
+		else ''
+	end as DEFAULTPURCHASESITEID,
+	case 
+		when VNDCLSID = 'New goods'
+			then 1
+		else ''
+	end as VENDORINVOICELINEMATCHINGPOLICY
+,VNDCHKNM as TAX1099DOINGBUSINESSASNAME
+,1 as TAX1099NAMETOUSE
+,TXIDNMBR AS TAX1099FEDERALTAXID
+
+,'' AS BANKACCOUNTID --CHEKBKID 
+from gss.dbo.PM00200 vt
+where vt.vendstts = 1
+
+

@@ -1,0 +1,99 @@
+USE [D365Migration]
+GO
+/****** Object:  StoredProcedure [dbo].[Products_GPToD365DB]    Script Date: 3/14/2022 9:19:45 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER Procedure [dbo].[Products_GPToD365DB]
+
+as
+
+INSERT INTO [dbo].[Products]
+           ([ProductNumber]
+           ,[ProductType]
+           ,[ProductName]
+           ,[ProductDescription]
+           ,[ProductSearchName]
+           ,[ProductSubType])
+--Global Products
+SELECT        I.ITEMNMBR                  AS PRODUCTNUMBER, 
+		'Item'                        AS PRODUCTTYPE, --Item
+	   replace(REPLACE ( REPLACE ( I.itemdesc , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTNAME,
+	   replace(REPLACE ( REPLACE (  I.itemdesc	 , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTDESCRIPTION,
+	   replace(REPLACE ( REPLACE (  I.itemdesc	 , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTSEARCHNAME,
+	    --isnull( T14.NAME  ,'')                               AS PRODUCTDIMENSIONGROUPNAME, 
+			'Product'           AS PRODUCTSUBTYPE --Product
+
+FROM [GWC].[dbo].[IV00101] I
+WHERE I.ITEMTYPE = 1
+AND I.ITMCLSCD != 'delete'
+
+union
+
+select distinct
+poline.ITEMNMBR AS PRODUCTNUMBER, 
+'Item'                        AS PRODUCTTYPE, --Item
+replace(REPLACE ( REPLACE ( poline.ITEMNMBR , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTNAME,
+replace(REPLACE ( REPLACE (  poline.ITEMNMBR	 , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTDESCRIPTION,
+replace(REPLACE ( REPLACE (  poline.ITEMNMBR	 , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTSEARCHNAME,
+'Product'           AS PRODUCTSUBTYPE --Product
+from gwc.dbo.POP10110 poLine
+join gwc.dbo.pop10100 poHeader
+on poLine.PONUMBER = poHeader.ponumber
+where poHeader.POSTATUS in  (1,2,3)
+and poheader.VENDORID != ''
+and poline.ITEMNMBR not in (select i.ITEMNMBR
+									FROM gwc.dbo.[IV00101] I
+										left join gwc.dbo.GL00105 gl5
+										on gl5.ACTINDX = i.IVIVINDX
+										WHERE I.ITEMTYPE = 1
+										AND I.ITMCLSCD != 'Delete')
+
+union
+
+select distinct
+poline.ITEMNMBR AS PRODUCTNUMBER, 
+'Item'                        AS PRODUCTTYPE, --Item
+replace(REPLACE ( REPLACE ( poline.ITEMNMBR , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTNAME,
+replace(REPLACE ( REPLACE (  poline.ITEMNMBR	 , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTDESCRIPTION,
+replace(REPLACE ( REPLACE (  poline.ITEMNMBR	 , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTSEARCHNAME,
+'Product'           AS PRODUCTSUBTYPE --Product
+from gss.dbo.POP10110 poLine
+join gss.dbo.pop10100 poHeader
+on poLine.PONUMBER = poHeader.ponumber
+where poHeader.POSTATUS in  (1,2,3)
+and poheader.VENDORID != ''
+
+union
+
+select distinct
+poline.ITEMNMBR AS PRODUCTNUMBER, 
+'Item'                        AS PRODUCTTYPE, --Item
+replace(REPLACE ( REPLACE ( poline.ITEMNMBR , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTNAME,
+replace(REPLACE ( REPLACE (  poline.ITEMNMBR	 , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTDESCRIPTION,
+replace(REPLACE ( REPLACE (  poline.ITEMNMBR	 , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTSEARCHNAME,
+'Product'           AS PRODUCTSUBTYPE --Product
+from blue.dbo.POP10110 poLine
+join blue.dbo.pop10100 poHeader
+on poLine.PONUMBER = poHeader.ponumber
+where poHeader.POSTATUS in  (1,2,3)
+and poheader.VENDORID != ''
+
+
+
+union
+
+
+select distinct
+poline.ITEMNMBR AS PRODUCTNUMBER, 
+'Item'                        AS PRODUCTTYPE, --Item
+replace(REPLACE ( REPLACE ( poline.ITEMNMBR , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTNAME,
+replace(REPLACE ( REPLACE (  poline.ITEMNMBR	 , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTDESCRIPTION,
+replace(REPLACE ( REPLACE (  poline.ITEMNMBR	 , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTSEARCHNAME,
+'Product'           AS PRODUCTSUBTYPE --Product
+from excel.dbo.POP10110 poLine
+join excel.dbo.pop10100 poHeader
+on poLine.PONUMBER = poHeader.ponumber
+where poHeader.POSTATUS in  (1,2,3)
+and poheader.VENDORID != ''

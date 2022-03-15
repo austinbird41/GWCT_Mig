@@ -1,0 +1,251 @@
+USE [D365Migration]
+GO
+/****** Object:  StoredProcedure [dbo].[DataLake_Customers_GPToD365DB]    Script Date: 3/14/2022 9:22:44 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+ALTER Procedure [dbo].[DataLake_Customers_GPToD365DB]
+as
+
+INSERT INTO D365Migration.dbo.[DataLake_Customers]
+           (Dataareaid, 
+		   [CustomerAccount]
+           ,[OrganizationName]
+           ,[NameAlias]
+           ,[CustomerGroupID]
+           ,[AddressBooks]
+           ,[addressstreet]
+           ,[AddressCountryRegionId]
+           ,[AddressCity]
+           ,[addressState]
+           ,[AddressZipCode]
+           ,[PrimaryContactPhone]
+           ,[PAYMENTBANKACCOUNT]
+           ,[PaymentTerms]
+           ,[CreditRating]
+           ,[CreditLimit]
+           ,[salesCurrencyCode]
+           ,[TotalDiscountCode]
+           ,[DiscountPriceGroupId]
+           ,[onHoldstatus],
+		   InvoiceAccount,
+		   languageid,
+		   CredManCustomerSince)
+
+
+
+SELECT 'GICT' as DataAreaId,
+		[CUSTNMBR] as CustomerAccount
+		,[CUSTNAME] as OrganizationName
+      ,[CUSTNAME] as NameAlias
+      ,COMMENT1 as  CustomerGroupID 
+	  ,'AllCust' as AddressBooks
+      --,[CNTCPRSN] as ContactPersonId
+      --,[SHIPMTHD] --shipment method, (terms or modes of delivery, we'll need to map this out)
+      ,concat([ADDRESS1],address2,ADDRESS3) as addressstreet
+	  ,case 
+		when[COUNTRY] = 'Canada' or [COUNTRY] = 'Canada'
+			then 'CAN'
+		else 'USA'
+	end as AddressCountryRegionId
+      
+      ,[CITY] as AddressCity
+      , case
+		when [STATE] like '%.' then left(state,len(state)-1) 
+		when state = 'texas' then 'TX'
+		else state
+		end as addressState
+      ,[ZIP] as AddressZipCode
+      ,case
+			when [PHONE1] like '00%'
+				then ''
+			else PHONE1
+		end as PrimaryContactPhone
+      ,[CHEKBKID] as [PAYMENTBANKACCOUNT]
+      ,[PYMTRMID] as PaymentTerms
+      ,[CRLMTTYP] as CreditRating --credit rating, need to map to D365 values
+      ,[CRLMTAMT]  as CreditLimit--(preference: they will update in GP)
+      ,'USD' as salesCurrencyCode
+      ,case
+		when [CUSTDISC] = 500
+			then '5%'
+		when custdisc = 600
+			then '6%'
+		else ''
+		end as TotalDiscountCode--totalDiscount field
+	  ,'AllStores' as DiscountPriceGroupId --Price Group, to default once configured
+
+      ,[HOLD] as onHoldstatus
+	  	  ,[CUSTNMBR] as InvoiceAccount
+	,'en-us' as LanguageId
+	,CREATDDT as CredManCustomerSince
+   --   ,'site' as SiteId
+	  --,'warehouse' as WarehouseId-- will need to ask where to map sites/warehouses for customers
+
+  FROM Gwc.Dbo.[RM00101]
+
+
+
+union 
+
+SELECT 'Blue' as DataAreaId,
+		[CUSTNMBR] as CustomerAccount
+				,[CUSTNAME] as OrganizationName
+      ,[CUSTNAME] as NameAlias
+      ,COMMENT1 as  CustomerGroupID 
+	  ,'AllCust' as AddressBooks
+      --,[CNTCPRSN] as ContactPersonId
+      --,[SHIPMTHD] --shipment method, (terms or modes of delivery, we'll need to map this out)
+      ,concat([ADDRESS1],address2,ADDRESS3) as addressstreet
+	  ,case 
+		when[COUNTRY] = 'Canada' or [COUNTRY] = 'Canada'
+			then 'CAN'
+		else 'USA'
+	end as AddressCountryRegionId
+      
+      ,[CITY] as AddressCity
+      , case
+		when [STATE] like '%.' then left(state,len(state)-1) 
+		when state = 'texas' then 'TX'
+		else state
+		end as addressState
+      ,[ZIP] as AddressZipCode
+      ,case
+			when [PHONE1] like '00%'
+				then ''
+			else PHONE1
+		end as PrimaryContactPhone
+      ,[CHEKBKID] as [PAYMENTBANKACCOUNT]
+      ,[PYMTRMID] as PaymentTerms
+      ,[CRLMTTYP] as CreditRating --credit rating, need to map to D365 values
+      ,[CRLMTAMT]  as CreditLimit--(preference: they will update in GP)
+      ,'USD' as salesCurrencyCode
+      ,case
+		when [CUSTDISC] = 500
+			then '5%'
+		when custdisc = 600
+			then '6%'
+		else ''
+		end as TotalDiscountCode--totalDiscount field
+	  ,'AllStores' as DiscountPriceGroupId --Price Group, to default once configured
+      ,[HOLD] as onHoldstatus
+	  	  ,[CUSTNMBR] as InvoiceAccount
+		  ,'en-us' as LanguageId
+		  ,CREATDDT as CredManCustomerSince
+     -- ,'site' as SiteId
+	 -- ,'warehouse' as warehouseId-- will need to ask where to map sites/warehouses for customers
+
+  FROM blue.dbo.[RM00101]
+
+
+union
+
+SELECT 'GWFD' as DataAreaId,
+		[CUSTNMBR] as CustomerAccount
+		,[CUSTNAME] as OrganizationName
+      ,[CUSTNAME] as NameAlias
+      ,COMMENT1 as  CustomerGroupID 
+	  ,'AllCust' as AddressBooks
+      --,[CNTCPRSN] as ContactPersonId
+      --,[SHIPMTHD] --shipment method, (terms or modes of delivery, we'll need to map this out)
+      ,concat([ADDRESS1],address2,ADDRESS3) as addressstreet
+	  ,case 
+		when[COUNTRY] = 'Canada' or [COUNTRY] = 'Canada'
+			then 'CAN'
+		else 'USA'
+	end as AddressCountryRegionId
+      
+      ,[CITY] as AddressCity
+      , case
+		when [STATE] like '%.' then left(state,len(state)-1) 
+		when state = 'texas' then 'TX'
+		else state
+		end as addressState
+      ,[ZIP] as AddressZipCode
+      ,case
+			when [PHONE1] like '00%'
+				then ''
+			else PHONE1
+		end as PrimaryContactPhone
+      ,[CHEKBKID] as [PAYMENTBANKACCOUNT]
+      ,[PYMTRMID] as PaymentTerms
+      ,[CRLMTTYP] as CreditRating --credit rating, need to map to D365 values
+      ,[CRLMTAMT]  as CreditLimit--(preference: they will update in GP)
+      ,'USD' as salesCurrencyCode
+      ,case
+		when [CUSTDISC] = 500
+			then '5%'
+		when custdisc = 600
+			then '6%'
+		else ''
+		end as TotalDiscountCode--totalDiscount field
+	  ,'AllStores' as DiscountPriceGroupId --Price Group, to default once configured
+
+      ,[HOLD] as onHoldstatus
+	  ,[CUSTNMBR] as InvoiceAccount
+      --,'site' as iteId
+	  --,'warehouse' as warehouseId-- will need to ask where to map sites/warehouses for customers
+	  		  ,'en-us' as LanguageId
+		  ,CREATDDT as CredManCustomerSince
+  FROM excel.dbo.[RM00101]
+
+
+union
+
+
+SELECT 'GTS' as DataAreaId,
+		[CUSTNMBR] as CustomerAccount
+		,[CUSTNAME] as OrganizationName
+      ,[CUSTNAME] as NameAlias
+      ,COMMENT1 as  CustomerGroupID 
+	  ,'AllCust' as AddressBooks
+      --,[CNTCPRSN] as ContactPersonId
+      --,[SHIPMTHD] --shipment method, (terms or modes of delivery, we'll need to map this out)
+      ,concat([ADDRESS1],address2,ADDRESS3) as addressstreet
+	  ,case 
+		when[COUNTRY] = 'Canada' or [COUNTRY] = 'Canada'
+			then 'CAN'
+		else 'USA'
+	end as AddressCountryRegionId
+      
+      ,[CITY] as AddressCity
+      , case
+		when [STATE] like '%.' then left(state,len(state)-1) 
+		when state = 'texas' then 'TX'
+		else state
+		end as addressState
+      ,[ZIP] as AddressZipCode
+      ,case
+			when [PHONE1] like '00%'
+				then ''
+			else PHONE1
+		end as PrimaryContactPhone
+      ,[CHEKBKID] as [PAYMENTBANKACCOUNT]
+      ,[PYMTRMID] as PaymentTerms
+      ,[CRLMTTYP] as CreditRating --credit rating, need to map to D365 values
+      ,[CRLMTAMT]  as CreditLimit--(preference: they will update in GP)
+      ,'USD' as salesCurrencyCode
+      ,case
+		when [CUSTDISC] = 500
+			then '5%'
+		when custdisc = 600
+			then '6%'
+		else ''
+		end as TotalDiscountCode--totalDiscount field
+	  ,'AllStores' as DiscountPriceGroupId --Price Group, to default once configure
+      ,[HOLD] as onHoldstatus
+	 ,'T1000' as InvoiceAccount
+      --,'site' as iteId
+	  --,'warehouse' as warehouseId-- will need to ask where to map sites/warehouses for customers
+	  ,'en-us' as LanguageId
+	,CREATDDT as CredManCustomerSince
+  FROM gss.dbo.[RM00101]
+
+
+
+
+
+

@@ -1,0 +1,70 @@
+USE [D365Migration]
+GO
+/****** Object:  StoredProcedure [dbo].[DataLake_Products_GPToD365DB]    Script Date: 3/14/2022 9:22:56 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER Procedure [dbo].[DataLake_Products_GPToD365DB]
+
+as
+
+INSERT INTO [dbo].[DataLake_Products]
+           ([ProductNumber]
+           ,[ProductType]
+           ,[ProductName]
+           ,[ProductDescription]
+           ,[ProductSearchName]
+           ,[ProductSubType])
+--Global Products
+SELECT        I.ITEMNMBR                  AS PRODUCTNUMBER, 
+		'Item'                        AS PRODUCTTYPE, --Item
+	   replace(REPLACE ( REPLACE ( I.itemdesc , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTNAME,
+	   replace(REPLACE ( REPLACE (  I.itemdesc	 , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTDESCRIPTION,
+	   replace(REPLACE ( REPLACE (  I.itemdesc	 , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTSEARCHNAME,
+	    --isnull( T14.NAME  ,'')                               AS PRODUCTDIMENSIONGROUPNAME, 
+			'Product'           AS PRODUCTSUBTYPE --Product
+
+FROM [GWC].[dbo].[IV00101] I
+WHERE I.ITEMTYPE = 1
+
+union
+
+--Global Products
+SELECT        I.ITEMNMBR                  AS PRODUCTNUMBER, 
+		'Item'                        AS PRODUCTTYPE, --Item
+	   replace(REPLACE ( REPLACE ( I.itemdesc , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTNAME,
+	   replace(REPLACE ( REPLACE (  I.itemdesc	 , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTDESCRIPTION,
+	   replace(REPLACE ( REPLACE (  I.itemdesc	 , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTSEARCHNAME,
+	    --isnull( T14.NAME  ,'')                               AS PRODUCTDIMENSIONGROUPNAME, 
+			'Product'           AS PRODUCTSUBTYPE --Product
+
+FROM excel.[dbo].[IV00101] I
+WHERE I.ITEMTYPE = 1
+
+union
+--Global Products
+SELECT        I.ITEMNMBR                  AS PRODUCTNUMBER, 
+		'Item'                        AS PRODUCTTYPE, --Item
+	   replace(REPLACE ( REPLACE ( I.itemdesc , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTNAME,
+	   replace(REPLACE ( REPLACE (  I.itemdesc	 , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTDESCRIPTION,
+	   replace(REPLACE ( REPLACE (  I.itemdesc	 , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTSEARCHNAME,
+	    --isnull( T14.NAME  ,'')                               AS PRODUCTDIMENSIONGROUPNAME, 
+			'Product'           AS PRODUCTSUBTYPE --Product
+
+FROM blue.[dbo].[IV00101] I
+WHERE I.ITEMTYPE = 1
+
+union
+
+--Global Products
+SELECT        I.ITEMNMBR                  AS PRODUCTNUMBER, 
+		'Item'                        AS PRODUCTTYPE, --Item
+	   replace(REPLACE ( REPLACE ( I.itemdesc , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTNAME,
+	   replace(REPLACE ( REPLACE (  I.itemdesc	 , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTDESCRIPTION,
+	   replace(REPLACE ( REPLACE (  I.itemdesc	 , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS PRODUCTSEARCHNAME,
+	    --isnull( T14.NAME  ,'')                               AS PRODUCTDIMENSIONGROUPNAME, 
+			'Product'           AS PRODUCTSUBTYPE --Product
+
+FROM gss.[dbo].[IV00101] I
+WHERE I.ITEMTYPE = 1

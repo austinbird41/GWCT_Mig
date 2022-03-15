@@ -1,0 +1,45 @@
+USE [D365Migration]
+GO
+/****** Object:  StoredProcedure [dbo].[OnHandInventory_GPToD365DB]    Script Date: 3/14/2022 9:19:26 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER Procedure [dbo].[OnHandInventory_GPToD365DB]
+as
+
+INSERT INTO [dbo].[OnHandInventory]
+           ([DataAreaId]
+           ,[journalnumber]
+           ,[LineNumber],
+		   itemnumber
+           ,[INVENTORYSITEID]
+           ,[INVENTORYWAREHOUSEID]
+           ,[WarehouseLocationID]
+           ,[InventoryQuantity]
+           ,[JournalNameId])
+	 (
+select 
+	'GICT',
+    'IMIG-' + CAST ( (rank() OVER(ORDER BY I2.locncode)) AS NVARCHAR(10)) AS JournalNumber,
+	(row_number() OVER(Partition by i2.locncode ORDER BY I2.locncode)) as LineNumber,
+	i2.ITEMNMBR as ItemNumber, 
+	'10' AS INVENTORYSITEID, 
+	i2.LOCNCODE as INVENTORYWAREHOUSEID, 
+    '' as WarehouseLocationID,
+    sum(i2.QTYONHND) as InventoryQuantity,
+	'IMOV' as JournalNameId
+	--'' as LicensePlateNumber,
+	--gl5.ACTNUMST --DefaultledgerDimensionDisplayValue
+from gwc.dbo.IV00102 i2
+join gwc.dbo.iv00101 i1
+on i1.ITEMNMBR = i2.ITEMNMBR
+join gwc.dbo.GL00105 gl5
+on gl5.ACTINDX = i1.IVIVINDX
+where i1.ITEMTYPE = 1
+AND I1.ITMCLSCD != 'Delete'
+and i2.QTYONHND != 0
+and i2.RCRDTYPE = 2
+and ACTNUMST like '180%'
+group by i2.ITEMNMBR, i2.LOCNCODE, gl5.ACTNUMST
+)
