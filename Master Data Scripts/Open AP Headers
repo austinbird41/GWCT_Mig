@@ -1,0 +1,9 @@
+select distinct
+DOCNUMBR as JournalBatchNumber,
+'VEINV' as JournalName,
+CONCAT('Open AP Migration- ', P.BACHNUMB) as Description
+
+--bring them over with today's date, just try to use their voucher numbers, currency USD
+from PM20000 p
+where p.DOCTYPE = 1
+order by p.DOCNUMBR

@@ -1,0 +1,22 @@
+select 
+CONCAT('Open AR Migration- ', P.BACHNUMB) as Description,
+BACHNUMB as JournalBatchNumber,
+'' as LineNumber,
+P.SLSAMNT as DebitTAMOUNT, --or debit?
+p.DOCNUMBR as INVOICEID,
+p.DUEDATE, 
+--p. as voucher,
+p.CUSTNMBR as Customeraccountdisplayvalue,
+'Customer' as AccountType,
+p.PYMTRMID as TermsOfPayment,
+'USD' as Currency,
+'12000' AS OFFSETACCOUNTDISPLAYVALUE
+
+--no vouchers? all old dates?
+
+--bring them over with today's date, just try to use their voucher numbers, currency USD
+from RM20101 p
+where p.RMDTYPAL = 1
+order by p.BACHNUMB
+
+
