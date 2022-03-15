@@ -42,7 +42,7 @@ SELECT        I.ITEMNMBR                  AS PRODUCTNUMBER,
 FROM excel.[dbo].[IV00101] I
 WHERE I.ITEMTYPE = 1
 
-union
+union--
 --Global Products
 SELECT        I.ITEMNMBR                  AS PRODUCTNUMBER, 
 		'Item'                        AS PRODUCTTYPE, --Item
