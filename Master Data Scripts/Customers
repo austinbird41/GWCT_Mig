@@ -8,7 +8,7 @@ GO
 ALTER Procedure [dbo].[Customers_GPToD365DB]
 as
 
-
+--
 
 INSERT INTO D365Migration.dbo.[Customers]
            (Dataareaid, PartyNumber,
