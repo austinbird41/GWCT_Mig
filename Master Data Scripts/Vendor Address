@@ -1,0 +1,126 @@
+USE [D365Migration]
+GO
+/****** Object:  StoredProcedure [dbo].[VendorAddress_GPToD365DB]    Script Date: 3/14/2022 9:15:18 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[VendorAddress_GPToD365DB]
+
+AS
+
+
+INSERT INTO [dbo].[VendorAddress]
+           ([dataareaid]
+		   ,AddressLocationId
+           ,[VendorAccountNumber]
+           ,[AddressStreet]
+           ,[Addressdescription]
+           ,[AddressCity]
+           ,ADDRESSSTATEID
+           ,[AddressZipCode]
+           ,[AddressCountryRegionId]
+           ,[VendorLegalEntityId])
+select 
+'GICT' as DataAreaId,
+CAST ( (ROW_NUMBER() OVER(ORDER BY p3.vendorId ASC)) AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
+--getdate() as AddressValidFrom, 
+trim(p3.vendorId) as VendorAccountNumber, --VendorAccountNumber
+ replace(REPLACE ( REPLACE ( CONCAT(Trim(p3.address1), ' ',Trim(p3.address2), ' ', Trim(p3.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
+p3.vendorid as AddressDescription,
+ --p3.VNDCNTCT,
+ p3.city as AddressCity,
+ p3.state as AddressState,
+ p3.zipcode as AddressZipCode,
+case 
+	when p3.country = 'Canada' or p3.CCode = 'Canada'
+		then 'CAN'
+	else 'USA'
+end AddressCountryRegionId,
+'GICT' as VendorLegalEntityId
+ from gwc.dbo.PM00300 p3
+join gwc.dbo.pm00200 p2
+on p2.vendorId = p3.vendorId
+where p2.vendstts = 1
+
+and CONCAT(p3.address1,p3.address2,p3.address3) != ''
+
+union
+
+select 
+'BLUE' as DataAreaId,
+CAST ( (ROW_NUMBER() OVER(ORDER BY p3.vendorId ASC)) AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
+--getdate() as AddressValidFrom, 
+trim(p3.vendorId) as VendorAccountNumber, --VendorAccountNumber
+ replace(REPLACE ( REPLACE ( CONCAT(Trim(p3.address1), ' ',Trim(p3.address2), ' ', Trim(p3.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
+p3.vendorid as AddressDescription,
+ --p3.VNDCNTCT,
+ p3.city as AddressCity,
+ p3.state as AddressState,
+ p3.zipcode as AddressZipCode,
+case 
+	when p3.country = 'Canada' or p3.CCode = 'Canada'
+		then 'CAN'
+	else 'USA'
+end AddressCountryRegionId,
+'BLUE' as VendorLegalEntityId
+ from blue.dbo.PM00300 p3
+join blue.dbo.pm00200 p2
+on p2.vendorId = p3.vendorId
+where p2.vendstts = 1
+
+and CONCAT(p3.address1,p3.address2,p3.address3) != ''
+
+
+union
+
+select 
+'GWFD' as DataAreaId,
+CAST ( (ROW_NUMBER() OVER(ORDER BY p3.vendorId ASC)) AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
+--getdate() as AddressValidFrom, 
+trim(p3.vendorId) as VendorAccountNumber, --VendorAccountNumber
+ replace(REPLACE ( REPLACE ( CONCAT(Trim(p3.address1), ' ',Trim(p3.address2), ' ', Trim(p3.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
+p3.vendorid as AddressDescription,
+ --p3.VNDCNTCT,
+ p3.city as AddressCity,
+ p3.state as AddressState,
+ p3.zipcode as AddressZipCode,
+case 
+	when p3.country = 'Canada' or p3.CCode = 'Canada'
+		then 'CAN'
+	else 'USA'
+end AddressCountryRegionId,
+'GWFD' as VendorLegalEntityId
+ from excel.dbo.PM00300 p3
+join excel.dbo.pm00200 p2
+on p2.vendorId = p3.vendorId
+where p2.vendstts = 1
+
+and CONCAT(p3.address1,p3.address2,p3.address3) != ''
+
+
+union
+
+select 
+'GTS' as dataareaid,
+CAST ( (ROW_NUMBER() OVER(ORDER BY p3.vendorId ASC)) AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
+--getdate() as AddressValidFrom, 
+trim(p3.vendorId) as VendorAccountNumber, --VendorAccountNumber
+ replace(REPLACE ( REPLACE ( CONCAT(Trim(p3.address1), ' ',Trim(p3.address2), ' ', Trim(p3.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
+p3.vendorid as Addressdescription,
+ --p3.VNDCNTCT,
+ p3.city as AddressCity,
+ p3.state as AddressState,
+ p3.zipcode as AddressZipCode,
+case 
+	when p3.country = 'Canada' or p3.CCode = 'Canada'
+		then 'CAN'
+	else 'USA'
+end AddressCountryRegionId,
+'GTS' as VendorLegalEntityId
+ from gss.dbo.PM00300 p3
+join gss.dbo.pm00200 p2
+on p2.vendorId = p3.vendorId
+where p2.vendstts = 1
+and CONCAT(p3.address1,p3.address2,p3.address3) != ''
+

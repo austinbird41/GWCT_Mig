@@ -1,0 +1,119 @@
+USE [D365Migration]
+GO
+/****** Object:  StoredProcedure [dbo].[CustomerAddress_GPToD365DB]    Script Date: 3/14/2022 9:15:03 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[CustomerAddress_GPToD365DB]
+
+AS
+
+
+
+INSERT INTO [dbo].[CustomerAddress]
+           ([dataareaid]
+           ,[CustomerAccount]
+           ,[AddressStreet]
+           ,[Addressdescription]
+           ,[AddressCity]
+           ,[AddressState]
+           ,[AddressZipCode]
+           ,[AddressCountryRegionId]
+           ,[CustomerLegalEntityId])
+select 
+'GICT' as DataAreaId,
+trim(r2.CUSTNMBR) as CustomerAccountNumber, --CustomerAccountNumber
+ replace(REPLACE ( REPLACE ( CONCAT(Trim(r2.address1), ' ',Trim(r2.address2), ' ', Trim(r2.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
+r1.CUSTNAME as Addressdescription,
+ --r2.VNDCNTCT,
+ r2.city as AddressCity,
+ r2.state as AddressState,
+ r2.zip as AddressZipCode,
+case 
+	when r2.country = 'Canada' or r2.CCode = 'Canada'
+		then 'CAN'
+	else 'USA'
+end AddressCountryRegionId,
+'GICT' as CustomerLegalEntityId
+ from gwc.dbo.RM00102 r2
+join gwc.dbo.RM00101 r1
+on r1.CUSTNMBR = r2.CUSTNMBR
+where r1.INACTIVE = 0
+and [CUSTCLAS] != 'non-tax'
+and CONCAT(r2.address1,r2.address2,r2.address3) != ''
+
+union
+
+select 
+'BLUE' as DataAreaId,
+trim(r2.CUSTNMBR) as CustomerAccountNumber, --CustomerAccountNumber
+ replace(REPLACE ( REPLACE ( CONCAT(Trim(r2.address1), ' ',Trim(r2.address2), ' ', Trim(r2.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
+r1.CUSTNAME as Addressdescription,
+ --r2.VNDCNTCT,
+ r2.city as AddressCity,
+ r2.state as AddressState,
+ r2.zip as AddressZipCode,
+case 
+	when r2.country = 'Canada' or r2.CCode = 'Canada'
+		then 'CAN'
+	else 'USA'
+end AddressCountryRegionId,
+'BLUE' as CustomerLegalEntityId
+ from blue.dbo.RM00102 r2
+join blue.dbo.RM00101 r1
+on r1.CUSTNMBR = r2.CUSTNMBR
+where r1.INACTIVE = 0
+and [CUSTCLAS] != 'non-tax'
+and CONCAT(r2.address1,r2.address2,r2.address3) != ''
+
+
+union
+
+select 
+'GWFD' as DataAreaId,
+trim(r2.CUSTNMBR) as CustomerAccountNumber, --CustomerAccountNumber
+ replace(REPLACE ( REPLACE ( CONCAT(Trim(r2.address1), ' ',Trim(r2.address2), ' ', Trim(r2.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
+r1.CUSTNAME  as Addressdescription,
+ --r2.VNDCNTCT,
+ r2.city as AddressCity,
+ r2.state as AddressState,
+ r2.zip as AddressZipCode,
+case 
+	when r2.country = 'Canada' or r2.CCode = 'Canada'
+		then 'CAN'
+	else 'USA'
+end AddressCountryRegionId,
+'GWFD' as CustomerLegalEntityId
+ from excel.dbo.RM00102 r2
+join excel.dbo.RM00101 r1
+on r1.CUSTNMBR = r2.CUSTNMBR
+where r1.INACTIVE = 0
+and [CUSTCLAS] != 'non-tax'
+and CONCAT(r2.address1,r2.address2,r2.address3) != ''
+
+
+union
+
+select 
+'GTS' as dataareaid,
+trim(r2.CUSTNMBR) as CustomerAccountNumber, --CustomerAccountNumber
+ replace(REPLACE ( REPLACE ( CONCAT(Trim(r2.address1), ' ',Trim(r2.address2), ' ', Trim(r2.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
+r1.CUSTNAME as Addressdescription,
+ --r2.VNDCNTCT,
+ r2.city as AddressCity,
+ r2.state as AddressState,
+ r2.zip as AddressZipCode,
+case 
+	when r2.country = 'Canada' or r2.CCode = 'Canada'
+		then 'CAN'
+	else 'USA'
+end AddressCountryRegionId,
+'GTS' as CustomerLegalEntityId
+ from gss.dbo.RM00102 r2
+join gss.dbo.RM00101 r1
+on r1.CUSTNMBR = r2.CUSTNMBR
+where r1.INACTIVE = 0
+and [CUSTCLAS] != 'non-tax'
+and CONCAT(r2.address1,r2.address2,r2.address3) != ''
+

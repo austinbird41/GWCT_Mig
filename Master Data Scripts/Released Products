@@ -1,0 +1,282 @@
+USE [D365Migration]
+GO
+/****** Object:  StoredProcedure [dbo].[ReleasedProducts_GPToD365DB]    Script Date: 3/14/2022 9:20:44 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER Procedure [dbo].[ReleasedProducts_GPToD365DB]
+as
+INSERT INTO [dbo].[RELEASEDPRODUCTS]
+           ([DataAreaId]
+           ,[ItemNumber]
+           ,[ProductNumber]
+           ,[StorageDimensionGroupName]
+           ,[TrackingDimensionGroupName]
+           ,[ItemModelGroupId],
+		   searchname
+           ,[ProductType]
+           ,[PurchaseUnitSymbol]
+           ,[SalesUnitSymbol]
+           ,[InventoryUnitSymbol]
+           ,[ProductGroupId]
+           ,[ProductSubType]
+           ,[PrimaryVendorAccountNumber]
+           ,[PurchasePrice]
+		   ,[GWCTCATEGORY]
+           ,[GWCTCUSTOMERTYPE]
+           ,[GWCTISPRODUCTIONPRODUCT]
+           ,[GWCTOCCASION]
+           ,[GWCTSUBTYPE]
+           ,[GWCTTYpe])
+--Released Products
+  SELECT 'GICT' as DataAreaId, 
+  I.ITEMNMBR AS ITEMNUMBER, 
+  i.ITEMNMBR as productNumber,
+		--I.ITEMNMBR, --as ProductNumber,
+		'SiteWH'      AS  STORAGEDIMENSIONGROUPNAME,
+		'None'		AS TRACKINGDIMENSIONGROUPNAME,
+		'INV' as ITEMMODELGROUPID,	
+      I.itemdesc                                   AS SEARCHNAME,
+	  --I.ITEMDESC									as ProductSearchName,
+	  'Item'		as ProductType,
+	  'Ea' AS        PURCHASEUNITSYMBOL, 
+	  'Ea' AS SALESUNITSYMBOL, 
+	  'Ea' as inventoryunitsymbol,
+	  Case
+		when I.USCATVLS_1 in ('Men''s', 'Children''s', 'unisex', 'WOMEN''S')
+			then '010'
+		when I.USCATVLS_1 in ('Electonics')
+			then '020'
+		when I.USCATVLS_1 in ('LAWN&GARDN ', 'MATTRESSES', 'Household','HOME DÉCOR')
+			then '030'
+		when I.USCATVLS_1 in ('SEASONAL', 'ARTS CRAFT', 'MISC', 'TOY')
+			then '050'
+		when I.USCATVLS_1 in ('PET SUPPLY')
+			then '060'
+		ELSE '050'
+	end as productgroupid,
+		'Product' AS PRODUCTSUBTYPE, --Product
+		case
+			when ITMGEDSC = '#N/A'
+				then ''
+			 when ITMGEDSC ='4 SEASONS' THEN 'FOUR SEASONS'
+ when ITMGEDSC ='AALF''S' THEN 'AALF''S MANUFACTU'
+ when ITMGEDSC ='AALFS MANU' THEN 'AALF''S MANUFACTU'
+ when ITMGEDSC ='ACCENT' THEN 'ACCENT RUG'
+ when ITMGEDSC ='AI ARDELL' THEN 'AMERICAN INDUST'
+ when ITMGEDSC ='AJM' THEN 'AJ MORGAN'
+ when ITMGEDSC ='ALLIANCE' THEN 'ALLIANCE WHOLE'
+ when ITMGEDSC ='AM INTL' THEN 'AMERICAN INDUST'
+ when ITMGEDSC ='ARBEL' THEN 'ARBEL GROUP'
+ when ITMGEDSC ='ARBEL GROU' THEN 'ARBEL GROUP'
+ when ITMGEDSC ='ARBEL GRP' THEN 'ARBEL GROUP'
+ when ITMGEDSC ='ARBELL GRP' THEN 'ARBEL GROUP'
+ when ITMGEDSC ='ARCH WHLSL' THEN 'ARCH WHOLESALE'
+ when ITMGEDSC ='AROMAR' THEN 'AROMAR DIST'
+ when ITMGEDSC ='AUTH WHSE' THEN 'AUTHENTIC WARE'
+ when ITMGEDSC ='AUTHENTIC' THEN 'AUTHENTIC WARE'
+ when ITMGEDSC ='B&G SALES' THEN 'B&G SALES, INC.'
+ when ITMGEDSC ='B7G SALES' THEN 'B&G SALES, INC.'
+ when ITMGEDSC ='Bauer' THEN 'BAUER PACIFIC'
+ when ITMGEDSC ='BAY SALES' THEN 'VALUE SALES'
+ when ITMGEDSC ='BERMO' THEN 'BERMO LLC'
+ when ITMGEDSC ='BLISS H' THEN 'BLISS HAMMOCK'
+ when ITMGEDSC ='BORDAN' THEN 'BORDAN SHOE'
+ when ITMGEDSC ='CARLEN' THEN 'BORDAN SHOE'
+ when ITMGEDSC ='CINEMA SEC' THEN 'BORDAN SHOE'
+ when ITMGEDSC ='CMP' THEN 'CMPBS'
+ when ITMGEDSC ='Compass In' THEN 'COMPASS INDUSTR'
+ when ITMGEDSC ='CONKLIN' THEN 'CONKLIN FASHION'
+ when ITMGEDSC ='CORSICANA' THEN 'CORSICANA BED'
+ when ITMGEDSC ='Crane' THEN 'CRANE GROUP'
+ when ITMGEDSC ='CRYSTAL' THEN 'CRYSTAL PROMO'
+ when ITMGEDSC ='CRYSTAL PR' THEN 'CRYSTAL PROMO'
+ when ITMGEDSC ='D&L' THEN 'DL APPAREL'
+ when ITMGEDSC ='DEN RES' THEN 'DENIM RESELLERS'
+ when ITMGEDSC ='DENIM RES' THEN 'DENIM RESELLERS'
+ when ITMGEDSC ='DENIM RSL' THEN 'DENIM RESELLERS'
+ when ITMGEDSC ='DHG PEARL' THEN 'PEARL NORTHWEST'
+ when ITMGEDSC ='DILLON' THEN 'DILLON IMPORT'
+ when ITMGEDSC ='DL APP' THEN 'DL APPAREL'
+ when ITMGEDSC ='DM MERCH' THEN 'DM MERCHANDISIN'
+ when ITMGEDSC ='DSD EXPRES' THEN 'DSD EXPRESS'
+ when ITMGEDSC ='DUKE IMP' THEN 'DUKE IMPORTS'
+ when ITMGEDSC ='DYNAMITE' THEN 'DYNAMITE DEC'
+ when ITMGEDSC ='DYNASTY' THEN 'DYNASTY HOME'
+ when ITMGEDSC ='ELIAS' THEN 'ELIASON CORP'
+ when ITMGEDSC ='EUROWARE' THEN 'EURO-WARE'
+ when ITMGEDSC ='FGX' THEN 'FGX INTERNATION'
+ when ITMGEDSC ='FORUM' THEN 'FORUM NOVELTIES'
+ when ITMGEDSC ='FORUM-HAL' THEN 'FORUM NOVELTIES'
+ when ITMGEDSC ='FUN WOROLD' THEN 'FUN WORLD'
+ when ITMGEDSC ='Fun Wotrld' THEN 'FUN WORLD'
+ when ITMGEDSC ='Fund World' THEN 'FUN WORLD'
+ when ITMGEDSC ='FUNWORLD' THEN 'FUN WORLD'
+ when ITMGEDSC ='GARY STEIN' THEN 'STEINER GARY'
+ when ITMGEDSC ='Gold Medal' THEN 'GOLD MEDAL INTL'
+ when ITMGEDSC ='GREAT AMER' THEN 'GREAT AMER JEWE'
+ when ITMGEDSC ='Group Sale' THEN 'GROUP SALES'
+ when ITMGEDSC ='HADDAD' THEN 'HADDAD INT.'
+ when ITMGEDSC ='HADDAD INT' THEN 'HADDAD INT.'
+ when ITMGEDSC ='HALLOWEEN' THEN 'FUN WORLD'
+ when ITMGEDSC ='HM SMALLWA' THEN 'HM SMALLWARES'
+ when ITMGEDSC ='HRC' THEN 'HALLOWEEN RESOU'
+ when ITMGEDSC ='ID CLSOUT' THEN 'INGENIOUS DESIG'
+ when ITMGEDSC ='IN THE BAG' THEN 'ITS IN THE BAG'
+ when ITMGEDSC ='ING DES' THEN 'INGENIOUS DESIG'
+ when ITMGEDSC ='ING DESIGN' THEN 'INGENIOUS DESIG'
+ when ITMGEDSC ='INGDESIGN' THEN 'INGENIOUS DESIG'
+ when ITMGEDSC ='INGENIOUS' THEN 'INGENIOUS DESIG'
+ when ITMGEDSC ='INTHEBAG' THEN 'ITS IN THE BAG'
+ when ITMGEDSC ='Its in the' THEN 'ITS IN THE BAG'
+ when ITMGEDSC ='J HAT' THEN 'JACOBSON HAT'
+ when ITMGEDSC ='JACOB HAT' THEN 'JACOBSON HAT'
+ when ITMGEDSC ='JACOBS TR' THEN 'JACOBSON HAT'
+ when ITMGEDSC ='JACOBS TRA' THEN 'JACOBSON HAT'
+ when ITMGEDSC ='Jacobson' THEN 'JACOBSON HAT'
+ when ITMGEDSC ='JACOBSON H' THEN 'JACOBSON HAT'
+
+			else ITMGEDSC
+		end as PRIMARYVENDORACCOUNTNUMBER,
+		CURRCOST as PURCHASEPRICE,
+		    '' as [GWCTCATEGORY]
+           ,'' as [GWCTCUSTOMERTYPE]
+           ,'' as [GWCTISPRODUCTIONPRODUCT]
+           ,'' as [GWCTOCCASION]
+           ,USCATVLS_2  as [GWCTSUBTYPE]
+           ,USCATVLS_1 as [GWCTTYpe]
+FROM gwc.dbo.[IV00101] I
+left join gwc.dbo.GL00105 gl5
+on gl5.ACTINDX = i.IVIVINDX
+WHERE I.ITEMTYPE = 1
+AND I.ITMCLSCD != 'Delete'
+
+
+Union
+
+select distinct
+'GICT' as DataAreaId, 
+poline.ITEMNMBR AS ITEMNUMBER, 
+poline.ITEMNMBR AS ITEMNUMBER, 
+''      AS  STORAGEDIMENSIONGROUPNAME,
+''		AS TRACKINGDIMENSIONGROUPNAME,
+'' as ITEMMODELGROUPID,	
+poline.ITEMNMBR                                 AS SEARCHNAME,
+'Item'		as ProductType,
+'' AS        PURCHASEUNITSYMBOL, 
+'' AS SALESUNITSYMBOL, 
+'' as inventoryunitsymbol,
+'' as productgroupid,
+'Product' AS PRODUCTSUBTYPE, 
+'' as PRIMARYVENDORACCOUNTNUMBER,
+0 PURCHASEPRICE,
+'' as [GWCTCATEGORY]
+,'' as [GWCTCUSTOMERTYPE]
+,'' as [GWCTISPRODUCTIONPRODUCT]
+,'' as [GWCTOCCASION]
+,''  as [GWCTSUBTYPE]
+,'' as [GWCTTYpe]
+from gwc.dbo.POP10110 poLine
+join gwc.dbo.pop10100 poHeader
+on poLine.PONUMBER = poHeader.ponumber
+where poHeader.POSTATUS in  (1,2,3)
+and poheader.VENDORID != ''
+and poline.ITEMNMBR not in (select i.ITEMNMBR
+									FROM gwc.dbo.[IV00101] I
+										left join gwc.dbo.GL00105 gl5
+										on gl5.ACTINDX = i.IVIVINDX
+										WHERE I.ITEMTYPE = 1
+										AND I.ITMCLSCD != 'Delete')
+
+union
+
+select distinct
+'Blue' as DataAreaId, 
+poline.ITEMNMBR AS ITEMNUMBER, 
+poline.ITEMNMBR AS ITEMNUMBER, 
+''      AS  STORAGEDIMENSIONGROUPNAME,
+''		AS TRACKINGDIMENSIONGROUPNAME,
+'' as ITEMMODELGROUPID,	
+poline.ITEMNMBR                                 AS SEARCHNAME,
+'Item'		as ProductType,
+'' AS        PURCHASEUNITSYMBOL, 
+'' AS SALESUNITSYMBOL, 
+'' as inventoryunitsymbol,
+'' as productgroupid,
+'Product' AS PRODUCTSUBTYPE, 
+'' as PRIMARYVENDORACCOUNTNUMBER,
+0 PURCHASEPRICE,
+'' as [GWCTCATEGORY]
+,'' as [GWCTCUSTOMERTYPE]
+,'' as [GWCTISPRODUCTIONPRODUCT]
+,'' as [GWCTOCCASION]
+,''  as [GWCTSUBTYPE]
+,'' as [GWCTTYpe]
+from blue.dbo.POP10110 poLine
+join blue.dbo.pop10100 poHeader
+on poLine.PONUMBER = poHeader.ponumber
+where poHeader.POSTATUS in  (1,2,3)
+and poheader.VENDORID != ''
+
+union
+
+
+select distinct
+'GTS' as DataAreaId, 
+poline.ITEMNMBR AS ITEMNUMBER, 
+poline.ITEMNMBR AS ITEMNUMBER, 
+''      AS  STORAGEDIMENSIONGROUPNAME,
+''		AS TRACKINGDIMENSIONGROUPNAME,
+'' as ITEMMODELGROUPID,	
+poline.ITEMNMBR                                 AS SEARCHNAME,
+'Item'		as ProductType,
+'' AS        PURCHASEUNITSYMBOL, 
+'' AS SALESUNITSYMBOL, 
+'' as inventoryunitsymbol,
+'' as productgroupid,
+'Product' AS PRODUCTSUBTYPE, 
+'' as PRIMARYVENDORACCOUNTNUMBER,
+0 PURCHASEPRICE,
+'' as [GWCTCATEGORY]
+,'' as [GWCTCUSTOMERTYPE]
+,'' as [GWCTISPRODUCTIONPRODUCT]
+,'' as [GWCTOCCASION]
+,''  as [GWCTSUBTYPE]
+,'' as [GWCTTYpe]
+from GSS.dbo.POP10110 poLine
+join gss.dbo.pop10100 poHeader
+on poLine.PONUMBER = poHeader.ponumber
+where poHeader.POSTATUS in  (1,2,3)
+and poheader.VENDORID != ''
+
+
+union 
+
+select distinct
+'GWFD' as DataAreaId, 
+poline.ITEMNMBR AS ITEMNUMBER, 
+poline.ITEMNMBR AS ITEMNUMBER, 
+''      AS  STORAGEDIMENSIONGROUPNAME,
+''		AS TRACKINGDIMENSIONGROUPNAME,
+'' as ITEMMODELGROUPID,	
+poline.ITEMNMBR                                 AS SEARCHNAME,
+'Item'		as ProductType,
+'' AS        PURCHASEUNITSYMBOL, 
+'' AS SALESUNITSYMBOL, 
+'' as inventoryunitsymbol,
+'' as productgroupid,
+'Product' AS PRODUCTSUBTYPE, 
+'' as PRIMARYVENDORACCOUNTNUMBER,
+0 PURCHASEPRICE,
+'' as [GWCTCATEGORY]
+,'' as [GWCTCUSTOMERTYPE]
+,'' as [GWCTISPRODUCTIONPRODUCT]
+,'' as [GWCTOCCASION]
+,''  as [GWCTSUBTYPE]
+,'' as [GWCTTYpe]
+from EXCEL.dbo.POP10110 poLine
+join EXCEL.dbo.pop10100 poHeader
+on poLine.PONUMBER = poHeader.ponumber
+where poHeader.POSTATUS in  (1,2,3)
+and poheader.VENDORID != ''

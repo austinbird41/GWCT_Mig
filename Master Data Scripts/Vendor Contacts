@@ -1,0 +1,287 @@
+USE [D365Migration]
+GO
+/****** Object:  StoredProcedure [dbo].[VendorContacts_GPTOD365DB]    Script Date: 3/14/2022 9:15:20 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER Procedure [dbo].[VendorContacts_GPTOD365DB]
+as
+INSERT INTO [dbo].[VendorContacts]
+           ([Locator]
+           ,[ISPRIMARY]
+           ,[Type]
+           ,[PartyNumber], Description)
+
+Select 
+
+case
+	when pm2.PHNUMBR1 != ''
+		then  SubString(left(pm2.PHNUMBR1,10),1,3) + '-' + (SubString(left(pm2.PHNUMBR1,10),4,3)) + '-' + (SubString(left(pm2.PHNUMBR1,10),7,4)) 
+	else ''
+	end as Locator,
+1 as ISPRIMARY,
+'Phone' as Type,
+v.vendorpartynumber, '' as description
+from GWC.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber 
+where pm2.VENDSTTS =1
+and pm2.PHNUMBR1 != ''
+and pm2.PHNUMBR1 not like '0%'
+
+Union
+
+Select 
+
+case
+	when pm2.PHNUMBR2 != ''
+		then  SubString(left(pm2.PHNUMBR2,10),1,3) + '-' + (SubString(left(pm2.PHNUMBR2,10),4,3)) + '-' + (SubString(left(pm2.PHNUMBR2,10),7,4)) 
+	else ''
+	end as Locator,
+0 as ISPRIMARY,
+'Phone' as Type,
+v.vendorpartynumber, '' as description
+from GWC.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+where pm2.VENDSTTS =1
+and pm2.PHNUMBR2 != ''
+and pm2.PHNUMBR2 not like '0%'
+
+ Union
+
+Select 
+
+case
+	when pm2.PHONE3 != ''
+		then  SubString(left(pm2.PHONE3,10),1,3) + '-' + (SubString(left(pm2.PHONE3,10),4,3)) + '-' + (SubString(left(pm2.PHONE3,10),7,4)) 
+	else ''
+	end as Locator,
+0 as ISPRIMARY,
+'Phone' as Type,
+v.vendorpartynumber, '' as description
+from GWC.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+where pm2.VENDSTTS =1
+and pm2.PHONE3 != ''
+and pm2.PHONE3 not like '0%'
+
+Union
+
+Select 
+
+case
+	when pm2.FAXNUMBR != ''
+		then  SubString(left(pm2.FAXNUMBR,10),1,3) + '-' + (SubString(left(pm2.FAXNUMBR,10),4,3)) + '-' + (SubString(left(pm2.FAXNUMBR,10),7,4)) 
+	else ''
+	end as Locator,
+1 as ISPRIMARY,
+'Fax' as Type,
+v.vendorpartynumber, '' as description
+from GWC.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+where pm2.VENDSTTS =1
+and pm2.FAXNUMBR != ''
+and pm2.FAXNUMBR not like '0%'
+
+Union
+
+Select  
+
+case
+	when pm2.PHNUMBR1 != ''
+		then  SubString(left(pm2.PHNUMBR1,10),1,3) + '-' + (SubString(left(pm2.PHNUMBR1,10),4,3)) + '-' + (SubString(left(pm2.PHNUMBR1,10),7,4)) 
+	else ''
+	end as Locator,
+1 as ISPRIMARY,
+'Phone' as Type,
+v.vendorpartynumber, '' as description
+from Blue.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber 
+where pm2.VENDSTTS =1
+and pm2.PHNUMBR1 != ''
+and pm2.PHNUMBR1 not like '0%'
+
+Union
+
+Select  
+
+case
+	when pm2.PHNUMBR2 != ''
+		then  SubString(left(pm2.PHNUMBR2,10),1,3) + '-' + (SubString(left(pm2.PHNUMBR2,10),4,3)) + '-' + (SubString(left(pm2.PHNUMBR2,10),7,4)) 
+	else ''
+	end as Locator,
+0 as ISPRIMARY,
+'Phone' as Type,
+v.vendorpartynumber, '' as description
+from Blue.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+where pm2.VENDSTTS =1
+and pm2.PHNUMBR2 != ''
+and pm2.PHNUMBR2 not like '0%'
+
+ Union
+
+Select 
+
+case
+	when pm2.PHONE3 != ''
+		then  SubString(left(pm2.PHONE3,10),1,3) + '-' + (SubString(left(pm2.PHONE3,10),4,3)) + '-' + (SubString(left(pm2.PHONE3,10),7,4)) 
+	else ''
+	end as Locator,
+0 as ISPRIMARY,
+'Phone' as Type,
+v.vendorpartynumber, '' as description
+from Blue.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+where pm2.VENDSTTS =1
+and pm2.PHONE3 != ''
+and pm2.PHONE3 not like '0%'
+
+Union
+
+Select  
+
+case
+	when pm2.FAXNUMBR != ''
+		then  SubString(left(pm2.FAXNUMBR,10),1,3) + '-' + (SubString(left(pm2.FAXNUMBR,10),4,3)) + '-' + (SubString(left(pm2.FAXNUMBR,10),7,4)) 
+	else ''
+	end as Locator,
+1 as ISPRIMARY,
+'Fax' as Type,
+v.vendorpartynumber, '' as description
+from Blue.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+where pm2.VENDSTTS =1
+and pm2.FAXNUMBR != ''
+and pm2.FAXNUMBR not like '0%'
+
+
+Union
+
+Select 
+
+case
+	when pm2.PHNUMBR1 != ''
+		then  SubString(left(pm2.PHNUMBR1,10),1,3) + '-' + (SubString(left(pm2.PHNUMBR1,10),4,3)) + '-' + (SubString(left(pm2.PHNUMBR1,10),7,4)) 
+	else ''
+	end as Locator,
+1 as ISPRIMARY,
+'Phone' as Type,
+v.vendorpartynumber, '' as description
+from Excel.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+where pm2.VENDSTTS =1
+and pm2.PHNUMBR1 != ''
+and pm2.PHNUMBR1 not like '0%'
+
+Union
+
+Select 
+
+case
+	when pm2.PHNUMBR2 != ''
+		then  SubString(left(pm2.PHNUMBR2,10),1,3) + '-' + (SubString(left(pm2.PHNUMBR2,10),4,3)) + '-' + (SubString(left(pm2.PHNUMBR2,10),7,4)) 
+	else ''
+	end as Locator,
+0 as ISPRIMARY,
+'Phone' as Type,
+v.vendorpartynumber, '' as description
+from Excel.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+where pm2.VENDSTTS =1
+and pm2.PHNUMBR2 != ''
+and pm2.PHNUMBR2 not like '0%'
+
+ Union
+
+Select 
+
+case
+	when pm2.PHONE3 != ''
+		then  SubString(left(pm2.PHONE3,10),1,3) + '-' + (SubString(left(pm2.PHONE3,10),4,3)) + '-' + (SubString(left(pm2.PHONE3,10),7,4)) 
+	else ''
+	end as Locator,
+0 as ISPRIMARY,
+'Phone' as Type,
+v.vendorpartynumber, '' as description
+from Excel.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+where pm2.VENDSTTS =1
+and pm2.PHONE3 != ''
+and pm2.PHONE3 not like '0%'
+
+Union
+
+Select 
+
+case
+	when pm2.FAXNUMBR != ''
+		then  SubString(left(pm2.FAXNUMBR,10),1,3) + '-' + (SubString(left(pm2.FAXNUMBR,10),4,3)) + '-' + (SubString(left(pm2.FAXNUMBR,10),7,4)) 
+	else ''
+	end as Locator,
+1 as ISPRIMARY,
+'Fax' as Type,
+v.vendorpartynumber, '' as description
+from Excel.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+where pm2.VENDSTTS =1
+and pm2.FAXNUMBR != ''
+and pm2.FAXNUMBR not like '0%'
+
+
+Union
+
+Select  
+
+case
+	when pm2.PHNUMBR1 != ''
+		then  SubString(left(pm2.PHNUMBR1,10),1,3) + '-' + (SubString(left(pm2.PHNUMBR1,10),4,3)) + '-' + (SubString(left(pm2.PHNUMBR1,10),7,4)) 
+	else ''
+	end as Locator,
+1 as ISPRIMARY,
+'Phone' as Type,
+v.vendorpartynumber, '' as description
+from GSS.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+where pm2.VENDSTTS =1
+and pm2.PHNUMBR1 != ''
+and pm2.PHNUMBR1 not like '0%'
+
+Union
+
+Select  
+
+case
+	when pm2.PHNUMBR2 != ''
+		then  SubString(left(pm2.PHNUMBR2,10),1,3) + '-' + (SubString(left(pm2.PHNUMBR2,10),4,3)) + '-' + (SubString(left(pm2.PHNUMBR2,10),7,4)) 
+	else ''
+	end as Locator,
+0 as ISPRIMARY,
+'Phone' as Type,
+v.vendorpartynumber, '' as description
+from GSS.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+where pm2.VENDSTTS =1
+and pm2.PHNUMBR2 != ''
+and pm2.PHNUMBR2 not like '0%'
+
+ Union
+
+Select  
+
+case
+	when pm2.PHONE3 != ''
+		then  SubString(left(pm2.PHONE3,10),1,3) + '-' + (SubString(left(pm2.PHONE3,10),4,3)) + '-' + (SubString(left(pm2.PHONE3,10),7,4)) 
+	else ''
+	end as Locator,
+0 as ISPRIMARY,
+'Phone' as Type,
+v.vendorpartynumber, '' as description
+from GSS.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+where pm2.VENDSTTS =1
+and pm2.PHONE3 != ''
+and pm2.PHONE3 not like '0%'
+
+Union
+
+Select  
+
+case
+	when pm2.FAXNUMBR != ''
+		then  SubString(left(pm2.FAXNUMBR,10),1,3) + '-' + (SubString(left(pm2.FAXNUMBR,10),4,3)) + '-' + (SubString(left(pm2.FAXNUMBR,10),7,4)) 
+	else ''
+	end as Locator,
+1 as ISPRIMARY,
+'Fax' as Type,
+v.vendorpartynumber, '' as description
+from GSS.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+where pm2.VENDSTTS =1
+and pm2.FAXNUMBR != ''
+and pm2.FAXNUMBR not like '0%'
+			

@@ -1,0 +1,16 @@
+select 
+'' as JournalBatchNumber,
+'' as LineNumber,
+P.DOCAMNT AS CREDIT, 
+p.DOCNUMBR as INVOICE,
+P.INVOICERECEIPTDATE AS INVOICEDATE,
+p.DUEDATE,
+p.VCHRNMBR as voucher,
+p.VENDORID as accountdisplayvalue,
+'vend' as AccountType,
+p.PYMTRMID as TermsOfPayment,
+'USD' as Currency
+
+--bring them over with today's date, just try to use their voucher numbers, currency USD
+from PM20000 p
+where p.DOCTYPE = 1
