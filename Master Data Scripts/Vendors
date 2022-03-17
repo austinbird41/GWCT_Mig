@@ -1,10 +1,13 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[Vendors_GPToD365DB]    Script Date: 3/14/2022 9:21:45 PM ******/
+
+/****** Object:  StoredProcedure [dbo].[Vendors_GPToD365DB]    Script Date: 3/17/2022 8:08:43 AM ******/
 SET ANSI_NULLS ON
 GO
+
 SET QUOTED_IDENTIFIER ON
 GO
+
 
 /*
 For all new goods vendors (we will likely use the vendor group once we get that mapping figured out) 
@@ -53,7 +56,7 @@ Concat('Party-', 'GICT-',VENDORID) as VendorPartyNumber,
 vt.VENDORID as vendoraccountnumber,
 vendname as vendorsearchname,
 vendname as vendororganizationname,
-	case 
+	ISNULL((case 
 		when ACNMVNDR = 'New goods'
 			then '100'
 		when ACNMVNDR = 'Rent'
@@ -76,7 +79,7 @@ vendname as vendororganizationname,
 			then '850'
 		when ACNMVNDR = 'Garnishments'
 			then 900
-	end as VendorGroupID,
+	end),'') as VendorGroupID,
 'USD' as CurrencyCode,
 --PYMTRMID as DEFAULTPAYMENTTERMSNAME,
 vt.COMMENT1 as DEFAULTPAYMENTTERMSNAME,
@@ -119,7 +122,7 @@ Concat('Party-', 'BLUE-',VENDORID) as VendorPartyNumber,
 vt.VENDORID as vendoraccountnumber,
 vendname as vendorsearchname,
 vendname as vendororganizationname,
-	case 
+	ISNULL((case 
 		when ACNMVNDR = 'New goods'
 			then '100'
 		when ACNMVNDR = 'Rent'
@@ -142,7 +145,7 @@ vendname as vendororganizationname,
 			then '850'
 		when ACNMVNDR = 'Garnishments'
 			then 900
-	end as VendorGroupID,
+	end),'') as VendorGroupID,
 
 'USD' as CurrencyCode,
 --PYMTRMID as DEFAULTPAYMENTTERMSNAME,
@@ -187,7 +190,7 @@ Concat('Party-', 'GWFD-',VENDORID) as VendorPartyNumber,
 vt.VENDORID as vendoraccountnumber,
 vendname as vendorsearchname,
 vendname as vendororganizationname,
-	case 
+	ISNULL((case 
 		when ACNMVNDR = 'New goods'
 			then '100'
 		when ACNMVNDR = 'Rent'
@@ -210,7 +213,7 @@ vendname as vendororganizationname,
 			then '850'
 		when ACNMVNDR = 'Garnishments'
 			then 900
-	end as VendorGroupID,
+	end),'') as VendorGroupID,
 
 'USD' as CurrencyCode,
 --PYMTRMID as DEFAULTPAYMENTTERMSNAME,
@@ -291,7 +294,7 @@ vendname as vendororganizationname,
 	--		then '600'
 	--	else '700'
 	--end as VendorGroupID,
-	case 
+	ISNULL((case 
 		when ACNMVNDR = 'New goods'
 			then '100'
 		when ACNMVNDR = 'Rent'
@@ -314,7 +317,7 @@ vendname as vendororganizationname,
 			then '850'
 		when ACNMVNDR = 'Garnishments'
 			then 900
-	end as VendorGroupID,
+	end),'') as VendorGroupID,
 
 'USD' as CurrencyCode,
 --PYMTRMID as DEFAULTPAYMENTTERMSNAME,
@@ -350,5 +353,8 @@ CREDTLMT as CreditRating,
 ,'' AS BANKACCOUNTID --CHEKBKID 
 from gss.dbo.PM00200 vt
 where vt.vendstts = 1
+
+
+GO
 
 

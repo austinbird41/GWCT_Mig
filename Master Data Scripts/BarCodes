@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[BarCodes_GPToD365DB]    Script Date: 3/14/2022 9:14:18 PM ******/
+/****** Object:  StoredProcedure [dbo].[BarCodes_GPToD365DB]    Script Date: 3/15/2022 11:44:15 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -23,7 +23,7 @@ select
 item as ItemNumber,
 0 as ProductQuantity,
 'ea' as PRODUCTQUANTITYUNITSYMBOL,
-'' as BARCODESETUPID,
+Concat('UCC-12-',Cast(row_number() OVER(Partition by item ORDER BY item) AS NVARCHAR(10) ))  as BARCODESETUPID,
 code as BarCode,
 0 ISDEFAULTSCANNEDBARCODE,
 0 ISDEFAULTPRINTEDBARCODE,
@@ -35,5 +35,6 @@ FROM gwc.dbo.[IV00101] I
 left join gwc.dbo.GL00105 gl5
 on gl5.ACTINDX = i.IVIVINDX
 WHERE I.ITEMTYPE = 1
-AND I.ITMCLSCD != 'Delete'))
+AND I.ITMCLSCD != 'Delete')
+)
 
