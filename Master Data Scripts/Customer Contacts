@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[CustomerContacts_GPTOD365DB]    Script Date: 3/14/2022 9:15:07 PM ******/
+/****** Object:  StoredProcedure [dbo].[CustomerContacts_GPTOD365DB]    Script Date: 3/18/2022 2:31:17 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -22,7 +22,7 @@ left(rm2.PHONE1,10) as Locator,
 rm1.partynumber as PartyNumber
 from gwc.dbo.RM00102 rm2
  join D365Migration.dbo.Customers rm1
- on rm1.customeraccount = rm2.CUSTNMBR
+ on rm1.salesaccountnumber = rm2.CUSTNMBR
  where rm2.phone1 != ''
  and rm2.phone1 not like '0%'
 
@@ -36,7 +36,7 @@ left(rm2.PHONE2,10) as Locator,
 rm1.partynumber
 from gwc.dbo.RM00102 rm2
  join d365migration.dbo.customers rm1
- on rm1.customeraccount = rm2.CUSTNMBR
+ on rm1.salesaccountnumber = rm2.CUSTNMBR
  where 
  rm2.phone2  != ''
   and rm2.phone2 not like '0%'
@@ -51,10 +51,10 @@ left(rm2.PHONE3,10) as Locator,
 rm1.partynumber
 from gwc.dbo.RM00102 rm2
  join d365migration.dbo.customers rm1
- on rm1.customeraccount = rm2.CUSTNMBR
+ on rm1.salesaccountnumber = rm2.CUSTNMBR
  where 
  rm2.phone3  != ''
-  and rm2.phone2 not like '0%'
+  and rm2.phone3 not like '0%'
 
 
 Union
@@ -67,7 +67,7 @@ left(rm2.FAX,10) as Locator,
 rm1.partynumber
 from gwc.dbo.RM00102 rm2
  join d365migration.dbo.customers rm1
- on rm1.customeraccount = rm2.CUSTNMBR
+ on rm1.salesaccountnumber = rm2.CUSTNMBR
  where 
  rm2.fax != ''
   and rm2.fax not like '0%'
@@ -82,7 +82,7 @@ left(rm2.PHONE1,10) as Locator,
 rm1.partynumber
 from blue.dbo.RM00102 rm2
  join d365migration.dbo.customers rm1
- on rm1.customeraccount = rm2.CUSTNMBR
+ on rm1.salesaccountnumber = rm2.CUSTNMBR
  where 
 rm2.phone1 != ''
  and rm2.phone1 not like '0%'
@@ -97,7 +97,7 @@ left(rm2.PHONE2,10) as Locator,
 rm1.partynumber
 from blue.dbo.RM00102 rm2
  join d365migration.dbo.customers rm1
- on rm1.customeraccount = rm2.CUSTNMBR
+ on rm1.salesaccountnumber = rm2.CUSTNMBR
  where 
  rm2.phone2  != ''
   and rm2.phone2 not like '0%'
@@ -112,10 +112,10 @@ left(rm2.PHONE3,10) as Locator,
 rm1.partynumber
 from blue.dbo.RM00102 rm2
  join d365migration.dbo.customers rm1
- on rm1.customeraccount = rm2.CUSTNMBR
+ on rm1.salesaccountnumber = rm2.CUSTNMBR
  where 
  rm2.phone3  != ''
-  and rm2.phone2 not like '0%'
+  and rm2.phone3 not like '0%'
 
 
 Union
@@ -128,7 +128,7 @@ left(rm2.FAX,10) as Locator,
 rm1.partynumber
 from blue.dbo.RM00102 rm2
  join d365migration.dbo.customers rm1
- on rm1.customeraccount = rm2.CUSTNMBR
+ on rm1.salesaccountnumber = rm2.CUSTNMBR
  where 
  rm2.fax != ''
   and rm2.fax not like '0%'
@@ -143,7 +143,7 @@ left(rm2.PHONE1,10) as Locator,
 rm1.partynumber
 from excel.dbo.RM00102 rm2
 join d365migration.dbo.customers rm1
- on rm1.customeraccount = rm2.CUSTNMBR
+ on rm1.salesaccountnumber = rm2.CUSTNMBR
  where 
 rm2.phone1 != ''
  and rm2.phone1 not like '0%'
@@ -158,7 +158,7 @@ left(rm2.PHONE2,10) as Locator,
 rm1.partynumber
 from excel.dbo.RM00102 rm2
 join d365migration.dbo.customers rm1
- on rm1.customeraccount = rm2.CUSTNMBR
+ on rm1.salesaccountnumber = rm2.CUSTNMBR
  where 
  rm2.phone2  != ''
   and rm2.phone2 not like '0%'
@@ -173,10 +173,10 @@ left(rm2.PHONE3,10) as Locator,
 rm1.partynumber
 from excel.dbo.RM00102 rm2
 join d365migration.dbo.customers rm1
- on rm1.customeraccount = rm2.CUSTNMBR
+ on rm1.salesaccountnumber = rm2.CUSTNMBR
  where 
  rm2.phone3  != ''
-  and rm2.phone2 not like '0%'
+  and rm2.phone3 not like '0%'
 
 
 Union
@@ -189,7 +189,7 @@ left(rm2.FAX,10) as Locator,
 rm1.partynumber
 from excel.dbo.RM00102 rm2
 join d365migration.dbo.customers rm1
- on rm1.customeraccount = rm2.CUSTNMBR
+ on rm1.salesaccountnumber = rm2.CUSTNMBR
  where 
  rm2.fax != ''
   and rm2.fax not like '0%'
@@ -207,7 +207,7 @@ left(rm2.PHONE1,10) as Locator,
 rm1.partynumber
 from gss.dbo.RM00102 rm2
  join d365migration.dbo.customers rm1
- on rm1.customeraccount = rm2.CUSTNMBR
+ on rm1.salesaccountnumber = rm2.CUSTNMBR
  where 
 rm2.phone1 != ''
  and rm2.phone1 not like '0%'
@@ -222,7 +222,7 @@ left(rm2.PHONE2,10) as Locator,
 rm1.partynumber
 from gss.dbo.RM00102 rm2
  join d365migration.dbo.customers rm1
- on rm1.customeraccount = rm2.CUSTNMBR
+ on rm1.salesaccountnumber = rm2.CUSTNMBR
  where 
  rm2.phone2  != ''
   and rm2.phone2 not like '0%'
@@ -237,10 +237,10 @@ left(rm2.PHONE3,10) as Locator,
 rm1.partynumber
 from gss.dbo.RM00102 rm2
  join d365migration.dbo.customers rm1
- on rm1.customeraccount = rm2.CUSTNMBR
+ on rm1.salesaccountnumber = rm2.CUSTNMBR
  where 
  rm2.phone3  != ''
-  and rm2.phone2 not like '0%'
+  and rm2.phone3 not like '0%'
 
 
 Union
@@ -253,7 +253,7 @@ left(rm2.FAX,10) as Locator,
 rm1.partynumber
 from gss.dbo.RM00102 rm2
  join d365migration.dbo.customers rm1
- on rm1.customeraccount = rm2.CUSTNMBR
+ on rm1.salesaccountnumber = rm2.CUSTNMBR
  where 
  rm2.fax != ''
   and rm2.fax not like '0%'

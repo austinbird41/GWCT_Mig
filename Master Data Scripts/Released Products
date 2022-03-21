@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[ReleasedProducts_GPToD365DB]    Script Date: 3/14/2022 9:20:44 PM ******/
+/****** Object:  StoredProcedure [dbo].[ReleasedProducts_GPToD365DB]    Script Date: 3/18/2022 9:33:19 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -44,17 +44,9 @@ INSERT INTO [dbo].[RELEASEDPRODUCTS]
 	  'Ea' AS SALESUNITSYMBOL, 
 	  'Ea' as inventoryunitsymbol,
 	  Case
-		when I.USCATVLS_1 in ('Men''s', 'Children''s', 'unisex', 'WOMEN''S')
-			then '010'
-		when I.USCATVLS_1 in ('Electonics')
-			then '020'
-		when I.USCATVLS_1 in ('LAWN&GARDN ', 'MATTRESSES', 'Household','HOME DÉCOR')
-			then '030'
-		when I.USCATVLS_1 in ('SEASONAL', 'ARTS CRAFT', 'MISC', 'TOY')
-			then '050'
-		when I.USCATVLS_1 in ('PET SUPPLY')
-			then '060'
-		ELSE '050'
+		when USCATVLS_2 = 'Halloween'
+			then '100'
+		ELSE '200'
 	end as productgroupid,
 		'Product' AS PRODUCTSUBTYPE, --Product
 		case

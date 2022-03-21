@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[CustomerAddress_GPToD365DB]    Script Date: 3/14/2022 9:15:03 PM ******/
+/****** Object:  StoredProcedure [dbo].[CustomerAddress_GPToD365DB]    Script Date: 3/18/2022 2:25:09 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -12,8 +12,9 @@ AS
 
 
 INSERT INTO [dbo].[CustomerAddress]
-           ([dataareaid]
-           ,[CustomerAccount]
+           (addresslocationid,
+		   [dataareaid]
+           ,[CustomerAccountNumber]
            ,[AddressStreet]
            ,[Addressdescription]
            ,[AddressCity]
@@ -22,8 +23,9 @@ INSERT INTO [dbo].[CustomerAddress]
            ,[AddressCountryRegionId]
            ,[CustomerLegalEntityId])
 select 
+CAST ( (ROW_NUMBER() OVER(ORDER BY r2.CUSTNMBR ASC)) AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
 'GICT' as DataAreaId,
-trim(r2.CUSTNMBR) as CustomerAccountNumber, --CustomerAccountNumber
+(select salesaccountnumber from D365Migration.dbo.Customers where CustomerAccount = trim(r2.CUSTNMBR) and dataareaid = 'gict') as CustomerAccountNumber, --CustomerAccountNumber
  replace(REPLACE ( REPLACE ( CONCAT(Trim(r2.address1), ' ',Trim(r2.address2), ' ', Trim(r2.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
 r1.CUSTNAME as Addressdescription,
  --r2.VNDCNTCT,
@@ -40,14 +42,16 @@ end AddressCountryRegionId,
 join gwc.dbo.RM00101 r1
 on r1.CUSTNMBR = r2.CUSTNMBR
 where r1.INACTIVE = 0
-and [CUSTCLAS] != 'non-tax'
+--and [CUSTCLAS] != 'non-tax'
+and comment1 in ('1500', '1400','1000')
 and CONCAT(r2.address1,r2.address2,r2.address3) != ''
 
 union
 
 select 
+CAST ( (ROW_NUMBER() OVER(ORDER BY r2.CUSTNMBR ASC)) AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
 'BLUE' as DataAreaId,
-trim(r2.CUSTNMBR) as CustomerAccountNumber, --CustomerAccountNumber
+(select salesaccountnumber from D365Migration.dbo.Customers where CustomerAccount = trim(r2.CUSTNMBR) and dataareaid = 'blue') as CustomerAccountNumber, --CustomerAccountNumber
  replace(REPLACE ( REPLACE ( CONCAT(Trim(r2.address1), ' ',Trim(r2.address2), ' ', Trim(r2.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
 r1.CUSTNAME as Addressdescription,
  --r2.VNDCNTCT,
@@ -64,15 +68,16 @@ end AddressCountryRegionId,
 join blue.dbo.RM00101 r1
 on r1.CUSTNMBR = r2.CUSTNMBR
 where r1.INACTIVE = 0
-and [CUSTCLAS] != 'non-tax'
+--and [CUSTCLAS] != 'non-tax'
 and CONCAT(r2.address1,r2.address2,r2.address3) != ''
 
 
 union
 
 select 
+CAST ( (ROW_NUMBER() OVER(ORDER BY r2.CUSTNMBR ASC)) AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
 'GWFD' as DataAreaId,
-trim(r2.CUSTNMBR) as CustomerAccountNumber, --CustomerAccountNumber
+(select salesaccountnumber from D365Migration.dbo.Customers where CustomerAccount = trim(r2.CUSTNMBR) and dataareaid = 'GWFD') as CustomerAccountNumber, --CustomerAccountNumber
  replace(REPLACE ( REPLACE ( CONCAT(Trim(r2.address1), ' ',Trim(r2.address2), ' ', Trim(r2.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
 r1.CUSTNAME  as Addressdescription,
  --r2.VNDCNTCT,
@@ -89,15 +94,16 @@ end AddressCountryRegionId,
 join excel.dbo.RM00101 r1
 on r1.CUSTNMBR = r2.CUSTNMBR
 where r1.INACTIVE = 0
-and [CUSTCLAS] != 'non-tax'
+--and [CUSTCLAS] != 'non-tax'
 and CONCAT(r2.address1,r2.address2,r2.address3) != ''
 
 
 union
 
 select 
+CAST ( (ROW_NUMBER() OVER(ORDER BY r2.CUSTNMBR ASC)) AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
 'GTS' as dataareaid,
-trim(r2.CUSTNMBR) as CustomerAccountNumber, --CustomerAccountNumber
+(select salesaccountnumber from D365Migration.dbo.Customers where CustomerAccount = trim(r2.CUSTNMBR) and dataareaid = 'GTS') as CustomerAccountNumber, --CustomerAccountNumber
  replace(REPLACE ( REPLACE ( CONCAT(Trim(r2.address1), ' ',Trim(r2.address2), ' ', Trim(r2.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
 r1.CUSTNAME as Addressdescription,
  --r2.VNDCNTCT,
@@ -114,6 +120,6 @@ end AddressCountryRegionId,
 join gss.dbo.RM00101 r1
 on r1.CUSTNMBR = r2.CUSTNMBR
 where r1.INACTIVE = 0
-and [CUSTCLAS] != 'non-tax'
+--and [CUSTCLAS] != 'non-tax'
 and CONCAT(r2.address1,r2.address2,r2.address3) != ''
 

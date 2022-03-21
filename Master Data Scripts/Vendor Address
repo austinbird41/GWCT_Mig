@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[VendorAddress_GPToD365DB]    Script Date: 3/14/2022 9:15:18 PM ******/
+/****** Object:  StoredProcedure [dbo].[VendorAddress_GPToD365DB]    Script Date: 3/17/2022 8:34:29 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON

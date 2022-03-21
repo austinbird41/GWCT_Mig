@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[OnHandInventory_GPToD365DB]    Script Date: 3/14/2022 9:19:26 PM ******/
+/****** Object:  StoredProcedure [dbo].[OnHandInventory_GPToD365DB]    Script Date: 3/18/2022 10:12:07 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -21,7 +21,7 @@ INSERT INTO [dbo].[OnHandInventory]
 	 (
 select 
 	'GICT',
-    'IMIG-' + CAST ( (rank() OVER(ORDER BY I2.locncode)) AS NVARCHAR(10)) AS JournalNumber,
+    'IMOV-' + CAST ( (rank() OVER(ORDER BY I2.locncode)) AS NVARCHAR(10)) AS JournalNumber,
 	(row_number() OVER(Partition by i2.locncode ORDER BY I2.locncode)) as LineNumber,
 	i2.ITEMNMBR as ItemNumber, 
 	'10' AS INVENTORYSITEID, 

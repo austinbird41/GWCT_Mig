@@ -1,10 +1,8 @@
 USE [D365Migration]
 GO
-
-/****** Object:  StoredProcedure [dbo].[Vendors_GPToD365DB]    Script Date: 3/17/2022 8:08:43 AM ******/
+/****** Object:  StoredProcedure [dbo].[Vendors_GPToD365DB]    Script Date: 3/18/2022 2:34:11 PM ******/
 SET ANSI_NULLS ON
 GO
-
 SET QUOTED_IDENTIFIER ON
 GO
 
@@ -48,6 +46,7 @@ INSERT INTO [dbo].[Vendors]
            ,TAX1099NAMETOUSE
 		   ,TAX1099FEDERALTAXID
 		   ,bankaccountId
+		   ,[YourAccountNumber]
 		   )
 
 select 
@@ -79,6 +78,7 @@ vendname as vendororganizationname,
 			then '850'
 		when ACNMVNDR = 'Garnishments'
 			then 900
+		else '100'
 	end),'') as VendorGroupID,
 'USD' as CurrencyCode,
 --PYMTRMID as DEFAULTPAYMENTTERMSNAME,
@@ -93,24 +93,24 @@ case
 end as IsReportingTax1099,
 CREDTLMT as CreditRating,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then '100'
 		else ''
 	end as DEFAULTPROCUMENTWAREHOUSEID,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then '10'
 		else ''
 	end as DEFAULTPURCHASESITEID,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then 1
 		else ''
 	end as VENDORINVOICELINEMATCHINGPOLICY
 ,VNDCHKNM as TAX1099DOINGBUSINESSASNAME
 ,1 as TAX1099NAMETOUSE
 ,TXIDNMBR AS TAX1099FEDERALTAXID
-,'' AS BANKACCOUNTID --CHEKBKID
+,'' AS BANKACCOUNTID , vt.vendorId as YourAccountNumber
 from gwc.dbo.PM00200 vt
 where vt.vendstts = 1
 
@@ -145,6 +145,7 @@ vendname as vendororganizationname,
 			then '850'
 		when ACNMVNDR = 'Garnishments'
 			then 900
+		else '100'
 	end),'') as VendorGroupID,
 
 'USD' as CurrencyCode,
@@ -160,17 +161,17 @@ case
 end as IsReportingTax1099,
 CREDTLMT as CreditRating,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then '100'
 		else ''
 	end as DEFAULTPROCUMENTWAREHOUSEID,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then '10'
 		else ''
 	end as DEFAULTPURCHASESITEID,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then 1
 		else ''
 	end as VENDORINVOICELINEMATCHINGPOLICY
@@ -178,7 +179,7 @@ CREDTLMT as CreditRating,
 ,1 as TAX1099NAMETOUSE
 ,TXIDNMBR AS TAX1099FEDERALTAXID
 
-,'' AS BANKACCOUNTID --CHEKBKID 
+,'' AS BANKACCOUNTID , vt.vendorId as YourAccountNumber 
 from blue.dbo.PM00200 vt
 where vt.vendstts = 1
 
@@ -213,6 +214,7 @@ vendname as vendororganizationname,
 			then '850'
 		when ACNMVNDR = 'Garnishments'
 			then 900
+		else '100'
 	end),'') as VendorGroupID,
 
 'USD' as CurrencyCode,
@@ -228,17 +230,17 @@ case
 end as IsReportingTax1099,
 CREDTLMT as CreditRating ,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then '100'
 		else ''
 	end as DEFAULTPROCUMENTWAREHOUSEID,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then '10'
 		else ''
 	end as DEFAULTPURCHASESITEID,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then 1
 		else ''
 	end as VENDORINVOICELINEMATCHINGPOLICY
@@ -246,7 +248,7 @@ CREDTLMT as CreditRating ,
 ,1 as TAX1099NAMETOUSE
 ,TXIDNMBR AS TAX1099FEDERALTAXID
 
-,'' AS BANKACCOUNTID --CHEKBKID
+,'' AS BANKACCOUNTID , vt.vendorId as YourAccountNumber
 from excel.dbo.PM00200 vt
 where vt.vendstts = 1
 
@@ -280,7 +282,7 @@ vendname as vendororganizationname,
 --end as PrimaryPhoneNumber,
 --FAXNUMBR as PrimaryFaxNumber,
 	--case 
-	--	when VNDCLSID = 'New goods'
+	--	when ACNMVNDR = 'New goods'
 	--		then '100'
 	--	when VNDCLSID = 'Rent'
 	--		then '200'
@@ -317,6 +319,7 @@ vendname as vendororganizationname,
 			then '850'
 		when ACNMVNDR = 'Garnishments'
 			then 900
+		else '100'
 	end),'') as VendorGroupID,
 
 'USD' as CurrencyCode,
@@ -332,17 +335,17 @@ case
 end as IsReportingTax1099,
 CREDTLMT as CreditRating,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then '100'
 		else ''
 	end as DEFAULTPROCUMENTWAREHOUSEID,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then '10'
 		else ''
 	end as DEFAULTPURCHASESITEID,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then 1
 		else ''
 	end as VENDORINVOICELINEMATCHINGPOLICY
@@ -350,11 +353,8 @@ CREDTLMT as CreditRating,
 ,1 as TAX1099NAMETOUSE
 ,TXIDNMBR AS TAX1099FEDERALTAXID
 
-,'' AS BANKACCOUNTID --CHEKBKID 
+,'' AS BANKACCOUNTID , vt.vendorId as YourAccountNumber 
 from gss.dbo.PM00200 vt
 where vt.vendstts = 1
-
-
-GO
 
 
