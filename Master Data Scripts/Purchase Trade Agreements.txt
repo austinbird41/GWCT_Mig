@@ -1,0 +1,67 @@
+USE [D365Migration]
+GO
+
+/****** Object:  StoredProcedure [dbo].[PurchaseTradeAgreement_GPToD365DB]    Script Date: 3/18/2022 12:59:21 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+CREATE Procedure [dbo].[PurchaseTradeAgreement_GPToD365DB]
+as
+INSERT INTO [dbo].[PurchaseTradeAgreement]
+           ([DATAAREAID],
+		   [TRADEAGREEMENTJOURNALNUMBER],
+		   [LINENUMBER],
+		   [QUANTITYUNITSYMBOL], 
+		   [PRICEAPPLICABLEFROMDATE],
+		   [PRICE],
+		   [PRICECURRENCYCODE],
+		   [ITEMCODE],
+		   [PRICESITEID],
+		   [PRICEWAREHOUSEID],
+		   [ITEMNUMBER])
+select  
+'GICT' as DATAAREAID,
+'' AS TRADEAGREEMENTJOURNALNUMBER,
+ROW_NUMBER() OVER(partition by I.ITEMNMBR order by I.ITEMNMBR  desc ) AS LINENUMBER,
+       --T1.quantityamountfrom              AS FROMQUANTITY, 
+       --T1.quantityamountto                AS TOQUANTITY, 
+       'EA'								 AS QUANTITYUNITSYMBOL, 
+       getdate()                        AS PRICEAPPLICABLEFROMDATE, 
+       --T1.todate                          AS PRICEAPPLICABLETODATE, 
+       CURRCOST                           AS PRICE, 
+       'USD'                        AS PRICECURRENCYCODE, 
+	   'Table'							AS ITEMCODE,
+       --T1.markup                          AS FIXEDPRICECHARGES, 
+       --T1.priceunit                       AS SALESPRICEQUANTITY, 
+       --T1.deliverytime                    AS SALESLEADTIMEDAYS, 
+       --T1.disregardleadtime               AS 
+       --WILLDELIVERYDATECONTROLDISREGARDLEADTIME, 
+       --T1.genericcurrency                 AS ISGENERICCURRENCYSEARCHENABLED, 
+       --T1.searchagain                     AS WILLSEARCHCONTINUE, ASK WILL
+ --T2.inventcolorid                   AS PRODUCTCOLORID, 
+ --      T2.configid                        AS PRODUCTCONFIGURATIONID, 
+ --      T2.inventsizeid                    AS PRODUCTSIZEID, 
+ --      T2.inventstyleid                   AS PRODUCTSTYLEID, 
+	    --Case 
+	--when T2.inventsiteid   = 'SLC' then 'BHSLC'
+	--when T2.inventsiteid   = 'AMF' then 'BHAMF'
+	--		when t2.inventsiteid = 'MEX' then 'BHMEX'
+	--else T2.inventsiteid  
+--end AS PriceSiteID, 
+''							as PriceSiteID,
+'' as PriceWarehouseID,
+
+	I.ITEMNMBR     AS ITEMNUMBER
+
+FROM gwc.dbo.[IV00101] I
+--join inventdim T2 on t1.inventdimid=T2.inventdimid and T2.DATAAREAID=T1.DATAAREAID
+left join gwc.dbo.GL00105 gl5
+on gl5.ACTINDX = i.IVIVINDX
+WHERE I.ITEMTYPE = 1
+AND I.ITMCLSCD != 'Delete'
+GO
+
