@@ -1,7 +1,30 @@
+USE [D365Migration]
+GO
+/****** Object:  StoredProcedure [dbo].[OpenARLines_GPToD365DB]    Script Date: 3/21/2022 3:12:32 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER Procedure [dbo].[OpenARLines_GPToD365DB]
+as
+INSERT INTO [dbo].[OpenARLines]
+           ([DataAreaId]
+           ,[JournalBatchNumber]
+           ,[LineNumber]
+           ,[DebitAmount]
+           ,[InvoiceId]
+           ,[DueDate]
+           ,[CustomerAccountDisplayValue]
+           ,[AccountType]
+           ,[TermsOfPayment]
+           ,[Currency]
+           ,[OffsetAccountDisplayValue])
+(
 select 
-CONCAT('Open AR Migration- ', P.BACHNUMB) as Description,
-BACHNUMB as JournalBatchNumber,
-'' as LineNumber,
+'GICT',
+(select  journalbatchnumber from openARHeaders where trim(substring(description, 19, len(description)-1)) = p.BACHNUMB) as JournalBatchNumber,
+row_number() over ( partition by BACHNUMB order by bachnumb ) as LineNumber,
 P.SLSAMNT as DebitTAMOUNT, --or debit?
 p.DOCNUMBR as INVOICEID,
 p.DUEDATE, 
@@ -12,11 +35,6 @@ p.PYMTRMID as TermsOfPayment,
 'USD' as Currency,
 '12000' AS OFFSETACCOUNTDISPLAYVALUE
 
---no vouchers? all old dates?
-
---bring them over with today's date, just try to use their voucher numbers, currency USD
-from RM20101 p
+from GWC.dbo.RM20101 p
 where p.RMDTYPAL = 1
-order by p.BACHNUMB
-
-
+)

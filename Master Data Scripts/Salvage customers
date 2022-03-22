@@ -1,0 +1,37 @@
+
+
+SELECT 'GICT' as DataAreaId,
+	Concat('Party-','GICT-',full_name) as PartyNumber,
+		full_name as CustomerAccount
+		,full_name as OrganizationName
+      ,full_name as NameAlias
+	    ,'1011' as  CustomerGroupID 
+	  ,'AllCust' as AddressBooks
+	  ,e_mail as PRIMARYCONTACTEMAIL
+	  ,
+		case when phone != ''
+			then concat(area_code, '-',phone) 
+		else ''
+		end as PrimaryContactPhone
+       ,Concat(Address, ' ', Address2) as addressstreet
+	  ,case
+		when state = 'on'
+			then 'CAN'
+		else 'USA' 
+	end as AddressCountryRegionId
+      ,city as AddressCity
+      , case
+		when state IN ('ont','CAN')
+			then 'on'
+		else state
+		end  as addressState
+      ,zip as AddressZipCode
+      ,'Net 30' as PaymentTerms
+      ,'USD' as salesCurrencyCode
+	  ,'AllStores' as DiscountPriceGroupId --Price Group, to default once configure
+      ,0 as onHoldstatus
+	 ,''as InvoiceAccount
+	 ,'en-us' as LanguageId
+	  ,date_time as CredManCustomerSince
+from [posdatabase].SiriusSQL.dbo.accounts s
+where acct_name like 'salvage%'

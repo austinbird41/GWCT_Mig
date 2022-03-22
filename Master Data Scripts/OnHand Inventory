@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[OnHandInventory_GPToD365DB]    Script Date: 3/18/2022 10:12:07 AM ******/
+/****** Object:  StoredProcedure [dbo].[OnHandInventory_GPToD365DB]    Script Date: 3/21/2022 2:51:34 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -21,11 +21,15 @@ INSERT INTO [dbo].[OnHandInventory]
 	 (
 select 
 	'GICT',
-    'IMOV-' + CAST ( (rank() OVER(ORDER BY I2.locncode)) AS NVARCHAR(10)) AS JournalNumber,
+    (select top 1 journalnumber from onhandinventoryjournalheaders where defaultwarehouseid=i2.LOCNCODE) AS JournalNumber,
 	(row_number() OVER(Partition by i2.locncode ORDER BY I2.locncode)) as LineNumber,
 	i2.ITEMNMBR as ItemNumber, 
 	'10' AS INVENTORYSITEID, 
-	i2.LOCNCODE as INVENTORYWAREHOUSEID, 
+		case
+		when i2.LOCNCODE like 'new%'
+			then '100'
+		else i2.LOCNCODE
+	end as INVENTORYWAREHOUSEID,
     '' as WarehouseLocationID,
     sum(i2.QTYONHND) as InventoryQuantity,
 	'IMOV' as JournalNameId
@@ -41,5 +45,6 @@ AND I1.ITMCLSCD != 'Delete'
 and i2.QTYONHND != 0
 and i2.RCRDTYPE = 2
 and ACTNUMST like '180%'
+and i2.LOCNCODE !='1102'
 group by i2.ITEMNMBR, i2.LOCNCODE, gl5.ACTNUMST
 )

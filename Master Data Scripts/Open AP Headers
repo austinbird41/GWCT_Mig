@@ -1,9 +1,100 @@
+USE [D365Migration]
+GO
+/****** Object:  StoredProcedure [dbo].[OpenAPHeaders_GPToD365DB]    Script Date: 3/22/2022 10:52:45 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER Procedure [dbo].[OpenAPHeaders_GPToD365DB]
+
+as
+
+INSERT INTO [dbo].[OpenAPHeaders]
+           ([DataAreaId]
+           ,[JournalBatchNumber]
+           ,[JournalName]
+           ,[Description])
+
+
+(
 select distinct
-DOCNUMBR as JournalBatchNumber,
+'GICT',
+case 
+	when len(dense_rank() over (order by p.bachnumb)) = 1
+		then 'GICT-00000' + Cast((dense_rank() over (order by p.bachnumb)) as Nvarchar(10))
+	when len(dense_rank() over (order by p.bachnumb)) = 2
+		then 'GICT-0000' + Cast((dense_rank() over (order by p.bachnumb)) as Nvarchar(10))
+	when len(dense_rank() over (order by p.bachnumb)) = 3
+		then 'GICT-000' + Cast((dense_rank() over (order by p.bachnumb)) as Nvarchar(10))
+	when len(dense_rank() over (order by p.bachnumb)) = 4
+		then 'GICT-00' + Cast((dense_rank() over (order by p.bachnumb)) as Nvarchar(10))
+	end as JournalBatchNumber,
 'VEINV' as JournalName,
 CONCAT('Open AP Migration- ', P.BACHNUMB) as Description
 
 --bring them over with today's date, just try to use their voucher numbers, currency USD
-from PM20000 p
+from GWC.dbo.PM20000 p
 where p.DOCTYPE = 1
-order by p.DOCNUMBR
+union
+
+select distinct
+'GTS',
+case 
+	when len(dense_rank() over (order by p.bachnumb)) = 1
+		then 'GTS-00000' + Cast((dense_rank() over (order by p.bachnumb)) as Nvarchar(10))
+	when len(dense_rank() over (order by p.bachnumb)) = 2
+		then 'GTS-0000' + Cast((dense_rank() over (order by p.bachnumb)) as Nvarchar(10))
+	when len(dense_rank() over (order by p.bachnumb)) = 3
+		then 'GTS-000' + Cast((dense_rank() over (order by p.bachnumb)) as Nvarchar(10))
+	when len(dense_rank() over (order by p.bachnumb)) = 4
+		then 'GTS-00' + Cast((dense_rank() over (order by p.bachnumb)) as Nvarchar(10))
+	end as JournalBatchNumber,
+'VEINV' as JournalName,
+CONCAT('Open AP Migration- ', P.BACHNUMB) as Description
+
+--bring them over with today's date, just try to use their voucher numbers, currency USD
+from gss.dbo.PM20000 p
+where p.DOCTYPE = 1
+union
+select distinct
+'Blue',
+case 
+	when len(dense_rank() over (order by p.bachnumb)) = 1
+		then 'Blue-00000' + Cast((dense_rank() over (order by p.bachnumb)) as Nvarchar(10))
+	when len(dense_rank() over (order by p.bachnumb)) = 2
+		then 'Blue-0000' + Cast((dense_rank() over (order by p.bachnumb)) as Nvarchar(10))
+	when len(dense_rank() over (order by p.bachnumb)) = 3
+		then 'Blue-000' + Cast((dense_rank() over (order by p.bachnumb)) as Nvarchar(10))
+	when len(dense_rank() over (order by p.bachnumb)) = 4
+		then 'Blue-00' + Cast((dense_rank() over (order by p.bachnumb)) as Nvarchar(10))
+	end as JournalBatchNumber,
+'VEINV' as JournalName,
+CONCAT('Open AP Migration- ', P.BACHNUMB) as Description
+
+--bring them over with today's date, just try to use their voucher numbers, currency USD
+from blue.dbo.PM20000 p
+where p.DOCTYPE = 1
+
+union
+
+select distinct
+'GWFD',
+case 
+	when len(dense_rank() over (order by p.bachnumb)) = 1
+		then 'GWFD-00000' + Cast((dense_rank() over (order by p.bachnumb)) as Nvarchar(10))
+	when len(dense_rank() over (order by p.bachnumb)) = 2
+		then 'GWFD-0000' + Cast((dense_rank() over (order by p.bachnumb)) as Nvarchar(10))
+	when len(dense_rank() over (order by p.bachnumb)) = 3
+		then 'GWFD-000' + Cast((dense_rank() over (order by p.bachnumb)) as Nvarchar(10))
+	when len(dense_rank() over (order by p.bachnumb)) = 4
+		then 'GWFD-00' + Cast((dense_rank() over (order by p.bachnumb)) as Nvarchar(10))
+	end as JournalBatchNumber,
+'VEINV' as JournalName,
+CONCAT('Open AP Migration- ', P.BACHNUMB) as Description
+
+--bring them over with today's date, just try to use their voucher numbers, currency USD
+from excel.dbo.PM20000 p
+where p.DOCTYPE = 1
+)
+

@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[PurchaseOrderHeaders_GPToD365DB]    Script Date: 3/14/2022 9:20:02 PM ******/
+/****** Object:  StoredProcedure [dbo].[PurchaseOrderHeaders_GPToD365DB]    Script Date: 3/22/2022 11:50:44 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -29,7 +29,10 @@ INSERT INTO [dbo].[PurchaseOrderHeaders]
            ,[INVOICEADDRESSZIPCODE]
            ,[REQUESTEDDELIVERYDATE]
            ,[CONFIRMEDDELIVERYDATE]
-           ,[FixedDueDate])
+           ,[FixedDueDate],
+			PURCHASEORDERPOOLID,
+			DEFAULTRECEIVINGSITEID,
+			DEFAULTRECEIVINGWAREHOUSEID )
 select 
 'GICT' as dataareaid,
 p.PONUMBEr as PurchaseOrderNumber,
@@ -62,7 +65,18 @@ p.VENDNAME as PurchaseOrderName
 --DATES
 ,p.PRMDATE as REQUESTEDDELIVERYDATE,
 p.PRMSHPDTE  as CONFIRMEDDELIVERYDATE,
-p.REQDATE AS FixedDueDate
+p.REQDATE AS FixedDueDate,
+'Regular' as PURCHASEORDERPOOLID,
+case 
+	when (select v.vendorgroupid from vendors v where v.DataAreaId = 'gict' and v.vendoraccountnumber = p.vendorid) = '100'
+		then (select v.DEFAULTPURCHASESITEID from vendors v where v.DataAreaId = 'gict' and v.vendoraccountnumber = p.vendorid)
+	else ''	
+end as	DEFAULTRECEIVINGSITEID,
+case 
+	when (select v.vendorgroupid from vendors v where v.DataAreaId = 'gict' and v.vendoraccountnumber = p.vendorid) = '100'
+		then (select v.DEFAULTPROCUMENTWAREHOUSEID from vendors v where v.DataAreaId = 'gict' and v.vendoraccountnumber = p.vendorid)
+	else ''	
+	end as DEFAULTRECEIVINGWAREHOUSEID
 --DUEDATE as FixedDueDate,
 --AMOUNTS (only stored at line level in D365)
 --p.REMSUBTO
@@ -111,7 +125,18 @@ p.VENDNAME as PurchaseOrderName
 --DATES
 ,p.PRMDATE as REQUESTEDDELIVERYDATE,
 p.PRMSHPDTE  as CONFIRMEDDELIVERYDATE,
-p.REQDATE AS FixedDueDate
+p.REQDATE AS FixedDueDate,
+'Regular' as PURCHASEORDERPOOLID,
+case 
+	when (select v.vendorgroupid from vendors v where v.DataAreaId = 'gts' and v.vendoraccountnumber = p.vendorid) = '100'
+		then (select v.DEFAULTPURCHASESITEID from vendors v where v.DataAreaId = 'gts' and v.vendoraccountnumber = p.vendorid)
+	else ''	
+end as	DEFAULTRECEIVINGSITEID,
+case 
+	when (select v.vendorgroupid from vendors v where v.DataAreaId = 'gts' and v.vendoraccountnumber = p.vendorid) = '100'
+		then (select v.DEFAULTPROCUMENTWAREHOUSEID from vendors v where v.DataAreaId = 'gts' and v.vendoraccountnumber = p.vendorid)
+	else ''	
+	end as DEFAULTRECEIVINGWAREHOUSEID
 --DUEDATE as FixedDueDate,
 --AMOUNTS (only stored at line level in D365)
 --p.REMSUBTO
@@ -159,7 +184,18 @@ p.VENDNAME as PurchaseOrderName
 --DATES
 ,p.PRMDATE as REQUESTEDDELIVERYDATE,
 p.PRMSHPDTE  as CONFIRMEDDELIVERYDATE,
-p.REQDATE AS FixedDueDate
+p.REQDATE AS FixedDueDate,
+'Regular' as PURCHASEORDERPOOLID,
+case 
+	when (select v.vendorgroupid from vendors v where v.DataAreaId = 'blue' and v.vendoraccountnumber = p.vendorid) = '100'
+		then (select v.DEFAULTPURCHASESITEID from vendors v where v.DataAreaId = 'blue' and v.vendoraccountnumber = p.vendorid)
+	else ''	
+end as	DEFAULTRECEIVINGSITEID,
+case 
+	when (select v.vendorgroupid from vendors v where v.DataAreaId = 'blue' and v.vendoraccountnumber = p.vendorid) = '100'
+		then (select v.DEFAULTPROCUMENTWAREHOUSEID from vendors v where v.DataAreaId = 'blue' and v.vendoraccountnumber = p.vendorid)
+	else ''	
+	end as DEFAULTRECEIVINGWAREHOUSEID
 --DUEDATE as FixedDueDate,
 --AMOUNTS (only stored at line level in D365)
 --p.REMSUBTO
@@ -207,7 +243,18 @@ p.VENDNAME as PurchaseOrderName
 --DATES
 ,p.PRMDATE as REQUESTEDDELIVERYDATE,
 p.PRMSHPDTE  as CONFIRMEDDELIVERYDATE,
-p.REQDATE AS FixedDueDate
+p.REQDATE AS FixedDueDate,
+'Regular' as PURCHASEORDERPOOLID,
+case 
+	when (select v.vendorgroupid from vendors v where v.DataAreaId = 'gwfd' and v.vendoraccountnumber = p.vendorid) = '100'
+		then (select v.DEFAULTPURCHASESITEID from vendors v where v.DataAreaId = 'gwfd' and v.vendoraccountnumber = p.vendorid)
+	else ''	
+end as	DEFAULTRECEIVINGSITEID,
+case 
+	when (select v.vendorgroupid from vendors v where v.DataAreaId = 'gwfd' and v.vendoraccountnumber = p.vendorid) = '100'
+		then (select v.DEFAULTPROCUMENTWAREHOUSEID from vendors v where v.DataAreaId = 'gwfd' and v.vendoraccountnumber = p.vendorid)
+	else ''	
+	end as DEFAULTRECEIVINGWAREHOUSEID
 --DUEDATE as FixedDueDate,
 --AMOUNTS (only stored at line level in D365)
 --p.REMSUBTO

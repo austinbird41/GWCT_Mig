@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[ReleasedProducts_GPToD365DB]    Script Date: 3/18/2022 9:33:19 AM ******/
+/****** Object:  StoredProcedure [dbo].[ReleasedProducts_GPToD365DB]    Script Date: 3/22/2022 12:27:10 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -22,7 +22,7 @@ INSERT INTO [dbo].[RELEASEDPRODUCTS]
            ,[ProductGroupId]
            ,[ProductSubType]
            ,[PrimaryVendorAccountNumber]
-           ,[PurchasePrice]
+           --,[PurchasePrice]
 		   ,[GWCTCATEGORY]
            ,[GWCTCUSTOMERTYPE]
            ,[GWCTISPRODUCTIONPRODUCT]
@@ -131,7 +131,7 @@ INSERT INTO [dbo].[RELEASEDPRODUCTS]
 
 			else ITMGEDSC
 		end as PRIMARYVENDORACCOUNTNUMBER,
-		CURRCOST as PURCHASEPRICE,
+		--CURRCOST as PURCHASEPRICE,
 		    '' as [GWCTCATEGORY]
            ,'' as [GWCTCUSTOMERTYPE]
            ,'' as [GWCTISPRODUCTIONPRODUCT]
@@ -145,130 +145,130 @@ WHERE I.ITEMTYPE = 1
 AND I.ITMCLSCD != 'Delete'
 
 
-Union
+--Union
 
-select distinct
-'GICT' as DataAreaId, 
-poline.ITEMNMBR AS ITEMNUMBER, 
-poline.ITEMNMBR AS ITEMNUMBER, 
-''      AS  STORAGEDIMENSIONGROUPNAME,
-''		AS TRACKINGDIMENSIONGROUPNAME,
-'' as ITEMMODELGROUPID,	
-poline.ITEMNMBR                                 AS SEARCHNAME,
-'Item'		as ProductType,
-'' AS        PURCHASEUNITSYMBOL, 
-'' AS SALESUNITSYMBOL, 
-'' as inventoryunitsymbol,
-'' as productgroupid,
-'Product' AS PRODUCTSUBTYPE, 
-'' as PRIMARYVENDORACCOUNTNUMBER,
-0 PURCHASEPRICE,
-'' as [GWCTCATEGORY]
-,'' as [GWCTCUSTOMERTYPE]
-,'' as [GWCTISPRODUCTIONPRODUCT]
-,'' as [GWCTOCCASION]
-,''  as [GWCTSUBTYPE]
-,'' as [GWCTTYpe]
-from gwc.dbo.POP10110 poLine
-join gwc.dbo.pop10100 poHeader
-on poLine.PONUMBER = poHeader.ponumber
-where poHeader.POSTATUS in  (1,2,3)
-and poheader.VENDORID != ''
-and poline.ITEMNMBR not in (select i.ITEMNMBR
-									FROM gwc.dbo.[IV00101] I
-										left join gwc.dbo.GL00105 gl5
-										on gl5.ACTINDX = i.IVIVINDX
-										WHERE I.ITEMTYPE = 1
-										AND I.ITMCLSCD != 'Delete')
+--select distinct
+--'GICT' as DataAreaId, 
+--poline.ITEMNMBR AS ITEMNUMBER, 
+--poline.ITEMNMBR AS ITEMNUMBER, 
+--''      AS  STORAGEDIMENSIONGROUPNAME,
+--''		AS TRACKINGDIMENSIONGROUPNAME,
+--'' as ITEMMODELGROUPID,	
+--poline.ITEMNMBR                                 AS SEARCHNAME,
+--'Item'		as ProductType,
+--'' AS        PURCHASEUNITSYMBOL, 
+--'' AS SALESUNITSYMBOL, 
+--'' as inventoryunitsymbol,
+--'' as productgroupid,
+--'Product' AS PRODUCTSUBTYPE, 
+--'' as PRIMARYVENDORACCOUNTNUMBER,
+----0 PURCHASEPRICE,
+--'' as [GWCTCATEGORY]
+--,'' as [GWCTCUSTOMERTYPE]
+--,'' as [GWCTISPRODUCTIONPRODUCT]
+--,'' as [GWCTOCCASION]
+--,''  as [GWCTSUBTYPE]
+--,'' as [GWCTTYpe]
+--from gwc.dbo.POP10110 poLine
+--join gwc.dbo.pop10100 poHeader
+--on poLine.PONUMBER = poHeader.ponumber
+--where poHeader.POSTATUS in  (1,2,3)
+--and poheader.VENDORID != ''
+--and poline.ITEMNMBR not in (select i.ITEMNMBR
+--									FROM gwc.dbo.[IV00101] I
+--										left join gwc.dbo.GL00105 gl5
+--										on gl5.ACTINDX = i.IVIVINDX
+--										WHERE I.ITEMTYPE = 1
+--										AND I.ITMCLSCD != 'Delete')
 
-union
+--union
 
-select distinct
-'Blue' as DataAreaId, 
-poline.ITEMNMBR AS ITEMNUMBER, 
-poline.ITEMNMBR AS ITEMNUMBER, 
-''      AS  STORAGEDIMENSIONGROUPNAME,
-''		AS TRACKINGDIMENSIONGROUPNAME,
-'' as ITEMMODELGROUPID,	
-poline.ITEMNMBR                                 AS SEARCHNAME,
-'Item'		as ProductType,
-'' AS        PURCHASEUNITSYMBOL, 
-'' AS SALESUNITSYMBOL, 
-'' as inventoryunitsymbol,
-'' as productgroupid,
-'Product' AS PRODUCTSUBTYPE, 
-'' as PRIMARYVENDORACCOUNTNUMBER,
-0 PURCHASEPRICE,
-'' as [GWCTCATEGORY]
-,'' as [GWCTCUSTOMERTYPE]
-,'' as [GWCTISPRODUCTIONPRODUCT]
-,'' as [GWCTOCCASION]
-,''  as [GWCTSUBTYPE]
-,'' as [GWCTTYpe]
-from blue.dbo.POP10110 poLine
-join blue.dbo.pop10100 poHeader
-on poLine.PONUMBER = poHeader.ponumber
-where poHeader.POSTATUS in  (1,2,3)
-and poheader.VENDORID != ''
+--select distinct
+--'Blue' as DataAreaId, 
+--poline.ITEMNMBR AS ITEMNUMBER, 
+--poline.ITEMNMBR AS ITEMNUMBER, 
+--''      AS  STORAGEDIMENSIONGROUPNAME,
+--''		AS TRACKINGDIMENSIONGROUPNAME,
+--'' as ITEMMODELGROUPID,	
+--poline.ITEMNMBR                                 AS SEARCHNAME,
+--'Item'		as ProductType,
+--'' AS        PURCHASEUNITSYMBOL, 
+--'' AS SALESUNITSYMBOL, 
+--'' as inventoryunitsymbol,
+--'' as productgroupid,
+--'Product' AS PRODUCTSUBTYPE, 
+--'' as PRIMARYVENDORACCOUNTNUMBER,
+----0 PURCHASEPRICE,
+--'' as [GWCTCATEGORY]
+--,'' as [GWCTCUSTOMERTYPE]
+--,'' as [GWCTISPRODUCTIONPRODUCT]
+--,'' as [GWCTOCCASION]
+--,''  as [GWCTSUBTYPE]
+--,'' as [GWCTTYpe]
+--from blue.dbo.POP10110 poLine
+--join blue.dbo.pop10100 poHeader
+--on poLine.PONUMBER = poHeader.ponumber
+--where poHeader.POSTATUS in  (1,2,3)
+--and poheader.VENDORID != ''
 
-union
-
-
-select distinct
-'GTS' as DataAreaId, 
-poline.ITEMNMBR AS ITEMNUMBER, 
-poline.ITEMNMBR AS ITEMNUMBER, 
-''      AS  STORAGEDIMENSIONGROUPNAME,
-''		AS TRACKINGDIMENSIONGROUPNAME,
-'' as ITEMMODELGROUPID,	
-poline.ITEMNMBR                                 AS SEARCHNAME,
-'Item'		as ProductType,
-'' AS        PURCHASEUNITSYMBOL, 
-'' AS SALESUNITSYMBOL, 
-'' as inventoryunitsymbol,
-'' as productgroupid,
-'Product' AS PRODUCTSUBTYPE, 
-'' as PRIMARYVENDORACCOUNTNUMBER,
-0 PURCHASEPRICE,
-'' as [GWCTCATEGORY]
-,'' as [GWCTCUSTOMERTYPE]
-,'' as [GWCTISPRODUCTIONPRODUCT]
-,'' as [GWCTOCCASION]
-,''  as [GWCTSUBTYPE]
-,'' as [GWCTTYpe]
-from GSS.dbo.POP10110 poLine
-join gss.dbo.pop10100 poHeader
-on poLine.PONUMBER = poHeader.ponumber
-where poHeader.POSTATUS in  (1,2,3)
-and poheader.VENDORID != ''
+--union
 
 
-union 
+--select distinct
+--'GTS' as DataAreaId, 
+--poline.ITEMNMBR AS ITEMNUMBER, 
+--poline.ITEMNMBR AS ITEMNUMBER, 
+--''      AS  STORAGEDIMENSIONGROUPNAME,
+--''		AS TRACKINGDIMENSIONGROUPNAME,
+--'' as ITEMMODELGROUPID,	
+--poline.ITEMNMBR                                 AS SEARCHNAME,
+--'Item'		as ProductType,
+--'' AS        PURCHASEUNITSYMBOL, 
+--'' AS SALESUNITSYMBOL, 
+--'' as inventoryunitsymbol,
+--'' as productgroupid,
+--'Product' AS PRODUCTSUBTYPE, 
+--'' as PRIMARYVENDORACCOUNTNUMBER,
+----0 PURCHASEPRICE,
+--'' as [GWCTCATEGORY]
+--,'' as [GWCTCUSTOMERTYPE]
+--,'' as [GWCTISPRODUCTIONPRODUCT]
+--,'' as [GWCTOCCASION]
+--,''  as [GWCTSUBTYPE]
+--,'' as [GWCTTYpe]
+--from GSS.dbo.POP10110 poLine
+--join gss.dbo.pop10100 poHeader
+--on poLine.PONUMBER = poHeader.ponumber
+--where poHeader.POSTATUS in  (1,2,3)
+--and poheader.VENDORID != ''
 
-select distinct
-'GWFD' as DataAreaId, 
-poline.ITEMNMBR AS ITEMNUMBER, 
-poline.ITEMNMBR AS ITEMNUMBER, 
-''      AS  STORAGEDIMENSIONGROUPNAME,
-''		AS TRACKINGDIMENSIONGROUPNAME,
-'' as ITEMMODELGROUPID,	
-poline.ITEMNMBR                                 AS SEARCHNAME,
-'Item'		as ProductType,
-'' AS        PURCHASEUNITSYMBOL, 
-'' AS SALESUNITSYMBOL, 
-'' as inventoryunitsymbol,
-'' as productgroupid,
-'Product' AS PRODUCTSUBTYPE, 
-'' as PRIMARYVENDORACCOUNTNUMBER,
-0 PURCHASEPRICE,
-'' as [GWCTCATEGORY]
-,'' as [GWCTCUSTOMERTYPE]
-,'' as [GWCTISPRODUCTIONPRODUCT]
-,'' as [GWCTOCCASION]
-,''  as [GWCTSUBTYPE]
-,'' as [GWCTTYpe]
-from EXCEL.dbo.POP10110 poLine
-join EXCEL.dbo.pop10100 poHeader
-on poLine.PONUMBER = poHeader.ponumber
-where poHeader.POSTATUS in  (1,2,3)
-and poheader.VENDORID != ''
+
+--union 
+
+--select distinct
+--'GWFD' as DataAreaId, 
+--poline.ITEMNMBR AS ITEMNUMBER, 
+--poline.ITEMNMBR AS ITEMNUMBER, 
+--''      AS  STORAGEDIMENSIONGROUPNAME,
+--''		AS TRACKINGDIMENSIONGROUPNAME,
+--'' as ITEMMODELGROUPID,	
+--poline.ITEMNMBR                                 AS SEARCHNAME,
+--'Item'		as ProductType,
+--'' AS        PURCHASEUNITSYMBOL, 
+--'' AS SALESUNITSYMBOL, 
+--'' as inventoryunitsymbol,
+--'' as productgroupid,
+--'Product' AS PRODUCTSUBTYPE, 
+--'' as PRIMARYVENDORACCOUNTNUMBER,
+----0 PURCHASEPRICE,
+--'' as [GWCTCATEGORY]
+--,'' as [GWCTCUSTOMERTYPE]
+--,'' as [GWCTISPRODUCTIONPRODUCT]
+--,'' as [GWCTOCCASION]
+--,''  as [GWCTSUBTYPE]
+--,'' as [GWCTTYpe]
+--from EXCEL.dbo.POP10110 poLine
+--join EXCEL.dbo.pop10100 poHeader
+--on poLine.PONUMBER = poHeader.ponumber
+--where poHeader.POSTATUS in  (1,2,3)
+--and poheader.VENDORID != ''
