@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[VendorContacts_GPTOD365DB]    Script Date: 3/14/2022 9:15:20 PM ******/
+/****** Object:  StoredProcedure [dbo].[VendorContacts_GPTOD365DB]    Script Date: 3/28/2022 9:38:29 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -23,7 +23,7 @@ case
 1 as ISPRIMARY,
 'Phone' as Type,
 v.vendorpartynumber, '' as description
-from GWC.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber 
+from GWC.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.ouraccountnumber 
 where pm2.VENDSTTS =1
 and pm2.PHNUMBR1 != ''
 and pm2.PHNUMBR1 not like '0%'
@@ -40,7 +40,7 @@ case
 0 as ISPRIMARY,
 'Phone' as Type,
 v.vendorpartynumber, '' as description
-from GWC.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+from GWC.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.OurAccountNumber 
 where pm2.VENDSTTS =1
 and pm2.PHNUMBR2 != ''
 and pm2.PHNUMBR2 not like '0%'
@@ -57,7 +57,7 @@ case
 0 as ISPRIMARY,
 'Phone' as Type,
 v.vendorpartynumber, '' as description
-from GWC.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+from GWC.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.OurAccountNumber 
 where pm2.VENDSTTS =1
 and pm2.PHONE3 != ''
 and pm2.PHONE3 not like '0%'
@@ -74,7 +74,7 @@ case
 1 as ISPRIMARY,
 'Fax' as Type,
 v.vendorpartynumber, '' as description
-from GWC.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+from GWC.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.OurAccountNumber 
 where pm2.VENDSTTS =1
 and pm2.FAXNUMBR != ''
 and pm2.FAXNUMBR not like '0%'
@@ -91,7 +91,7 @@ case
 1 as ISPRIMARY,
 'Phone' as Type,
 v.vendorpartynumber, '' as description
-from Blue.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber 
+from Blue.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.OurAccountNumber 
 where pm2.VENDSTTS =1
 and pm2.PHNUMBR1 != ''
 and pm2.PHNUMBR1 not like '0%'
@@ -108,7 +108,7 @@ case
 0 as ISPRIMARY,
 'Phone' as Type,
 v.vendorpartynumber, '' as description
-from Blue.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+from Blue.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.OurAccountNumber 
 where pm2.VENDSTTS =1
 and pm2.PHNUMBR2 != ''
 and pm2.PHNUMBR2 not like '0%'
@@ -125,7 +125,7 @@ case
 0 as ISPRIMARY,
 'Phone' as Type,
 v.vendorpartynumber, '' as description
-from Blue.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+from Blue.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.OurAccountNumber 
 where pm2.VENDSTTS =1
 and pm2.PHONE3 != ''
 and pm2.PHONE3 not like '0%'
@@ -142,7 +142,7 @@ case
 1 as ISPRIMARY,
 'Fax' as Type,
 v.vendorpartynumber, '' as description
-from Blue.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+from Blue.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.OurAccountNumber 
 where pm2.VENDSTTS =1
 and pm2.FAXNUMBR != ''
 and pm2.FAXNUMBR not like '0%'
@@ -160,7 +160,7 @@ case
 1 as ISPRIMARY,
 'Phone' as Type,
 v.vendorpartynumber, '' as description
-from Excel.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+from Excel.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.OurAccountNumber 
 where pm2.VENDSTTS =1
 and pm2.PHNUMBR1 != ''
 and pm2.PHNUMBR1 not like '0%'
@@ -177,7 +177,7 @@ case
 0 as ISPRIMARY,
 'Phone' as Type,
 v.vendorpartynumber, '' as description
-from Excel.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+from Excel.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.OurAccountNumber 
 where pm2.VENDSTTS =1
 and pm2.PHNUMBR2 != ''
 and pm2.PHNUMBR2 not like '0%'
@@ -194,7 +194,7 @@ case
 0 as ISPRIMARY,
 'Phone' as Type,
 v.vendorpartynumber, '' as description
-from Excel.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+from Excel.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.OurAccountNumber 
 where pm2.VENDSTTS =1
 and pm2.PHONE3 != ''
 and pm2.PHONE3 not like '0%'
@@ -211,7 +211,7 @@ case
 1 as ISPRIMARY,
 'Fax' as Type,
 v.vendorpartynumber, '' as description
-from Excel.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+from Excel.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.OurAccountNumber 
 where pm2.VENDSTTS =1
 and pm2.FAXNUMBR != ''
 and pm2.FAXNUMBR not like '0%'
@@ -229,7 +229,7 @@ case
 1 as ISPRIMARY,
 'Phone' as Type,
 v.vendorpartynumber, '' as description
-from GSS.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+from GSS.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.OurAccountNumber 
 where pm2.VENDSTTS =1
 and pm2.PHNUMBR1 != ''
 and pm2.PHNUMBR1 not like '0%'
@@ -246,7 +246,7 @@ case
 0 as ISPRIMARY,
 'Phone' as Type,
 v.vendorpartynumber, '' as description
-from GSS.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+from GSS.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.OurAccountNumber 
 where pm2.VENDSTTS =1
 and pm2.PHNUMBR2 != ''
 and pm2.PHNUMBR2 not like '0%'
@@ -263,7 +263,7 @@ case
 0 as ISPRIMARY,
 'Phone' as Type,
 v.vendorpartynumber, '' as description
-from GSS.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+from GSS.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.OurAccountNumber 
 where pm2.VENDSTTS =1
 and pm2.PHONE3 != ''
 and pm2.PHONE3 not like '0%'
@@ -280,7 +280,7 @@ case
 1 as ISPRIMARY,
 'Fax' as Type,
 v.vendorpartynumber, '' as description
-from GSS.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.vendoraccountnumber
+from GSS.Dbo.PM00200 pm2 join D365Migration.dbo.Vendors v on pm2.VENDORID = v.OurAccountNumber 
 where pm2.VENDSTTS =1
 and pm2.FAXNUMBR != ''
 and pm2.FAXNUMBR not like '0%'

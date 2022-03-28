@@ -3,7 +3,7 @@
 # Configuration data
 $Server = "SQL04\MSSQL";         # SQL Server Instance.
 $Database = "papersave";
-$Dest = "C:\Users\sunrise_abird\Desktop\TestOutputfile\";             # Path to export to.
+$Dest = "C:\Users\sunrise_abird\Desktop\VendorDocuments\";             # Path to export to.
 $bufferSize = 8192;               # Stream buffer size in bytes.
 # Select-Statement for name &amp; blob
 # with filter.

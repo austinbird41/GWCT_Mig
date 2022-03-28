@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[OnHandInventory_GPToD365DB]    Script Date: 3/21/2022 2:51:34 PM ******/
+/****** Object:  StoredProcedure [dbo].[OnHandInventory_GPToD365DB]    Script Date: 3/25/2022 4:17:53 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -17,12 +17,13 @@ INSERT INTO [dbo].[OnHandInventory]
            ,[INVENTORYWAREHOUSEID]
            ,[WarehouseLocationID]
            ,[InventoryQuantity]
-           ,[JournalNameId])
+           ,[JournalNameId],
+		   UnitCost)
 	 (
 select 
 	'GICT',
     (select top 1 journalnumber from onhandinventoryjournalheaders where defaultwarehouseid=i2.LOCNCODE) AS JournalNumber,
-	(row_number() OVER(Partition by i2.locncode ORDER BY I2.locncode)) as LineNumber,
+	'' as LineNumber,
 	i2.ITEMNMBR as ItemNumber, 
 	'10' AS INVENTORYSITEID, 
 		case
@@ -32,7 +33,8 @@ select
 	end as INVENTORYWAREHOUSEID,
     '' as WarehouseLocationID,
     sum(i2.QTYONHND) as InventoryQuantity,
-	'IMOV' as JournalNameId
+	'IMOV' as JournalNameId,
+	i1.CURRCOST as UnitCost
 	--'' as LicensePlateNumber,
 	--gl5.ACTNUMST --DefaultledgerDimensionDisplayValue
 from gwc.dbo.IV00102 i2
@@ -46,5 +48,5 @@ and i2.QTYONHND != 0
 and i2.RCRDTYPE = 2
 and ACTNUMST like '180%'
 and i2.LOCNCODE !='1102'
-group by i2.ITEMNMBR, i2.LOCNCODE, gl5.ACTNUMST
+group by i2.ITEMNMBR, i2.LOCNCODE, i1.CURRCOST
 )

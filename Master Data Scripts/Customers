@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[Customers_GPToD365DB]    Script Date: 3/18/2022 2:27:16 PM ******/
+/****** Object:  StoredProcedure [dbo].[Customers_GPToD365DB]    Script Date: 3/22/2022 9:16:29 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -33,13 +33,26 @@ INSERT INTO D365Migration.dbo.[Customers]
            ,[onHoldstatus],
 		   InvoiceAccount,
 		   languageId,
-		   CredManCustomerSince, SalesAccountNumber)
-
-
+		   CredManCustomerSince, SalesAccountNumber, DefaultDimensionDisplayValue)
 
 SELECT 'GICT' as DataAreaId, 
 	Concat('Party-','GICT-',[CUSTNMBR]) as PartyNumber,
-		[CUSTNMBR] as CustomerAccount
+		case 
+	when len(dense_rank() over (order by [CUSTNMBR])) = 1
+		then '2000000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 2
+		then '200000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 3
+		then '20000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 4
+		then '2000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 5
+		then '200' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 6
+		then '20' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 7
+		then '2' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	end as customeraccount
 		,case 
 				when [CUSTNAME] = ''
 					then [CUSTNMBR] 
@@ -48,23 +61,6 @@ SELECT 'GICT' as DataAreaId,
       ,[CUSTNAME] as NameAlias
       ,comment1 as customergroupid
 	  ,'AllCust' as AddressBooks
-      --,[CNTCPRSN] as ContactPersonId
-      --,[SHIPMTHD] --shipment method, (terms or modes of delivery, we'll need to map this out)
- --     ,concat([ADDRESS1],address2,ADDRESS3) as addressstreet
-	--  ,case 
-	--	when[COUNTRY] = 'Canada' or [COUNTRY] = 'Canada'
-	--		then 'CAN'
-	--	else 'USA'
-	--end as AddressCountryRegionId
-      
- --     ,[CITY] as AddressCity
- --     , case
-	--	when [STATE] like '%.' then left(state,len(state)-1) 
-	--	when state = 'texas' then 'TX'
-	--	else state
-	--	end as addressState
- --     ,[ZIP] as AddressZipCode
- --     ,'' PrimaryContactPhone
       ,[CHEKBKID] as [PAYMENTBANKACCOUNT]
       ,[PYMTRMID] as PaymentTerms
       ,[CRLMTTYP] as CreditRating --credit rating, need to map to D365 values
@@ -83,6 +79,11 @@ SELECT 'GICT' as DataAreaId,
 	  	  ,[CUSTNMBR] as InvoiceAccount
 		  ,'en-us' as LanguageId
 		  ,CREATDDT as CredManCustomerSince, custnmbr as SalesAccountNumber
+		  ,case
+			when COMMENT1 = '1000'
+				then '-146000-9999-1-Proj0000'
+			else '--9999-1-Proj0000'
+			end
 
    --   ,'site' as SiteId
 	  --,'warehouse' as WarehouseId-- will need to ask where to map sites/warehouses for customers
@@ -96,7 +97,22 @@ union
 
 SELECT 'Blue' as DataAreaId,
 Concat('Party-','Blue-',[CUSTNMBR]) as PartyNumber,
-		[CUSTNMBR] as CustomerAccount,
+				case 
+	when len(dense_rank() over (order by [CUSTNMBR])) = 1
+		then '2000000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 2
+		then '200000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 3
+		then '20000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 4
+		then '2000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 5
+		then '200' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 6
+		then '20' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 7
+		then '2' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	end as customeraccount,
 		case 
 				when [CUSTNAME] = ''
 					then [CUSTNMBR] 
@@ -141,7 +157,7 @@ Concat('Party-','Blue-',[CUSTNMBR]) as PartyNumber,
 	 ,CREATDDT as CredManCustomerSince, custnmbr as SalesAccountNumber
      -- ,'site' as SiteId
 	 -- ,'warehouse' as warehouseId-- will need to ask where to map sites/warehouses for customers
-
+	 ,''
   FROM blue.dbo.[RM00101]
 where inactive = 0 
 --and comment1 in ('1500', '1400','1000')
@@ -150,7 +166,22 @@ union
 
 SELECT 'GWFD' as DataAreaId,
 Concat('Party-','Blue-',[CUSTNMBR]) as PartyNumber,
-		[CUSTNMBR] as CustomerAccount
+				case 
+	when len(dense_rank() over (order by [CUSTNMBR])) = 1
+		then '2000000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 2
+		then '200000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 3
+		then '20000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 4
+		then '2000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 5
+		then '200' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 6
+		then '20' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 7
+		then '2' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	end as customeraccount
 		,			case 
 				when [CUSTNAME] = ''
 					then [CUSTNMBR] 
@@ -188,6 +219,7 @@ Concat('Party-','Blue-',[CUSTNMBR]) as PartyNumber,
       --,'site' as iteId
 	  --,'warehouse' as warehouseId-- will need to ask where to map sites/warehouses for customers
 	  ,CREATDDT as CredManCustomerSince, custnmbr as SalesAccountNumber
+	  ,''
   FROM excel.dbo.[RM00101]
 where inactive = 0 
 --and comment1 in ('1500', '1400','1000')
@@ -197,7 +229,22 @@ union
 
 SELECT 'GTS' as DataAreaId,
 Concat('Party-','GTS-',[CUSTNMBR]) as PartyNumber,
-		[CUSTNMBR] as CustomerAccount
+				case 
+	when len(dense_rank() over (order by [CUSTNMBR])) = 1
+		then '2000000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 2
+		then '200000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 3
+		then '20000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 4
+		then '2000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 5
+		then '200' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 6
+		then '20' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 7
+		then '2' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	end as customeraccount
 		,			case 
 				when [CUSTNAME] = ''
 					then [CUSTNMBR] 
@@ -246,6 +293,7 @@ Concat('Party-','GTS-',[CUSTNMBR]) as PartyNumber,
       --,'site' as iteId
 	  --,'warehouse' as warehouseId-- will need to ask where to map sites/warehouses for customers
 	  ,CREATDDT as CredManCustomerSince, custnmbr as SalesAccountNumber
+	  ,''
   FROM gss.dbo.[RM00101]
 where inactive = 0 
 --and comment1 in ('1500', '1400','1000')

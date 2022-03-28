@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[PurchaseOrderLines_GPToD365DB]    Script Date: 3/14/2022 9:20:19 PM ******/
+/****** Object:  StoredProcedure [dbo].[PurchaseOrderLines_GPToD365DB]    Script Date: 3/22/2022 9:50:20 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -23,16 +23,35 @@ INSERT INTO [dbo].[PURCHASEORDERLines]
            ,[DeliveryAddressCountryRegionId]
            ,[DeliveryAddressDescription]
            ,[ORDEREDPURCHASEQUANTITY]
-           ,[NonInventoryItem])
+           ,PROCUREMENTPRODUCTCATEGORYNAME,
+		   LineDescription)
 select 'GICT' as DataAreaId, poLine.PONUMBER as PURCHASEORDERNUMBER,
 poline.LineNumber,
 --poline.POLNESTA as PURCHASEORDERLINESTATUS,
-poline.ITEMNMBR as ItemNumber,
+case
+		when poline.ITEMNMBR in (select i.ITEMNMBR
+									FROM gwc.dbo.[IV00101] I
+										left join gwc.dbo.GL00105 gl5
+										on gl5.ACTINDX = i.IVIVINDX
+										WHERE I.ITEMTYPE = 1
+										AND I.ITMCLSCD != 'Delete')
+			then poline.ITEMNMBR
+		else ''
+end as ItemNumber,
 --poLine.VENDORID as VendorNumber,
 --poLine.VNDITNUM, --needed?
 --poLine.NONINVEN, --noninventory, needed?
-poLine.LOCNCODE as ReceivingWarehouseId,
-poLine.UOFM as PurchaseUnitSymbol,
+
+case
+		when poLine.LOCNCODE like 'new%'
+			then '100'
+		else poLine.LOCNCODE
+end as ReceivingWarehouseId,
+case
+	when poLine.UOFM = 'each'
+		then 'ea'
+	else poLine.UOFM
+end as PurchaseUnitSymbol,
 poline.OPOSTSUB as LineAmount, --original posted subtotal, need to validate this is the correct mapping
 --poline.FREEONBOARD, --not sure what this is
 --poline.Change_Order_Flag, --needed?
@@ -62,9 +81,10 @@ poline.QTYORDER as ORDEREDPURCHASEQUANTITY
 										on gl5.ACTINDX = i.IVIVINDX
 										WHERE I.ITEMTYPE = 1
 										AND I.ITMCLSCD != 'Delete')
-			then 'Non-Inventory item'
+			then 'Migration-PO'
 		else ''
-	end as NonInventoryItem
+	end as PROCUREMENTPRODUCTCATEGORYNAME
+,poline.ITEMNMBR as LineDescription
 from gwc.dbo.POP10110 poLine
 join gwc.dbo.pop10100 poHeader
 on poLine.PONUMBER = poHeader.ponumber
@@ -76,12 +96,29 @@ Union
 select 'GTS' as DataAReaId, poLine.PONUMBER as PURCHASEORDERNUMBER,
 poline.LineNumber,
 --poline.POLNESTA as PURCHASEORDERLINESTATUS,
-poline.ITEMNMBR as ItemNumber,
+case
+		when poline.ITEMNMBR in (select i.ITEMNMBR
+									FROM gwc.dbo.[IV00101] I
+										left join gwc.dbo.GL00105 gl5
+										on gl5.ACTINDX = i.IVIVINDX
+										WHERE I.ITEMTYPE = 1
+										AND I.ITMCLSCD != 'Delete')
+			then poline.ITEMNMBR
+		else ''
+end as ItemNumber,
 --poLine.VENDORID as VendorNumber,
 --poLine.VNDITNUM, --needed?
 --poLine.NONINVEN, --noninventory, needed?
-poLine.LOCNCODE as ReceivingWarehouseId,
-poLine.UOFM as PurchaseUnitSymbol,
+case
+		when poLine.LOCNCODE like 'new%'
+			then '100'
+		else poLine.LOCNCODE
+end as ReceivingWarehouseId,
+case
+	when poLine.UOFM = 'each'
+		then 'ea'
+	else poLine.UOFM
+end as PurchaseUnitSymbol,
 poline.OPOSTSUB as LineAmount, --original posted subtotal, need to validate this is the correct mapping
 --poline.FREEONBOARD, --not sure what this is
 --poline.Change_Order_Flag, --needed?
@@ -106,14 +143,15 @@ poline.QTYORDER as ORDEREDPURCHASEQUANTITY
 --are costing fields needed?
 , case
 		when poline.ITEMNMBR not in (select i.ITEMNMBR
-									FROM gss.dbo.[IV00101] I
-										left join gss.dbo.GL00105 gl5
+									FROM gwc.dbo.[IV00101] I
+										left join gwc.dbo.GL00105 gl5
 										on gl5.ACTINDX = i.IVIVINDX
 										WHERE I.ITEMTYPE = 1
 										AND I.ITMCLSCD != 'Delete')
-			then 'Non-Inventory item'
+			then 'Migration-PO'
 		else ''
-	end as NonInventoryItem
+	end as PROCUREMENTPRODUCTCATEGORYNAME
+	,poline.ITEMNMBR as LineDescription
 from gss.dbo.POP10110 poLine
 join gss.dbo.pop10100 poHeader
 on poLine.PONUMBER = poHeader.ponumber
@@ -125,12 +163,29 @@ Union
 select 'BLUE' as DataAreaId, poLine.PONUMBER as PURCHASEORDERNUMBER,
 poline.LineNumber,
 --poline.POLNESTA as PURCHASEORDERLINESTATUS,
-poline.ITEMNMBR as ItemNumber,
+case
+		when poline.ITEMNMBR in (select i.ITEMNMBR
+									FROM gwc.dbo.[IV00101] I
+										left join gwc.dbo.GL00105 gl5
+										on gl5.ACTINDX = i.IVIVINDX
+										WHERE I.ITEMTYPE = 1
+										AND I.ITMCLSCD != 'Delete')
+			then poline.ITEMNMBR
+		else ''
+end as ItemNumber,
 --poLine.VENDORID as VendorNumber,
 --poLine.VNDITNUM, --needed?
 --poLine.NONINVEN, --noninventory, needed?
-poLine.LOCNCODE as ReceivingWarehouseId,
-poLine.UOFM as PurchaseUnitSymbol,
+case
+		when poLine.LOCNCODE like 'new%'
+			then '100'
+		else poLine.LOCNCODE
+end as ReceivingWarehouseId,
+case
+	when poLine.UOFM = 'each'
+		then 'ea'
+	else poLine.UOFM
+end as PurchaseUnitSymbol,
 poline.OPOSTSUB as LineAmount, --original posted subtotal, need to validate this is the correct mapping
 --poline.FREEONBOARD, --not sure what this is
 --poline.Change_Order_Flag, --needed?
@@ -155,14 +210,15 @@ poline.QTYORDER as ORDEREDPURCHASEQUANTITY
 --are costing fields needed?
 , case
 		when poline.ITEMNMBR not in (select i.ITEMNMBR
-									FROM blue.dbo.[IV00101] I
-										left join blue.dbo.GL00105 gl5
+									FROM gwc.dbo.[IV00101] I
+										left join gwc.dbo.GL00105 gl5
 										on gl5.ACTINDX = i.IVIVINDX
 										WHERE I.ITEMTYPE = 1
 										AND I.ITMCLSCD != 'Delete')
-			then 'Non-Inventory item'
+			then 'Migration-PO'
 		else ''
-	end as NonInventoryItem
+	end as PROCUREMENTPRODUCTCATEGORYNAME
+,poline.ITEMNMBR as LineDescription
 from blue.dbo.POP10110 poLine
 join blue.dbo.pop10100 poHeader
 on poLine.PONUMBER = poHeader.ponumber
@@ -175,12 +231,29 @@ select 'GWFD' as DataAreaId,
 poLine.PONUMBER as PURCHASEORDERNUMBER,
 poline.LineNumber,
 --poline.POLNESTA as PURCHASEORDERLINESTATUS,
-poline.ITEMNMBR as ItemNumber,
+case
+		when poline.ITEMNMBR in (select i.ITEMNMBR
+									FROM gwc.dbo.[IV00101] I
+										left join gwc.dbo.GL00105 gl5
+										on gl5.ACTINDX = i.IVIVINDX
+										WHERE I.ITEMTYPE = 1
+										AND I.ITMCLSCD != 'Delete')
+			then poline.ITEMNMBR
+		else ''
+end as ItemNumber,
 --poLine.VENDORID as VendorNumber,
 --poLine.VNDITNUM, --needed?
 --poLine.NONINVEN, --noninventory, needed?
-poLine.LOCNCODE as ReceivingWarehouseId,
-poLine.UOFM as PurchaseUnitSymbol,
+case
+		when poLine.LOCNCODE like 'new%'
+			then '100'
+		else poLine.LOCNCODE
+end as ReceivingWarehouseId,
+case
+	when poLine.UOFM = 'each'
+		then 'ea'
+	else poLine.UOFM
+end as PurchaseUnitSymbol,
 poline.OPOSTSUB as LineAmount, --original posted subtotal, need to validate this is the correct mapping
 --poline.FREEONBOARD, --not sure what this is
 --poline.Change_Order_Flag, --needed?
@@ -205,14 +278,15 @@ poline.QTYORDER as ORDEREDPURCHASEQUANTITY
 --are costing fields needed?
 , case
 		when poline.ITEMNMBR not in (select i.ITEMNMBR
-									FROM excel.dbo.[IV00101] I
-										left join excel.dbo.GL00105 gl5
+									FROM gwc.dbo.[IV00101] I
+										left join gwc.dbo.GL00105 gl5
 										on gl5.ACTINDX = i.IVIVINDX
 										WHERE I.ITEMTYPE = 1
 										AND I.ITMCLSCD != 'Delete')
-			then 'Non-Inventory item'
+			then 'Migration-PO'
 		else ''
-	end as NonInventoryItem
+	end as PROCUREMENTPRODUCTCATEGORYNAME
+,poline.ITEMNMBR as LineDescription
 from excel.dbo.POP10110 poLine
 join excel.dbo.pop10100 poHeader
 on poLine.PONUMBER = poHeader.ponumber

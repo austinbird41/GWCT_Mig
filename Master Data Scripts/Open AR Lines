@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[OpenARLines_GPToD365DB]    Script Date: 3/21/2022 3:12:32 PM ******/
+/****** Object:  StoredProcedure [dbo].[OpenARLines_GPToD365DB]    Script Date: 3/22/2022 9:16:44 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -33,7 +33,7 @@ p.CUSTNMBR as Customeraccountdisplayvalue,
 'Customer' as AccountType,
 p.PYMTRMID as TermsOfPayment,
 'USD' as Currency,
-'12000' AS OFFSETACCOUNTDISPLAYVALUE
+'12110' AS OFFSETACCOUNTDISPLAYVALUE
 
 from GWC.dbo.RM20101 p
 where p.RMDTYPAL = 1
