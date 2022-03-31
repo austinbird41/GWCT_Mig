@@ -1,0 +1,55 @@
+
+select  
+'GICT',
+f.assetid as FixedAssetNumber, --assetid
+'internal' as BookId, 
+'Default' as POSTINGPROFILEID,
+ 'straightli' as DEPRECIATIONPROFILEID,
+ concat('-',trim(f.STRUCTUREID), '00---') as dimensiondisplayvalue
+ ,Acquisition_Cost as ACQUISITIONPRICE
+,ACQDATE as ACQUISITIONDATE --acquisitiondate
+
+
+from gwc.dbo.FA00100 f
+
+union 
+
+select  
+'BLUE',
+f.assetid as FixedAssetNumber, --assetid
+'internal' as BookId, 
+'Default' as POSTINGPROFILEID,
+ 'straightli' as DEPRECIATIONPROFILEID,
+ concat('-',trim(f.STRUCTUREID), '00---') as dimensiondisplayvalue
+ ,Acquisition_Cost as ACQUISITIONPRICE
+,ACQDATE as ACQUISITIONDATE --acquisitiondate
+
+from blue.dbo.FA00100 f
+
+union 
+
+select  
+'GTS',
+f.assetid as FixedAssetNumber, --assetid
+'internal' as BookId, 
+'Default' as POSTINGPROFILEID,
+ 'straightli' as DEPRECIATIONPROFILEID,
+ concat('-',trim(f.STRUCTUREID), '00---') as dimensiondisplayvalue
+ ,Acquisition_Cost as ACQUISITIONPRICE
+,ACQDATE as ACQUISITIONDATE --acquisitiondate
+
+from gss.dbo.FA00100 f
+
+union
+
+select  
+'GWFD',
+f.assetid as FixedAssetNumber, --assetid
+'internal' as BookId, 
+'Default' as POSTINGPROFILEID,
+ 'straightli' as DEPRECIATIONPROFILEID,
+ concat('-',trim(f.STRUCTUREID), '00---') as dimensiondisplayvalue
+ ,Acquisition_Cost as ACQUISITIONPRICE
+,ACQDATE as ACQUISITIONDATE --acquisitiondate
+
+from excel.dbo.FA00100 f

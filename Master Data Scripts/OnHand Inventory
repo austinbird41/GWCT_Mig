@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[OnHandInventory_GPToD365DB]    Script Date: 3/25/2022 4:17:53 PM ******/
+/****** Object:  StoredProcedure [dbo].[OnHandInventory_GPToD365DB]    Script Date: 3/31/2022 9:27:09 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -18,11 +18,17 @@ INSERT INTO [dbo].[OnHandInventory]
            ,[WarehouseLocationID]
            ,[InventoryQuantity]
            ,[JournalNameId],
-		   UnitCost)
+		   UnitCost, 
+		   DEFAULTLEDGERDIMENSIONDISPLAYVALUE,
+		   OFFSETMAINACCOUNTIDDISPLAYVALUE)
 	 (
 select 
 	'GICT',
-    (select top 1 journalnumber from onhandinventoryjournalheaders where defaultwarehouseid=i2.LOCNCODE) AS JournalNumber,
+	case 
+		when i2.LOCNCODE like 'new%'
+			then (select top 1 journalnumber from onhandinventoryjournalheaders where DefaultWAREHOUSEID = '100')
+		else  (select top 1 journalnumber from onhandinventoryjournalheaders where defaultwarehouseid=i2.LOCNCODE) 
+	end AS JournalNumber,
 	'' as LineNumber,
 	i2.ITEMNMBR as ItemNumber, 
 	'10' AS INVENTORYSITEID, 
@@ -36,7 +42,18 @@ select
 	'IMOV' as JournalNameId,
 	i1.CURRCOST as UnitCost
 	--'' as LicensePlateNumber,
-	--gl5.ACTNUMST --DefaultledgerDimensionDisplayValue
+	--,gl5.ACTNUMST --DefaultledgerDimensionDisplayValue
+	,case
+		when i2.LOCNCODE like 'new%'
+			then'-160000-9999-1-Proj0000' 
+		else Concat('-',trim(i2.LOCNCODE), '00','-9999-1-Proj0000') 
+	end as DefaultledgerDimensionDisplayValue
+	,Case
+		when USCATVLS_2 = 'Halloween'
+			then '13102'
+		ELSE '13101'
+	end as OFFSETMAINACCOUNTIDDISPLAYVALUE
+	--map department value from warehouse, typcode will be 1, fundingsource will be 9999, project proj000
 from gwc.dbo.IV00102 i2
 join gwc.dbo.iv00101 i1
 on i1.ITEMNMBR = i2.ITEMNMBR
@@ -48,5 +65,7 @@ and i2.QTYONHND != 0
 and i2.RCRDTYPE = 2
 and ACTNUMST like '180%'
 and i2.LOCNCODE !='1102'
-group by i2.ITEMNMBR, i2.LOCNCODE, i1.CURRCOST
+group by i2.ITEMNMBR, i2.LOCNCODE, i1.CURRCOST, USCATVLS_2
+having sum(i2.QTYONHND) > 0
+
 )

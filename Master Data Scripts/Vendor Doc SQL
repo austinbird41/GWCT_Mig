@@ -1,0 +1,109 @@
+--Vendor documents
+
+Alter Procedure VendorDocuments_GPToD365DB
+
+as
+
+INSERT INTO [dbo].[VendorDocumentAttachements]
+           ([DataAreaId]
+           ,[DocumentId]
+           ,[DOCUMENTATTACHMENTTYPECODE]
+           ,[ATTACHMENTDESCRIPTION]
+           ,[Notes]
+           ,[ACCESSRESTRICTION]
+           ,[ATTACHMENTFILENAME]
+           ,[FILENAME]
+           ,[FileType]
+           ,[VENDORACCOUNTNUMBER])
+(
+--pdf
+select 
+'GICT' AS DATAAREAID,
+newID() AS DOCUMENTID,
+'File' as DOCUMENTATTACHMENTTYPECODE,
+case
+	when d.FileName = 'Vendor .Pdf' 
+		then CONCAT(host.parentid,' Vendor .Pdf')
+	else d.filename
+	end AS ATTACHMENTDESCRIPTION,
+'' AS NOTES,
+'INTERNAL' AS ACCESSRESTRICTION,
+case
+	when d.FileName = 'Vendor .Pdf' 
+		then CONCAT(host.parentid,' Vendor .Pdf')
+	else d.filename
+	end AS ATTACHMENTFILENAME, 
+case
+	when d.FileName = 'Vendor .Pdf' 
+		then CONCAT(host.parentid,' Vendor .Pdf')
+	else d.filename
+	end AS FILENAME,
+'PDF' AS FILETYPE,
+vt.vendoraccountnumber
+from papersave.dbo.pdfcontent t
+join papersave.dbo.document d  
+	on t.ID = d.Content_ID and d.MimeType_ID = 2
+join papersave.dbo.HostApplicationLocalData host
+	on host.ID = d.HostApplicationLocalData_ID
+join d365migration.dbo.vendors vt
+	on VT.OURACCOUNTNUMBER = host.ParentID
+where d.removed = 0
+	and DocumentType_ID = 6
+	
+
+union
+
+--Excel
+
+select 
+'GICT' AS DATAAREAID,
+newID() AS DOCUMENTID,
+'File' as DOCUMENTATTACHMENTTYPECODE,
+d.FileName AS ATTACHMENTDESCRIPTION,
+'' AS NOTES,
+'INTERNAL' AS ACCESSRESTRICTION,
+d.FileName AS ATTACHMENTFILENAME, 
+d.FileName AS FILENAME,
+'Excel' AS FILETYPE,
+vt.vendoraccountnumber
+from papersave.dbo.excelcontent t
+join papersave.dbo.document d  
+	on t.ID = d.Content_ID and d.MimeType_ID = 3
+join papersave.dbo.HostApplicationLocalData host
+	on host.ID = d.HostApplicationLocalData_ID
+join d365migration.dbo.vendors vt
+	on VT.OURACCOUNTNUMBER = host.ParentID
+where d.removed = 0
+	and DocumentType_ID = 6
+	
+
+
+UNION
+
+--TIFFs
+
+select 
+'GICT' AS DATAAREAID,
+newID() AS DOCUMENTID,
+'File' as DOCUMENTATTACHMENTTYPECODE,
+d.FileName AS ATTACHMENTDESCRIPTION,
+'' AS NOTES,
+'INTERNAL' AS ACCESSRESTRICTION,
+d.FileName AS ATTACHMENTFILENAME, 
+d.FileName AS FILENAME,
+'Tiff' AS FILETYPE,
+vt.vendoraccountnumber
+from papersave.dbo.TIFFContent t
+join papersave.dbo.document d  
+	on t.ID = d.Content_ID and d.MimeType_ID = 1
+join papersave.dbo.HostApplicationLocalData host
+	on host.ID = d.HostApplicationLocalData_ID
+join d365migration.dbo.vendors vt
+	on VT.OURACCOUNTNUMBER = host.ParentID
+where d.removed = 0
+	and DocumentType_ID = 6
+	
+
+
+	)
+

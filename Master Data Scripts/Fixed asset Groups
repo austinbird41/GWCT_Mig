@@ -1,0 +1,295 @@
+USE [D365Migration]
+GO
+/****** Object:  StoredProcedure [dbo].[FixedAssetGroup_GPToD365DB]    Script Date: 3/29/2022 12:44:01 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER procedure [dbo].[FixedAssetGroup_GPToD365DB]
+as
+
+INSERT INTO [dbo].[FixedAssetGroup]
+           ([DataAreaId]
+           ,[GPFixedAssetGroup]
+           ,[FixedAssetGroupId]
+           ,[Name]
+           ,[PropertyType]
+           ,[Type])
+(
+select 
+'gict' as dataareaid,
+assetclassID as GPFixedAssetGroup,
+case
+when assetclassID = 'BLDG IMP 10' then 'BLDG IMP 10'
+when assetclassID = 'BLDG IMP 15' then 'BLDG IMP 15'
+when assetclassID = 'BLDG IMP 2' then 'BLDG IMP 2'
+when assetclassID = 'BLDG IMP 20' then 'BLDG IMP 20'
+when assetclassID = 'BLDG IMP 3' then 'BLDG IMP 3'
+when assetclassID = 'BLDG IMP 30' then 'BLDG IMP 30'
+when assetclassID = 'BLDG IMP 5' then 'BLDG IMP 5'
+when assetclassID = 'BLDG IMP 7' then 'BLDG IMP 7'
+when assetclassID = 'BUILDING 43' then 'BLDG 43'
+when assetclassID = 'BUILDINGS' then 'BLDG 50'
+when assetclassID = 'EQUIP 02' then 'EQUIP 02'
+when assetclassID = 'EQUIP 03' then 'EQUIP 03'
+when assetclassID = 'EQUIP 05' then 'EQUIP 05'
+when assetclassID = 'EQUIP 06' then 'EQUIP 06'
+when assetclassID = 'EQUIP 10' then 'EQUIP 10'
+when assetclassID = 'EQUIP 20' then 'EQUIP 20'
+when assetclassID = 'EQUIP 3.5' then 'EQUIP 3.5'
+when assetclassID = 'EQUIP 7' then 'EQUIP 7'
+when assetclassID = 'FA BLDG 40' then 'BLDG 40'
+when assetclassID = 'FA BLDG IMP 10' then 'BLDG IMP 10'
+when assetclassID = 'FA BLDG IMP 40' then 'BLDG IMP 40'
+when assetclassID = 'FA BLDG IMP 5' then 'BLDG IMP 5'
+when assetclassID = 'FA COMP EQUIP 3' then 'EQUIP 03'
+when assetclassID = 'FA COMP EQUIP 5' then 'EQUIP 05'
+when assetclassID = 'FA EQUIP 10' then 'EQUIP 10'
+when assetclassID = 'FA EQUIP 3' then 'EQUIP 03'
+when assetclassID = 'FA EQUIP 5' then 'EQUIP 05'
+when assetclassID = 'FA F&F 10' then 'F&F 10'
+when assetclassID = 'FA F&F 7' then 'F&F 10'
+when assetclassID = 'FA LEASED V&E05' then 'VEHICLE 05'
+when assetclassID = 'FA LEASED V&E06' then 'VEHICLE 06'
+when assetclassID = 'FA LEASED V&E07' then 'VEHICLE 07'
+when assetclassID = 'FA VEHICLE 15' then 'VEHICLE 15'
+when assetclassID = 'FA VEHICLE 5' then 'VEHICLE 05'
+when assetclassid = 'VEHICLE05' then 'VEHICLE 05'
+when assetclassID = 'IMP 59' then 'LEASE IMP 59'
+when assetclassID = 'LAKE AUSTIN IMP' then 'LAKE AUSTIN IMP'
+when assetclassID = 'LAND' then 'LAND'
+when assetclassID = 'LEASE IMP 1' then 'LEASE IMP 1'
+when assetclassID = 'LEASE IMP 10' then 'LEASE IMP 10'
+when assetclassID = 'LEASE IMP 15' then 'LEASE IMP 15'
+when assetclassID = 'LEASE IMP 2' then 'LEASE IMP 2'
+when assetclassID = 'LEASE IMP 20' then 'LEASE IMP 20'
+when assetclassID = 'LEASE IMP 27MO' then 'LEASE IMP 27'
+when assetclassID = 'LEASE IMP 3' then 'LEASE IMP 3'
+when assetclassID = 'LEASE IMP 5' then 'LEASE IMP 59'
+when assetclassID = 'LEASE IMP 6' then 'LEASE IMP 6'
+when assetclassID = 'LEASE IMP 7' then 'LEASE IMP 7'
+when assetclassID = 'LEASE IMP 8' then 'LEASE IMP 8'
+when assetclassID = 'VEHICLE 05' then 'VEHICLE 05'
+when assetclassID = 'VEHICLE 07' then 'VEHICLE 07'
+when assetclassID = 'VEHICLE 10' then 'VEHICLE 10'
+when assetclassID = 'VEHICLE 3' then 'VEHICLE 03'
+when assetclassid = 'equip05' then 'EQUIP 05'
+when assetclassid = 'equip03' then 'EQUIP 03'
+else ''
+end as FixedAssetGroup,
+ASSETCLASSIDDESC as Name,
+'Fixed asset' as PropertyType,
+'tangible' as Type
+from gwc.dbo.FA40201 f
+
+union
+
+select 
+'gts' as dataareaid,
+assetclassID as GPFixedAssetGroup,
+case
+when assetclassID = 'BLDG IMP 10' then 'BLDG IMP 10'
+when assetclassID = 'BLDG IMP 15' then 'BLDG IMP 15'
+when assetclassID = 'BLDG IMP 2' then 'BLDG IMP 2'
+when assetclassID = 'BLDG IMP 20' then 'BLDG IMP 20'
+when assetclassID = 'BLDG IMP 3' then 'BLDG IMP 3'
+when assetclassID = 'BLDG IMP 30' then 'BLDG IMP 30'
+when assetclassID = 'BLDG IMP 5' then 'BLDG IMP 5'
+when assetclassID = 'BLDG IMP 7' then 'BLDG IMP 7'
+when assetclassID = 'BUILDING 43' then 'BLDG 43'
+when assetclassID = 'BUILDINGS' then 'BLDG 50'
+when assetclassID = 'EQUIP 02' then 'EQUIP 02'
+when assetclassID = 'EQUIP 03' then 'EQUIP 03'
+when assetclassID = 'EQUIP 05' then 'EQUIP 05'
+when assetclassID = 'EQUIP 06' then 'EQUIP 06'
+when assetclassID = 'EQUIP 10' then 'EQUIP 10'
+when assetclassID = 'EQUIP 20' then 'EQUIP 20'
+when assetclassID = 'EQUIP 3.5' then 'EQUIP 3.5'
+when assetclassID = 'EQUIP 7' then 'EQUIP 7'
+when assetclassID = 'FA BLDG 40' then 'BLDG 40'
+when assetclassID = 'FA BLDG IMP 10' then 'BLDG IMP 10'
+when assetclassID = 'FA BLDG IMP 40' then 'BLDG IMP 40'
+when assetclassID = 'FA BLDG IMP 5' then 'BLDG IMP 5'
+when assetclassID = 'FA COMP EQUIP 3' then 'EQUIP 03'
+when assetclassID = 'FA COMP EQUIP 5' then 'EQUIP 05'
+when assetclassID = 'FA EQUIP 10' then 'EQUIP 10'
+when assetclassID = 'FA EQUIP 3' then 'EQUIP 03'
+when assetclassID = 'FA EQUIP 5' then 'EQUIP 05'
+when assetclassID = 'FA F&F 10' then 'F&F 10'
+when assetclassID = 'FA F&F 7' then 'F&F 10'
+when assetclassID = 'FA LEASED V&E05' then 'VEHICLE 05'
+when assetclassID = 'FA LEASED V&E06' then 'VEHICLE 06'
+when assetclassID = 'FA LEASED V&E07' then 'VEHICLE 07'
+when assetclassID = 'FA VEHICLE 15' then 'VEHICLE 15'
+when assetclassID = 'FA VEHICLE 5' then 'VEHICLE 05'
+when assetclassid = 'VEHICLE05' then 'VEHICLE 05'
+when assetclassID = 'IMP 59' then 'LEASE IMP 59'
+when assetclassID = 'LAKE AUSTIN IMP' then 'LAKE AUSTIN IMP'
+when assetclassID = 'LAND' then 'LAND'
+when assetclassID = 'LEASE IMP 1' then 'LEASE IMP 1'
+when assetclassID = 'LEASE IMP 10' then 'LEASE IMP 10'
+when assetclassID = 'LEASE IMP 15' then 'LEASE IMP 15'
+when assetclassID = 'LEASE IMP 2' then 'LEASE IMP 2'
+when assetclassID = 'LEASE IMP 20' then 'LEASE IMP 20'
+when assetclassID = 'LEASE IMP 27MO' then 'LEASE IMP 27'
+when assetclassID = 'LEASE IMP 3' then 'LEASE IMP 3'
+when assetclassID = 'LEASE IMP 5' then 'LEASE IMP 59'
+when assetclassID = 'LEASE IMP 6' then 'LEASE IMP 6'
+when assetclassID = 'LEASE IMP 7' then 'LEASE IMP 7'
+when assetclassID = 'LEASE IMP 8' then 'LEASE IMP 8'
+when assetclassID = 'VEHICLE 05' then 'VEHICLE 05'
+when assetclassID = 'VEHICLE 07' then 'VEHICLE 07'
+when assetclassID = 'VEHICLE 10' then 'VEHICLE 10'
+when assetclassID = 'VEHICLE 3' then 'VEHICLE 03'
+when assetclassid = 'equip05' then 'EQUIP 05'
+when assetclassid = 'equip03' then 'EQUIP 03'
+else ''
+end as FixedAssetGroup,
+ASSETCLASSIDDESC as Name,
+'Fixed asset' as PropertyType,
+'tangible' as Type
+from gss.dbo.FA40201
+
+
+union
+
+select 
+'blue' as dataareaid,
+assetclassID as GPFixedAssetGroup,
+case
+when assetclassID = 'BLDG IMP 10' then 'BLDG IMP 10'
+when assetclassID = 'BLDG IMP 15' then 'BLDG IMP 15'
+when assetclassID = 'BLDG IMP 2' then 'BLDG IMP 2'
+when assetclassID = 'BLDG IMP 20' then 'BLDG IMP 20'
+when assetclassID = 'BLDG IMP 3' then 'BLDG IMP 3'
+when assetclassID = 'BLDG IMP 30' then 'BLDG IMP 30'
+when assetclassID = 'BLDG IMP 5' then 'BLDG IMP 5'
+when assetclassID = 'BLDG IMP 7' then 'BLDG IMP 7'
+when assetclassID = 'BUILDING 43' then 'BLDG 43'
+when assetclassID = 'BUILDINGS' then 'BLDG 50'
+when assetclassID = 'EQUIP 02' then 'EQUIP 02'
+when assetclassID = 'EQUIP 03' then 'EQUIP 03'
+when assetclassID = 'EQUIP 05' then 'EQUIP 05'
+when assetclassID = 'EQUIP 06' then 'EQUIP 06'
+when assetclassID = 'EQUIP 10' then 'EQUIP 10'
+when assetclassID = 'EQUIP 20' then 'EQUIP 20'
+when assetclassID = 'EQUIP 3.5' then 'EQUIP 3.5'
+when assetclassID = 'EQUIP 7' then 'EQUIP 7'
+when assetclassID = 'FA BLDG 40' then 'BLDG 40'
+when assetclassID = 'FA BLDG IMP 10' then 'BLDG IMP 10'
+when assetclassID = 'FA BLDG IMP 40' then 'BLDG IMP 40'
+when assetclassID = 'FA BLDG IMP 5' then 'BLDG IMP 5'
+when assetclassID = 'FA COMP EQUIP 3' then 'EQUIP 03'
+when assetclassID = 'FA COMP EQUIP 5' then 'EQUIP 05'
+when assetclassID = 'FA EQUIP 10' then 'EQUIP 10'
+when assetclassID = 'FA EQUIP 3' then 'EQUIP 03'
+when assetclassID = 'FA EQUIP 5' then 'EQUIP 05'
+when assetclassID = 'FA F&F 10' then 'F&F 10'
+when assetclassID = 'FA F&F 7' then 'F&F 10'
+when assetclassID = 'FA LEASED V&E05' then 'VEHICLE 05'
+when assetclassID = 'FA LEASED V&E06' then 'VEHICLE 06'
+when assetclassID = 'FA LEASED V&E07' then 'VEHICLE 07'
+when assetclassID = 'FA VEHICLE 15' then 'VEHICLE 15'
+when assetclassID = 'FA VEHICLE 5' then 'VEHICLE 05'
+when assetclassid = 'VEHICLE05' then 'VEHICLE 05'
+when assetclassID = 'IMP 59' then 'LEASE IMP 59'
+when assetclassID = 'LAKE AUSTIN IMP' then 'LAKE AUSTIN IMP'
+when assetclassID = 'LAND' then 'LAND'
+when assetclassID = 'LEASE IMP 1' then 'LEASE IMP 1'
+when assetclassID = 'LEASE IMP 10' then 'LEASE IMP 10'
+when assetclassID = 'LEASE IMP 15' then 'LEASE IMP 15'
+when assetclassID = 'LEASE IMP 2' then 'LEASE IMP 2'
+when assetclassID = 'LEASE IMP 20' then 'LEASE IMP 20'
+when assetclassID = 'LEASE IMP 27MO' then 'LEASE IMP 27'
+when assetclassID = 'LEASE IMP 3' then 'LEASE IMP 3'
+when assetclassID = 'LEASE IMP 5' then 'LEASE IMP 59'
+when assetclassID = 'LEASE IMP 6' then 'LEASE IMP 6'
+when assetclassID = 'LEASE IMP 7' then 'LEASE IMP 7'
+when assetclassID = 'LEASE IMP 8' then 'LEASE IMP 8'
+when assetclassID = 'VEHICLE 05' then 'VEHICLE 05'
+when assetclassID = 'VEHICLE 07' then 'VEHICLE 07'
+when assetclassID = 'VEHICLE 10' then 'VEHICLE 10'
+when assetclassID = 'VEHICLE 3' then 'VEHICLE 03'
+when assetclassid = 'equip05' then 'EQUIP 05'
+when assetclassid = 'equip03' then 'EQUIP 03'
+else ''
+end as FixedAssetGroup,
+ASSETCLASSIDDESC as Name,
+'Fixed asset' as PropertyType,
+'tangible' as Type
+from blue.dbo.FA40201
+
+union 
+
+select 
+'gwfd' as dataareaid,
+assetclassID as GPFixedAssetGroup,
+case
+when assetclassID = 'BLDG IMP 10' then 'BLDG IMP 10'
+when assetclassID = 'BLDG IMP 15' then 'BLDG IMP 15'
+when assetclassID = 'BLDG IMP 2' then 'BLDG IMP 2'
+when assetclassID = 'BLDG IMP 20' then 'BLDG IMP 20'
+when assetclassID = 'BLDG IMP 3' then 'BLDG IMP 3'
+when assetclassID = 'BLDG IMP 30' then 'BLDG IMP 30'
+when assetclassID = 'BLDG IMP 5' then 'BLDG IMP 5'
+when assetclassID = 'BLDG IMP 7' then 'BLDG IMP 7'
+when assetclassID = 'BUILDING 43' then 'BLDG 43'
+when assetclassID = 'BUILDINGS' then 'BLDG 50'
+when assetclassID = 'EQUIP 02' then 'EQUIP 02'
+when assetclassID = 'EQUIP 03' then 'EQUIP 03'
+when assetclassID = 'EQUIP 05' then 'EQUIP 05'
+when assetclassID = 'EQUIP 06' then 'EQUIP 06'
+when assetclassID = 'EQUIP 10' then 'EQUIP 10'
+when assetclassID = 'EQUIP 20' then 'EQUIP 20'
+when assetclassID = 'EQUIP 3.5' then 'EQUIP 3.5'
+when assetclassID = 'EQUIP 7' then 'EQUIP 7'
+when assetclassID = 'FA BLDG 40' then 'BLDG 40'
+when assetclassID = 'FA BLDG IMP 10' then 'BLDG IMP 10'
+when assetclassID = 'FA BLDG IMP 40' then 'BLDG IMP 40'
+when assetclassID = 'FA BLDG IMP 5' then 'BLDG IMP 5'
+when assetclassID = 'FA COMP EQUIP 3' then 'EQUIP 03'
+when assetclassID = 'FA COMP EQUIP 5' then 'EQUIP 05'
+when assetclassID = 'FA EQUIP 10' then 'EQUIP 10'
+when assetclassID = 'FA EQUIP 3' then 'EQUIP 03'
+when assetclassID = 'FA EQUIP 5' then 'EQUIP 05'
+when assetclassID = 'FA F&F 10' then 'F&F 10'
+when assetclassID = 'FA F&F 7' then 'F&F 10'
+when assetclassID = 'FA LEASED V&E05' then 'VEHICLE 05'
+when assetclassID = 'FA LEASED V&E06' then 'VEHICLE 06'
+when assetclassID = 'FA LEASED V&E07' then 'VEHICLE 07'
+when assetclassID = 'FA VEHICLE 15' then 'VEHICLE 15'
+when assetclassID = 'FA VEHICLE 5' then 'VEHICLE 05'
+when assetclassid = 'VEHICLE05' then 'VEHICLE 05'
+when assetclassID = 'IMP 59' then 'LEASE IMP 59'
+when assetclassID = 'LAKE AUSTIN IMP' then 'LAKE AUSTIN IMP'
+when assetclassID = 'LAND' then 'LAND'
+when assetclassID = 'LEASE IMP 1' then 'LEASE IMP 1'
+when assetclassID = 'LEASE IMP 10' then 'LEASE IMP 10'
+when assetclassID = 'LEASE IMP 15' then 'LEASE IMP 15'
+when assetclassID = 'LEASE IMP 2' then 'LEASE IMP 2'
+when assetclassID = 'LEASE IMP 20' then 'LEASE IMP 20'
+when assetclassID = 'LEASE IMP 27MO' then 'LEASE IMP 27'
+when assetclassID = 'LEASE IMP 3' then 'LEASE IMP 3'
+when assetclassID = 'LEASE IMP 5' then 'LEASE IMP 59'
+when assetclassID = 'LEASE IMP 6' then 'LEASE IMP 6'
+when assetclassID = 'LEASE IMP 7' then 'LEASE IMP 7'
+when assetclassID = 'LEASE IMP 8' then 'LEASE IMP 8'
+when assetclassID = 'VEHICLE 05' then 'VEHICLE 05'
+when assetclassID = 'VEHICLE 07' then 'VEHICLE 07'
+when assetclassID = 'VEHICLE 10' then 'VEHICLE 10'
+when assetclassID = 'VEHICLE 3' then 'VEHICLE 03'
+when assetclassid = 'equip05' then 'EQUIP 05'
+when assetclassid = 'equip03' then 'EQUIP 03'
+else ''
+end as FixedAssetGroup,
+ASSETCLASSIDDESC as Name,
+'Fixed asset' as PropertyType,
+'tangible' as Type
+from excel.dbo.FA40201
+
+
+)
+
+
+
+

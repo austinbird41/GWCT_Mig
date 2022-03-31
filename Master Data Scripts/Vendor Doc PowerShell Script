@@ -17,11 +17,11 @@ join papersave.dbo.document d
 	on t.ID = d.Content_ID and d.MimeType_ID = 2
 join papersave.dbo.HostApplicationLocalData host
 	on host.ID = d.HostApplicationLocalData_ID
-join gwc.dbo.PM00200 vt
-	on vt.vendorid = host.ParentID
+join d365migration.dbo.vendors vt
+	on VT.OURACCOUNTNUMBER = host.ParentID
 where d.removed = 0
 	and DocumentType_ID = 6
-	and vt.VENDSTTS = 1";            
+	";            
  
 # Open ADO.NET Connection
 $con = New-Object Data.SqlClient.SqlConnection;
@@ -86,11 +86,11 @@ join papersave.dbo.document d
 	on t.ID = d.Content_ID and d.MimeType_ID = 3
 join papersave.dbo.HostApplicationLocalData host
 	on host.ID = d.HostApplicationLocalData_ID
-join gwc.dbo.PM00200 vt
-	on vt.vendorid = host.ParentID
+join d365migration.dbo.vendors vt
+	on VT.OURACCOUNTNUMBER = host.ParentID
 where d.removed = 0
 	and DocumentType_ID = 6
-	and vt.VENDSTTS = 1";            
+	";            
  
 # Open ADO.NET Connection
 $con = New-Object Data.SqlClient.SqlConnection;
@@ -154,11 +154,11 @@ join papersave.dbo.document d
 	on t.ID = d.Content_ID and d.MimeType_ID = 1
 join papersave.dbo.HostApplicationLocalData host
 	on host.ID = d.HostApplicationLocalData_ID
-join gwc.dbo.PM00200 vt
-	on vt.vendorid = host.ParentID
+join d365migration.dbo.vendors vt
+	on VT.OURACCOUNTNUMBER = host.ParentID
 where d.removed = 0
 	and DocumentType_ID = 6
-	and vt.VENDSTTS = 1";            
+	";            
  
 # Open ADO.NET Connection
 $con = New-Object Data.SqlClient.SqlConnection;
