@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[FixedAssets_GPToD365DB]    Script Date: 3/29/2022 1:00:54 PM ******/
+/****** Object:  StoredProcedure [dbo].[FixedAssets_GPToD365DB]    Script Date: 4/4/2022 11:37:00 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -19,69 +19,55 @@ INSERT INTO [dbo].[FixedAssets]
 		   (
 select  
 'GICT',
-f.assetid, --assetid
-fg.[FixedAssetGroupId], --assetgroup TODO mapping
-f.ASSETDESC as SearchName --name
-,f.ASSETDESC as Name --name
+f.assetid, 
+f.ASSETCLASSID, 
+f.ASSETDESC as SearchName 
+,f.ASSETDESC as Name 
 ,f.EXTASSETDESC 
 ,Acquisition_Cost as ACQUISITIONPRICE
-,ACQDATE as ACQUISITIONDATE --acquisitiondate
---,concat(trim(STRUCTUREID), '00') --department, need to map to updated values
+,ACQDATE as ACQUISITIONDATE 
 
 from gwc.dbo.FA00100 f
-join D365Migration.dbo.fixedassetgroup fg
-on f.assetclassid = fg.GPFixedAssetGroup
-where fg.fixedassetgroupId != ''
+where f.ASSETSTATUS = 1
 
 union 
 select  
 'GTS',
-f.assetid, --assetid
-fg.[FixedAssetGroupId], --assetgroup TODO mapping
-f.ASSETDESC as SearchName --name
-,f.ASSETDESC as Name --name
+f.assetid, 
+f.ASSETCLASSID, 
+f.ASSETDESC as SearchName 
+,f.ASSETDESC as Name 
 ,f.EXTASSETDESC 
 ,Acquisition_Cost as ACQUISITIONPRICE
-,ACQDATE as ACQUISITIONDATE --acquisitiondate
---,concat(trim(STRUCTUREID), '00') --department, need to map to updated values
-
+,ACQDATE as ACQUISITIONDATE 
 from GSS.dbo.FA00100 f
-join D365Migration.dbo.fixedassetgroup fg
-on f.assetclassid = fg.GPFixedAssetGroup
-where fg.fixedassetgroupId != ''
+where f.ASSETSTATUS = 1
+
 union 
 
 select  
 'Blue',
-f.assetid, --assetid
-fg.[FixedAssetGroupId], --assetgroup TODO mapping
-f.ASSETDESC as SearchName --name
-,f.ASSETDESC as Name --name
+f.assetid, 
+f.ASSETCLASSID, 
+f.ASSETDESC as SearchName 
+,f.ASSETDESC as Name 
 ,f.EXTASSETDESC 
 ,Acquisition_Cost as ACQUISITIONPRICE
-,ACQDATE as ACQUISITIONDATE --acquisitiondate
---,concat(trim(STRUCTUREID), '00') --department, need to map to updated values
-
+,ACQDATE as ACQUISITIONDATE 
 from blue.dbo.FA00100 f
-join D365Migration.dbo.fixedassetgroup fg
-on f.assetclassid = fg.GPFixedAssetGroup
-where fg.fixedassetgroupId != ''
+where  f.ASSETSTATUS = 1
 union
 
 select  
-'GWFD',
-f.assetid, --assetid
-fg.[FixedAssetGroupId], --assetgroup TODO mapping
-f.ASSETDESC as SearchName --name
-,f.ASSETDESC as Name --name
+'Excl',
+f.assetid,
+f.ASSETCLASSID, 
+f.ASSETDESC as SearchName 
+,f.ASSETDESC as Name 
 ,f.EXTASSETDESC 
 ,Acquisition_Cost as ACQUISITIONPRICE
-,ACQDATE as ACQUISITIONDATE --acquisitiondate
---,concat(trim(STRUCTUREID), '00') --department, need to map to updated values
-
+,ACQDATE as ACQUISITIONDATE 
 from excel.dbo.FA00100 f
-join D365Migration.dbo.fixedassetgroup fg
-on f.assetclassid = fg.GPFixedAssetGroup
-where fg.fixedassetgroupId != ''
+where f.ASSETSTATUS = 1
 )
 

@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[Vendors_GPToD365DB]    Script Date: 3/22/2022 9:02:31 PM ******/
+/****** Object:  StoredProcedure [dbo].[Vendors_GPToD365DB]    Script Date: 4/12/2022 12:05:03 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -43,7 +43,8 @@ INSERT INTO [dbo].[Vendors]
 		   ,TAX1099FEDERALTAXID
 		   ,bankaccountId
 		   ,[OurAccountNumber],
-		   DEFAULTLEDGERDIMENSIONDISPLAYVALUE
+		   DEFAULTLEDGERDIMENSIONDISPLAYVALUE,
+		   TAX1099BOXID
 		   )
 
 select 
@@ -97,7 +98,7 @@ vendname as vendororganizationname,
 vt.COMMENT1 as DEFAULTPAYMENTTERMSNAME,
 vt.comment2 as DEFAULTVENDORPAYMENTMETHODNAME,
 hold as OnHoldStatus,
-ten99type as TAX1099IDTYPE,
+vt.ten99type as TAX1099IDTYPE,
 case
 	when UserDef1 like '%1099%'
 		then 'Yes'
@@ -127,8 +128,29 @@ CREDTLMT as CreditRating,
 	when ACNMVNDR = 'New goods'
 		then '-160000-9999-1-Proj0000'
 	else '--9999-1-Proj0000'
-end as DEFAULTLEDGERDIMENSIONDISPLAYVALUE
+end as DEFAULTLEDGERDIMENSIONDISPLAYVALUE,
+case
+	when t.TEN99BOXTEXT = '1' then 'MISC-01'
+	when t.TEN99BOXTEXT = '2' then 'MISC-02'
+	when t.TEN99BOXTEXT = '3' then 'MISC-03'
+	when t.TEN99BOXTEXT = '4' then 'MISC-04'
+	when t.TEN99BOXTEXT = '5' then 'MISC-05'
+	when t.TEN99BOXTEXT = '6' then 'MISC-06'
+	when t.TEN99BOXTEXT = '7' then 'NEC-01'
+	when t.TEN99BOXTEXT = '8' then 'MISC-08'
+	when t.TEN99BOXTEXT = '10' then 'MISC-09'
+	when t.TEN99BOXTEXT = '13' then 'MISC-13'
+	when t.TEN99BOXTEXT = '14' then 'MISC-10'
+	when t.TEN99BOXTEXT = '15a' then 'MISC-12'
+	when t.TEN99BOXTEXT = '15b' then 'MISC-14'
+	when t.TEN99BOXTEXT = '16' then 'MISC-15'
+	when t.TEN99BOXTEXT = '18' then 'MISC-03'
+else ''
+end as TAX1099BOXID
 from gwc.dbo.PM00200 vt
+left join blue.[dbo].[PM40104] t
+on t.TEN99BOXNUMBER = vt.TEN99BOXNUMBER
+and t.TEN99TYPE = 3
 where vt.vendstts = 1
 
 union
@@ -185,7 +207,7 @@ vendname as vendororganizationname,
 vt.COMMENT1 as DEFAULTPAYMENTTERMSNAME,
 vt.comment2 as DEFAULTVENDORPAYMENTMETHODNAME,
 hold as OnHoldStatus,
-ten99type as  TAX1099IDTYPE,
+vt.ten99type as  TAX1099IDTYPE,
 case
 	when UserDef1 like '%1099%'
 		then 'Yes'
@@ -217,14 +239,37 @@ CREDTLMT as CreditRating,
 		then '-160000-9999-1-Proj0000'
 	else '--9999-1-Proj0000'
 end as DEFAULTLEDGERDIMENSIONDISPLAYVALUE
+, 
+case
+	when t.TEN99BOXTEXT = '1' then 'MISC-01'
+	when t.TEN99BOXTEXT = '2' then 'MISC-02'
+	when t.TEN99BOXTEXT = '3' then 'MISC-03'
+	when t.TEN99BOXTEXT = '4' then 'MISC-04'
+	when t.TEN99BOXTEXT = '5' then 'MISC-05'
+	when t.TEN99BOXTEXT = '6' then 'MISC-06'
+	when t.TEN99BOXTEXT = '7' then 'NEC-01'
+	when t.TEN99BOXTEXT = '8' then 'MISC-08'
+	when t.TEN99BOXTEXT = '10' then 'MISC-09'
+	when t.TEN99BOXTEXT = '13' then 'MISC-13'
+	when t.TEN99BOXTEXT = '14' then 'MISC-10'
+	when t.TEN99BOXTEXT = '15a' then 'MISC-12'
+	when t.TEN99BOXTEXT = '15b' then 'MISC-14'
+	when t.TEN99BOXTEXT = '16' then 'MISC-15'
+	when t.TEN99BOXTEXT = '18' then 'MISC-03'
+else ''
+end as TAX1099BOXID
+
 from blue.dbo.PM00200 vt
+left join blue.[dbo].[PM40104] t
+on t.TEN99BOXNUMBER = vt.TEN99BOXNUMBER
+and t.TEN99TYPE = 3
 where vt.vendstts = 1
 
 union
 
 select 
-'GWFD' as DataAreaId,
-Concat('Party-', 'GWFD-',VENDORID) as VendorPartyNumber,
+'EXCL' as DataAreaId,
+Concat('Party-', 'EXCL-',VENDORID) as VendorPartyNumber,
 		case 
 	when len(dense_rank() over (order by vt.vendorid)) = 1
 		then '1000000' + Cast((dense_rank() over (order by vt.vendorid)) as Nvarchar(10))
@@ -274,7 +319,7 @@ vendname as vendororganizationname,
 vt.COMMENT1 as DEFAULTPAYMENTTERMSNAME,
 vt.comment2 as DEFAULTVENDORPAYMENTMETHODNAME,
 hold as OnHoldStatus,
-ten99type as TAX1099IDTYPE,
+t.ten99type as TAX1099IDTYPE,
 case
 	when UserDef1 like '%1099%'
 		then 'Yes'
@@ -305,8 +350,29 @@ CREDTLMT as CreditRating ,
 	when ACNMVNDR = 'New goods'
 		then '-160000-9999-1-Proj0000'
 	else '--9999-1-Proj0000'
-end as DEFAULTLEDGERDIMENSIONDISPLAYVALUE
+end as DEFAULTLEDGERDIMENSIONDISPLAYVALUE,
+case
+	when t.TEN99BOXTEXT = '1' then 'MISC-01'
+	when t.TEN99BOXTEXT = '2' then 'MISC-02'
+	when t.TEN99BOXTEXT = '3' then 'MISC-03'
+	when t.TEN99BOXTEXT = '4' then 'MISC-04'
+	when t.TEN99BOXTEXT = '5' then 'MISC-05'
+	when t.TEN99BOXTEXT = '6' then 'MISC-06'
+	when t.TEN99BOXTEXT = '7' then 'NEC-01'
+	when t.TEN99BOXTEXT = '8' then 'MISC-08'
+	when t.TEN99BOXTEXT = '10' then 'MISC-09'
+	when t.TEN99BOXTEXT = '13' then 'MISC-13'
+	when t.TEN99BOXTEXT = '14' then 'MISC-10'
+	when t.TEN99BOXTEXT = '15a' then 'MISC-12'
+	when t.TEN99BOXTEXT = '15b' then 'MISC-14'
+	when t.TEN99BOXTEXT = '16' then 'MISC-15'
+	when t.TEN99BOXTEXT = '18' then 'MISC-03'
+else ''
+end as TAX1099BOXID
 from excel.dbo.PM00200 vt
+join excel.dbo.PM40104 t
+on t.TEN99BOXNUMBER = vt.TEN99BOXNUMBER
+and t.TEN99TYPE = 3
 where vt.vendstts = 1
 
 
@@ -399,7 +465,7 @@ vendname as vendororganizationname,
 vt.COMMENT1 as DEFAULTPAYMENTTERMSNAME,
 vt.comment2 as DEFAULTVENDORPAYMENTMETHODNAME,
 hold as OnHoldStatus,
-ten99type as TAX1099IDTYPE,
+t.ten99type as TAX1099IDTYPE,
 case
 	when UserDef1 like '%1099%'
 		then 'Yes'
@@ -430,8 +496,29 @@ CREDTLMT as CreditRating,
 	when ACNMVNDR = 'New goods'
 		then '-160000-9999-1-Proj0000'
 	else '--9999-1-Proj0000'
-end as DEFAULTLEDGERDIMENSIONDISPLAYVALUE
+end as DEFAULTLEDGERDIMENSIONDISPLAYVALUE,
+case
+	when t.TEN99BOXTEXT = '1' then 'MISC-01'
+	when t.TEN99BOXTEXT = '2' then 'MISC-02'
+	when t.TEN99BOXTEXT = '3' then 'MISC-03'
+	when t.TEN99BOXTEXT = '4' then 'MISC-04'
+	when t.TEN99BOXTEXT = '5' then 'MISC-05'
+	when t.TEN99BOXTEXT = '6' then 'MISC-06'
+	when t.TEN99BOXTEXT = '7' then 'NEC-01'
+	when t.TEN99BOXTEXT = '8' then 'MISC-08'
+	when t.TEN99BOXTEXT = '10' then 'MISC-09'
+	when t.TEN99BOXTEXT = '13' then 'MISC-13'
+	when t.TEN99BOXTEXT = '14' then 'MISC-10'
+	when t.TEN99BOXTEXT = '15a' then 'MISC-12'
+	when t.TEN99BOXTEXT = '15b' then 'MISC-14'
+	when t.TEN99BOXTEXT = '16' then 'MISC-15'
+	when t.TEN99BOXTEXT = '18' then 'MISC-03'
+else ''
+end as TAX1099BOXID
 from gss.dbo.PM00200 vt
+join gss.dbo.PM40104 t
+on t.TEN99BOXNUMBER = vt.TEN99BOXNUMBER
+and t.TEN99TYPE = 3
 where vt.vendstts = 1
 
 

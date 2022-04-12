@@ -1,0 +1,26 @@
+USE [D365Migration]
+GO
+
+/****** Object:  Table [dbo].[Products]    Script Date: 4/12/2022 1:03:14 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE Procedure ReleasedProductsWHSDefaults_GPToD365DB as
+Insert into [dbo].[ProductsWHSDefault](
+	DataAreaId,
+	[ItemNumber] ,
+	CountingGroupId
+	)
+Select 'GICT',
+i.ITEMNMBR,
+USCATVLS_1 as CountingGroupId
+from gwc.dbo.IV00101  i
+WHERE I.ITEMTYPE = 1
+AND I.ITMCLSCD != 'Delete'
+and i.ITEMNMBR in (select p.item from POSDatabase.[SiriusSQL].[dbo].[items] p)
+
+
+

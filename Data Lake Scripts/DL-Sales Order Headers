@@ -1,0 +1,86 @@
+USE [D365Migration]
+GO
+
+Create PRocedure DataLake_SalesOrderHeaders_GPToD365DB
+
+as
+
+INSERT INTO [dbo].[DATALAKE_SALESORDERHEADERS]
+           ([DataAreaId]
+           ,[SalesOrderNumber]
+           ,[ORDERCUSTOMERACCOUNTNUMBER]
+           ,[CustomerName]
+		   ,Store
+           ,[iNVOICEADDRESSSTREET]
+           ,[INVOICEADDRESSCITY]
+           ,[INVOICEADDRESSSTATE]
+           ,[INVOICEADDRESSZIPCODE]
+           ,[InvoiceDate],[PaymentTermsName])
+
+select 
+'GICT',
+soh.SOPNUMBE as SalesOrderNumber,
+CUSTNMBR as OrderCustomerAccountNumber,
+CustName as CustomerName, 
+soh.locncode as Store,
+concat(trim(soh.address1), ' ', trim(soh.address2),' ', trim(soh.address3)) AS iNVOICEADDRESSSTREET
+,soh.CITY as INVOICEADDRESSCITY
+,soh.STATE AS INVOICEADDRESSSTATE
+,soh.ZIPCODE AS INVOICEADDRESSZIPCODE
+,soh.INVODATE as InvoiceDate
+,soh.PYMTRMID as PAymentTermsName
+from gwc.dbo.SOP30200 soh
+
+union
+select 
+'Blue',
+soh.SOPNUMBE as SalesOrderNumber,
+CUSTNMBR as OrderCustomerAccountNumber,
+CustName as CustomerName, 
+soh.locncode as Store,
+concat(trim(soh.address1), ' ', trim(soh.address2),' ', trim(soh.address3)) AS iNVOICEADDRESSSTREET
+,soh.CITY as INVOICEADDRESSCITY
+,soh.STATE AS INVOICEADDRESSSTATE
+,soh.ZIPCODE AS INVOICEADDRESSZIPCODE
+,soh.INVODATE as InvoiceDate
+,soh.PYMTRMID as PAymentTermsName
+from blue.dbo.SOP30200 soh
+
+union
+
+select 
+'GTS',
+soh.SOPNUMBE as SalesOrderNumber,
+CUSTNMBR as OrderCustomerAccountNumber,
+CustName as CustomerName, 
+soh.locncode as Store,
+concat(trim(soh.address1), ' ', trim(soh.address2),' ', trim(soh.address3)) AS iNVOICEADDRESSSTREET
+,soh.CITY as INVOICEADDRESSCITY
+,soh.STATE AS INVOICEADDRESSSTATE
+,soh.ZIPCODE AS INVOICEADDRESSZIPCODE
+,soh.INVODATE as InvoiceDate
+,soh.PYMTRMID as PAymentTermsName
+from gss.dbo.SOP30200 soh
+
+
+union
+
+select 
+'Excl',
+soh.SOPNUMBE as SalesOrderNumber,
+CUSTNMBR as OrderCustomerAccountNumber,
+CustName as CustomerName, 
+soh.locncode as Store,
+concat(trim(soh.address1), ' ', trim(soh.address2),' ', trim(soh.address3)) AS iNVOICEADDRESSSTREET
+,soh.CITY as INVOICEADDRESSCITY
+,soh.STATE AS INVOICEADDRESSSTATE
+,soh.ZIPCODE AS INVOICEADDRESSZIPCODE
+,soh.INVODATE as InvoiceDate
+,soh.PYMTRMID as PAymentTermsName
+from excel.dbo.SOP30200 soh
+
+
+
+
+
+

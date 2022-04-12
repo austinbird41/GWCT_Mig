@@ -1,0 +1,74 @@
+Create Procedure DataLake_SalesOrderLines_GPToD365DB
+
+as
+
+INSERT INTO [dbo].[DATALAKE_SALESORDERLINES]
+           ([DataAreaId]
+           ,[SalesOrderNumber]
+           ,[ItemNumber]
+           ,[ItemDescription]
+		   ,[ORDEREDSalesQUANTITY]
+           ,[QuantityFulfilled]
+           ,[OriginalUnitPrice]
+           ,[ExtendedPRice])
+select
+'GICT',
+soh.SOPNUMBE as SalesOrderNumber
+,sol.ITEMNMBR as ItemNumber
+,sol.ITEMDESC as ItemDescription
+,sol.QUANTITY as SalesQuantity,
+sol.QTYFULFI as QuantityFulfilled
+,sol.UNITPRCE as OriginalUnitPRice
+,sol.XTNDPRCE as ExtendedPrice
+from gwc.dbo.SOP30200 soh
+join gwc.dbo.SOP30300 sol
+on soh.SOPNUMBE = sol.SOPNUMBE
+
+
+union
+
+select
+'Blue',
+soh.SOPNUMBE as SalesOrderNumber
+,sol.ITEMNMBR as ItemNumber
+,sol.ITEMDESC as ItemDescription
+,sol.QUANTITY as SalesQuantity,
+sol.QTYFULFI as QuantityFulfilled
+,sol.UNITPRCE as OriginalUnitPRice
+,sol.XTNDPRCE as ExtendedPrice
+from blue.dbo.SOP30200 soh
+join blue.dbo.SOP30300 sol
+on soh.SOPNUMBE = sol.SOPNUMBE
+
+
+union
+
+select
+'GTS',
+soh.SOPNUMBE as SalesOrderNumber
+,sol.ITEMNMBR as ItemNumber
+,sol.ITEMDESC as ItemDescription
+,sol.QUANTITY as SalesQuantity,
+sol.QTYFULFI as QuantityFulfilled
+,sol.UNITPRCE as OriginalUnitPRice
+,sol.XTNDPRCE as ExtendedPrice
+from gss.dbo.SOP30200 soh
+join gss.dbo.SOP30300 sol
+on soh.SOPNUMBE = sol.SOPNUMBE
+
+
+union
+
+select
+'Excl',
+soh.SOPNUMBE as SalesOrderNumber
+,sol.ITEMNMBR as ItemNumber
+,sol.ITEMDESC as ItemDescription
+,sol.QUANTITY as SalesQuantity,
+sol.QTYFULFI as QuantityFulfilled
+,sol.UNITPRCE as OriginalUnitPRice
+,sol.XTNDPRCE as ExtendedPrice
+from EXCEL.dbo.SOP30200 soh
+join EXCEL.dbo.SOP30300 sol
+on soh.SOPNUMBE = sol.SOPNUMBE
+

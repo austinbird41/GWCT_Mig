@@ -1,3 +1,24 @@
+USE [D365Migration]
+GO
+/****** Object:  StoredProcedure [dbo].[FixedAssetBooks_GPToD365DB]    Script Date: 4/4/2022 11:35:30 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER Procedure [dbo].[FixedAssetBooks_GPToD365DB]
+
+as
+
+INSERT INTO [dbo].[FixedAssetBooks]
+           ([DataAreaId]
+           ,[FixedAssetNumber]
+           ,[BookId]
+           ,[PostingProfileId]
+           ,[DepreciationProfileId]
+           ,[DimensionDisplayValue]
+           ,[ACQUISITIONPRICE]
+           ,[ACQUISITIONDate])
 
 select  
 'GICT',
@@ -5,12 +26,11 @@ f.assetid as FixedAssetNumber, --assetid
 'internal' as BookId, 
 'Default' as POSTINGPROFILEID,
  'straightli' as DEPRECIATIONPROFILEID,
- concat('-',trim(f.STRUCTUREID), '00---') as dimensiondisplayvalue
+ concat('-',trim(f.STRUCTUREID), '00-9999-1-Proj0000') as dimensiondisplayvalue
  ,Acquisition_Cost as ACQUISITIONPRICE
 ,ACQDATE as ACQUISITIONDATE --acquisitiondate
-
-
 from gwc.dbo.FA00100 f
+where f.ASSETSTATUS = 1
 
 union 
 
@@ -20,11 +40,11 @@ f.assetid as FixedAssetNumber, --assetid
 'internal' as BookId, 
 'Default' as POSTINGPROFILEID,
  'straightli' as DEPRECIATIONPROFILEID,
- concat('-',trim(f.STRUCTUREID), '00---') as dimensiondisplayvalue
+ concat('-',trim(f.STRUCTUREID), '00-9999-1-Proj0000') as dimensiondisplayvalue
  ,Acquisition_Cost as ACQUISITIONPRICE
 ,ACQDATE as ACQUISITIONDATE --acquisitiondate
-
 from blue.dbo.FA00100 f
+where f.ASSETSTATUS = 1
 
 union 
 
@@ -34,22 +54,25 @@ f.assetid as FixedAssetNumber, --assetid
 'internal' as BookId, 
 'Default' as POSTINGPROFILEID,
  'straightli' as DEPRECIATIONPROFILEID,
- concat('-',trim(f.STRUCTUREID), '00---') as dimensiondisplayvalue
+ concat('-',trim(f.STRUCTUREID), '00-9999-1-Proj0000') as dimensiondisplayvalue
  ,Acquisition_Cost as ACQUISITIONPRICE
 ,ACQDATE as ACQUISITIONDATE --acquisitiondate
-
 from gss.dbo.FA00100 f
+where f.ASSETSTATUS = 1
 
 union
 
 select  
-'GWFD',
+'Excl',
 f.assetid as FixedAssetNumber, --assetid
 'internal' as BookId, 
 'Default' as POSTINGPROFILEID,
  'straightli' as DEPRECIATIONPROFILEID,
- concat('-',trim(f.STRUCTUREID), '00---') as dimensiondisplayvalue
+'-616000-9999-1-Proj0000' as dimensiondisplayvalue
  ,Acquisition_Cost as ACQUISITIONPRICE
 ,ACQDATE as ACQUISITIONDATE --acquisitiondate
 
 from excel.dbo.FA00100 f
+where f.ASSETSTATUS = 1
+
+
