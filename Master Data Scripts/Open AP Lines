@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[OpenAPLines_GPToD365DB]    Script Date: 3/22/2022 10:59:28 AM ******/
+/****** Object:  StoredProcedure [dbo].[OpenAPLines_GPToD365DB]    Script Date: 4/12/2022 3:40:39 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -21,7 +21,12 @@ INSERT INTO [dbo].[OpenAPLines]
            ,[AccountDisplayValue]
            ,[AccountType]
            ,[TermsOfPayment]
-           ,[Currency])
+           ,[Currency],
+		   DefaultDimensionDisplayValue,
+		   OFFSETACCOUNTDISPLAYVALUE,
+		   	PostingProfile,
+			ApprovedBy,
+			Approved)
 (
 select 
 'GICT',
@@ -35,8 +40,12 @@ p.VCHRNMBR as voucher,
 p.VENDORID as accountdisplayvalue,
 'vend' as AccountType,
 p.PYMTRMID as TermsOfPayment,
-'USD' as Currency
-
+'USD' as Currency,
+'000000-9999-Proj0000-1' as DefaultDimensionDisplayValue,
+ '21100-000000-9999-Proj0000-1' as OFFSETACCOUNTDISPLAYVALUE,
+ 'General' as PostingProfile,
+ '00001' as Approvedby,
+ 1 as Approved
 --bring them over with today's date, just try to use their voucher numbers, currency USD
 from gwc.dbo.PM20000 p
 where p.DOCTYPE = 1
@@ -54,8 +63,12 @@ p.VCHRNMBR as voucher,
 p.VENDORID as accountdisplayvalue,
 'vend' as AccountType,
 p.PYMTRMID as TermsOfPayment,
-'USD' as Currency
-
+'USD' as Currency,
+'000000-9999-Proj0000-1' as DefaultDimensionDisplayValue,
+ '21100-000000-9999-Proj0000-1' as OFFSETACCOUNTDISPLAYVALUE,
+ 'General' as PostingProfile,
+ '00001' as Approvedby,
+ 1 as Approved
 --bring them over with today's date, just try to use their voucher numbers, currency USD
 from gss.dbo.PM20000 p
 where p.DOCTYPE = 1
@@ -74,7 +87,12 @@ p.VCHRNMBR as voucher,
 p.VENDORID as accountdisplayvalue,
 'vend' as AccountType,
 p.PYMTRMID as TermsOfPayment,
-'USD' as Currency
+'USD' as Currency,
+'000000-9999-Proj0000-1' as DefaultDimensionDisplayValue,
+ '21100-000000-9999-Proj0000-1' as OFFSETACCOUNTDISPLAYVALUE,
+ 'General' as PostingProfile,
+ '00001' as Approvedby,
+ 1 as Approved
 
 --bring them over with today's date, just try to use their voucher numbers, currency USD
 from BLUE.dbo.PM20000 p

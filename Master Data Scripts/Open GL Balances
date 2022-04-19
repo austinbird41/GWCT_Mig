@@ -1,0 +1,138 @@
+USE [D365Migration]
+GO
+
+Alter procedure OpenGLBalances_GPToD365DB
+as
+INSERT INTO [dbo].[GeneralLedgerJournals]
+           ([DataAreaId]
+           ,[JournalBatchNumber]
+           ,[LineNumber]
+           ,[AccountDisplayValue]
+           ,[DebitAmount]
+           ,[CreditAmount]
+           ,[CurrencyCode]
+           ,[Description]
+           ,[ExchangeRate]
+           ,[JournalName]
+           ,[OffsetAccountType]
+           ,[PostingLayer]
+           ,[Text]
+           ,[TransDate]
+		   )
+
+select
+'GICT'
+,'journal_1'--TODO:fix
+,row_number() over ( partition by G.ACTINDX order by G.ACTINDX)
+,concat(Trim(G.ACTNUMBR_1), '-', Trim(G.ACTNUMBR_2), '-', Trim(G.ACTNUMBR_3))--todo: Update mapping to new accounts
+,g.DEBITAMT
+,g.CRDTAMNT
+,'USD'
+,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
+,100 --Follow up on exchange rate
+,'MigBalance'
+,'Ledger'
+,'Current'
+,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
+,getDate()
+from gwc.dbo.GL11110 g
+
+union
+
+select
+'GICT'
+,'journal_1'--TODO:fix
+,row_number() over ( partition by G.ACTINDX order by G.ACTINDX)
+,concat(Trim(G.ACTNUMBR_1), '-', Trim(G.ACTNUMBR_2), '-', Trim(G.ACTNUMBR_3))--todo: Update mapping to new accounts
+,g.DEBITAMT
+,g.CRDTAMNT
+,'USD'
+,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
+,100 --Follow up on exchange rate
+,'MigBalance'
+,'Ledger'
+,'Current'
+,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
+,getDate()
+from gwc.dbo.GL10111 g
+where g.YEAR1 IN ('2021','2022')
+
+
+Union
+
+select
+'blue'
+,'journal_1'--TODO:fix
+,row_number() over ( partition by G.ACTINDX order by G.ACTINDX)
+,concat(Trim(G.ACTNUMBR_1), '-', Trim(G.ACTNUMBR_2), '-', Trim(G.ACTNUMBR_3))--todo: Update mapping to new accounts
+,g.DEBITAMT
+,g.CRDTAMNT
+,'USD'
+,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
+,100 --Follow up on exchange rate
+,'MigBalance'
+,'Ledger'
+,'Current'
+,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
+,getDate()
+from blue.dbo.GL11110 g
+
+union
+
+select
+'blue'
+,'journal_1'--TODO:fix
+,row_number() over ( partition by G.ACTINDX order by G.ACTINDX)
+,concat(Trim(G.ACTNUMBR_1), '-', Trim(G.ACTNUMBR_2), '-', Trim(G.ACTNUMBR_3))--todo: Update mapping to new accounts
+,g.DEBITAMT
+,g.CRDTAMNT
+,'USD'
+,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
+,100 --Follow up on exchange rate
+,'MigBalance'
+,'Ledger'
+,'Current'
+,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
+,getDate()
+from blue.dbo.GL10111 g
+where g.YEAR1 IN ('2021','2022')
+
+
+Union
+
+select
+'GTS'
+,'journal_1'--TODO:fix
+,row_number() over ( partition by G.ACTINDX order by G.ACTINDX)
+,concat(Trim(G.ACTNUMBR_1), '-', Trim(G.ACTNUMBR_2), '-', Trim(G.ACTNUMBR_3))--todo: Update mapping to new accounts
+,g.DEBITAMT
+,g.CRDTAMNT
+,'USD'
+,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
+,100 --Follow up on exchange rate
+,'MigBalance'
+,'Ledger'
+,'Current'
+,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
+,getDate()
+from gss.dbo.GL11110 g
+
+union
+
+select
+'GTS'
+,'journal_1'--TODO:fix
+,row_number() over ( partition by G.ACTINDX order by G.ACTINDX)
+,concat(Trim(G.ACTNUMBR_1), '-', Trim(G.ACTNUMBR_2), '-', Trim(G.ACTNUMBR_3))--todo: Update mapping to new accounts
+,g.DEBITAMT
+,g.CRDTAMNT
+,'USD'
+,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
+,100 --Follow up on exchange rate
+,'MigBalance'
+,'Ledger'
+,'Current'
+,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
+,getDate()
+from gss.dbo.GL10111 g
+where g.YEAR1 IN ('2021','2022')
