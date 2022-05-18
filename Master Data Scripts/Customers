@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[Customers_GPToD365DB]    Script Date: 3/22/2022 9:16:29 PM ******/
+/****** Object:  StoredProcedure [dbo].[Customers_GPToD365DB]    Script Date: 5/12/2022 9:23:03 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -59,12 +59,92 @@ SELECT 'GICT' as DataAreaId,
 				else [CUSTNAME]
 			end as OrganizationName
       ,[CUSTNAME] as NameAlias
-      ,comment1 as customergroupid
+      ,case
+		when comment1 not in  ('1500', '1400','1000')
+			then 'migration'
+		else comment1
+		end as customergroupid
 	  ,'AllCust' as AddressBooks
       ,[CHEKBKID] as [PAYMENTBANKACCOUNT]
       ,[PYMTRMID] as PaymentTerms
       ,[CRLMTTYP] as CreditRating --credit rating, need to map to D365 values
-      ,[CRLMTAMT]  as CreditLimit--(preference: they will update in GP)
+	, case
+			when TRIM(CUSTNMBR) = 'B006' then 1
+			when TRIM(CUSTNMBR) = 'C450' then 1
+			when TRIM(CUSTNMBR) = 'DD001' then 1
+			when TRIM(CUSTNMBR) = 'E175' then 1
+			when TRIM(CUSTNMBR) = 'MB001' then 1
+			when TRIM(CUSTNMBR) = 'MT001' then 1
+			when TRIM(CUSTNMBR) = 'N150' then 1
+			when TRIM(CUSTNMBR) = 'P048' then 1
+			when TRIM(CUSTNMBR) = 'R001' then 1
+			when TRIM(CUSTNMBR) = 'RC001' then 1
+			when TRIM(CUSTNMBR) = 'RV001' then 1
+			when TRIM(CUSTNMBR) = 'S042' then 1
+			when TRIM(CUSTNMBR) = 'S050' then 1
+			when TRIM(CUSTNMBR) = 'V050' then 1
+			when TRIM(CUSTNMBR) = '5032' then 1
+			when TRIM(CUSTNMBR) = 'C113' then 350
+			when TRIM(CUSTNMBR) = 'R099' then 500
+			when TRIM(CUSTNMBR) = 'G470' then 10000
+			when TRIM(CUSTNMBR) = 'Q001' then 10000
+			when TRIM(CUSTNMBR) = 'B355' then 20000
+			when TRIM(CUSTNMBR) = 'A2399' then 25000
+			when TRIM(CUSTNMBR) = 'A007' then 50000
+			when TRIM(CUSTNMBR) = 'A110' then 50000
+			when TRIM(CUSTNMBR) = 'B075' then 50000
+			when TRIM(CUSTNMBR) = 'B099' then 50000
+			when TRIM(CUSTNMBR) = 'B210' then 50000
+			when TRIM(CUSTNMBR) = 'G999' then 50000
+			when TRIM(CUSTNMBR) = 'M151' then 50000
+			when TRIM(CUSTNMBR) = 'P126' then 50000
+			when TRIM(CUSTNMBR) = 'R025' then 50000
+			when TRIM(CUSTNMBR) = 'V025' then 50000
+			when TRIM(CUSTNMBR) = 'A156' then 50000
+			when TRIM(CUSTNMBR) = 'A257' then 50000
+			when TRIM(CUSTNMBR) = 'A301' then 50000
+			when TRIM(CUSTNMBR) = 'BP001' then 50000
+			when TRIM(CUSTNMBR) = 'C021' then 50000
+			when TRIM(CUSTNMBR) = 'CSI001' then 50000
+			when TRIM(CUSTNMBR) = 'D013' then 50000
+			when TRIM(CUSTNMBR) = 'D014' then 50000
+			when TRIM(CUSTNMBR) = 'D350' then 50000
+			when TRIM(CUSTNMBR) = 'E150' then 50000
+			when TRIM(CUSTNMBR) = 'E176' then 50000
+			when TRIM(CUSTNMBR) = 'F003' then 50000
+			when TRIM(CUSTNMBR) = 'F215' then 50000
+			when TRIM(CUSTNMBR) = 'G025' then 50000
+			when TRIM(CUSTNMBR) = 'G095' then 50000
+			when TRIM(CUSTNMBR) = 'G120' then 50000
+			when TRIM(CUSTNMBR) = 'H175' then 50000
+			when TRIM(CUSTNMBR) = 'H176' then 50000
+			when TRIM(CUSTNMBR) = 'ITRENEW' then 50000
+			when TRIM(CUSTNMBR) = 'J720' then 50000
+			when TRIM(CUSTNMBR) = 'L011' then 50000
+			when TRIM(CUSTNMBR) = 'LM001' then 50000
+			when TRIM(CUSTNMBR) = 'M021' then 50000
+			when TRIM(CUSTNMBR) = 'M152' then 50000
+			when TRIM(CUSTNMBR) = 'PMI001' then 50000
+			when TRIM(CUSTNMBR) = 'S421' then 50000
+			when TRIM(CUSTNMBR) = 'S787' then 50000
+			when TRIM(CUSTNMBR) = 'TL001' then 50000
+			when TRIM(CUSTNMBR) = 'V075' then 50000
+			when TRIM(CUSTNMBR) = 'VT001' then 50000
+			when TRIM(CUSTNMBR) = 'A149' then 50000
+			when TRIM(CUSTNMBR) = 'AUSTIN AREA URB' then 50000
+			when TRIM(CUSTNMBR) = 'C011' then 50000
+			when TRIM(CUSTNMBR) = 'C040' then 50000
+			when TRIM(CUSTNMBR) = 'C100' then 50000
+			when TRIM(CUSTNMBR) = 'C102' then 50000
+			when TRIM(CUSTNMBR) = 'C103' then 50000
+			when TRIM(CUSTNMBR) = 'C301' then 50000
+			when TRIM(CUSTNMBR) = 'D002' then 50000
+			when TRIM(CUSTNMBR) = 'TASUS' then 75000
+			when TRIM(CUSTNMBR) = 'B080' then 100000
+			when TRIM(CUSTNMBR) = 'F002' then 100000
+			when TRIM(CUSTNMBR) = 'I100' then 450000
+		else [CRLMTAMT]  
+		end as CreditLimit
       ,'USD' as salesCurrencyCode
       ,case
 		when [CUSTDISC] = 500
@@ -76,7 +156,22 @@ SELECT 'GICT' as DataAreaId,
 	  ,'AllStores' as DiscountPriceGroupId --Price Group, to default once configured
 
       ,[HOLD] as onHoldstatus
-	  	  ,[CUSTNMBR] as InvoiceAccount
+	  	  ,		case 
+	when len(dense_rank() over (order by [CUSTNMBR])) = 1
+		then '2000000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 2
+		then '200000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 3
+		then '20000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 4
+		then '2000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 5
+		then '200' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 6
+		then '20' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 7
+		then '2' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	end as InvoiceAccount
 		  ,'en-us' as LanguageId
 		  ,CREATDDT as CredManCustomerSince, custnmbr as SalesAccountNumber
 		  ,case
@@ -91,6 +186,7 @@ SELECT 'GICT' as DataAreaId,
   FROM Gwc.Dbo.[RM00101]
 where inactive = 0 
 and comment1 in ('1500', '1400','1000')
+or (CUSTNMBR like 'b099%' or CUSTNMBR like 'c100%')
 
 
 union 
@@ -152,19 +248,34 @@ Concat('Party-','Blue-',[CUSTNMBR]) as PartyNumber,
 		end as TotalDiscountCode--totalDiscount field
 	  ,'AllStores' as DiscountPriceGroupId --Price Group, to default once configured
       ,[HOLD] as onHoldstatus
-	 ,[CUSTNMBR] as InvoiceAccount
+	 ,case 
+	when len(dense_rank() over (order by [CUSTNMBR])) = 1
+		then '2000000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 2
+		then '200000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 3
+		then '20000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 4
+		then '2000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 5
+		then '200' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 6
+		then '20' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 7
+		then '2' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	end as InvoiceAccount
 	 ,'en-us' as LanguageId
 	 ,CREATDDT as CredManCustomerSince, custnmbr as SalesAccountNumber
+	 ,'--9999-1-'
      -- ,'site' as SiteId
 	 -- ,'warehouse' as warehouseId-- will need to ask where to map sites/warehouses for customers
-	 ,''
   FROM blue.dbo.[RM00101]
 where inactive = 0 
 --and comment1 in ('1500', '1400','1000')
 
 union
 
-SELECT 'GWFD' as DataAreaId,
+SELECT 'EXCL' as DataAreaId,
 Concat('Party-','Blue-',[CUSTNMBR]) as PartyNumber,
 				case 
 	when len(dense_rank() over (order by [CUSTNMBR])) = 1
@@ -214,12 +325,27 @@ Concat('Party-','Blue-',[CUSTNMBR]) as PartyNumber,
 	  ,'AllStores' as DiscountPriceGroupId --Price Group, to default once configured
 
       ,[HOLD] as onHoldstatus
-	  ,[CUSTNMBR] as InvoiceAccount
+	  ,case 
+	when len(dense_rank() over (order by [CUSTNMBR])) = 1
+		then '2000000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 2
+		then '200000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 3
+		then '20000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 4
+		then '2000' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 5
+		then '200' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 6
+		then '20' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	when len(dense_rank() over (order by [CUSTNMBR])) = 7
+		then '2' + Cast((dense_rank() over (order by [CUSTNMBR])) as Nvarchar(10))
+	end as InvoiceAccount
 	  ,'en-us' as LanguageId
       --,'site' as iteId
 	  --,'warehouse' as warehouseId-- will need to ask where to map sites/warehouses for customers
 	  ,CREATDDT as CredManCustomerSince, custnmbr as SalesAccountNumber
-	  ,''
+	  ,'--9999-1-'
   FROM excel.dbo.[RM00101]
 where inactive = 0 
 --and comment1 in ('1500', '1400','1000')
@@ -293,7 +419,7 @@ Concat('Party-','GTS-',[CUSTNMBR]) as PartyNumber,
       --,'site' as iteId
 	  --,'warehouse' as warehouseId-- will need to ask where to map sites/warehouses for customers
 	  ,CREATDDT as CredManCustomerSince, custnmbr as SalesAccountNumber
-	  ,''
+	  ,'--9999-1-'
   FROM gss.dbo.[RM00101]
 where inactive = 0 
 --and comment1 in ('1500', '1400','1000')

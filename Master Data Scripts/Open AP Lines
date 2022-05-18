@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[OpenAPLines_GPToD365DB]    Script Date: 4/12/2022 3:40:39 PM ******/
+/****** Object:  StoredProcedure [dbo].[OpenAPLines_GPToD365DB]    Script Date: 5/6/2022 5:21:22 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -14,6 +14,7 @@ INSERT INTO [dbo].[OpenAPLines]
            ,[JournalBatchNumber]
            ,[LineNumber]
            ,[Credit]
+		   ,Debit
            ,[Invoice]
            ,[InvoiceDate]
            ,[DueDate]
@@ -32,71 +33,110 @@ select
 'GICT',
 (select  journalbatchnumber from openAPHeaders where trim(substring(description, 19, len(description)-1)) = p.BACHNUMB and dataareaid = 'gict') as JournalBatchNumber,
 row_number() over ( partition by BACHNUMB order by bachnumb ) as LineNumber,
-P.DOCAMNT AS CREDIT, 
+pm.CRDTAMNT,
+pm.DEBITAMT,
 p.DOCNUMBR as INVOICE,
 P.INVOICERECEIPTDATE AS INVOICEDATE,
 p.DUEDATE,
 p.VCHRNMBR as voucher,
-p.VENDORID as accountdisplayvalue,
+v.vendoraccountnumber as accountdisplayvalue,
 'vend' as AccountType,
 p.PYMTRMID as TermsOfPayment,
 'USD' as Currency,
-'000000-9999-Proj0000-1' as DefaultDimensionDisplayValue,
- '21100-000000-9999-Proj0000-1' as OFFSETACCOUNTDISPLAYVALUE,
+concat(m1.d365mainaccount, '-', m2.d365department, '-','9999-1-Proj0000') as DefaultDimensionDisplayValue,
+concat(m1.d365mainaccount, '-', m2.d365department, '-','9999-1-Proj0000')  as OFFSETACCOUNTDISPLAYVALUE,
  'General' as PostingProfile,
  '00001' as Approvedby,
  1 as Approved
 --bring them over with today's date, just try to use their voucher numbers, currency USD
-from gwc.dbo.PM20000 p
-where p.DOCTYPE = 1
+from  gwc.dbo.pm20000 p
+join D365Migration.dbo.vendors v
+on v.OurAccountNumber = p.VENDORID
+and dataareaid = 'gict'
+join gwc.dbo.PM10100 pm
+on pm.VCHRNMBR = p.VCHRNMBR
+join gwc.dbo.gl00100 g
+on pm.DSTINDX = g.ACTINDX
+join D365Migration.dbo.mainaccountmapping m1
+on m1.gpmainaccount = Trim(G.ACTNUMBR_1)
+and m1.dataareaid = 'gict'
+join d365migration.dbo.departmentmapping m2
+	on m2.gpdepartment =  trim(G.ACTNUMBR_2)
+
 
 union
 select 
 'GTS',
-(select  journalbatchnumber from openAPHeaders where trim(substring(description, 19, len(description)-1)) = p.BACHNUMB and dataareaid = 'gts') as JournalBatchNumber,
+(select  journalbatchnumber from openAPHeaders where trim(substring(description, 19, len(description)-1)) = p.BACHNUMB and dataareaid = 'GTS') as JournalBatchNumber,
 row_number() over ( partition by BACHNUMB order by bachnumb ) as LineNumber,
-P.DOCAMNT AS CREDIT, 
+pm.CRDTAMNT,
+pm.DEBITAMT,
 p.DOCNUMBR as INVOICE,
 P.INVOICERECEIPTDATE AS INVOICEDATE,
 p.DUEDATE,
 p.VCHRNMBR as voucher,
-p.VENDORID as accountdisplayvalue,
+v.vendoraccountnumber as accountdisplayvalue,
 'vend' as AccountType,
-p.PYMTRMID as TermsOfPayment,
+case
+	when p.PYMTRMID like '1%'
+		then '1% 20 Days/N30'
+	else p.PYMTRMID
+end as TermsOfPayment,
 'USD' as Currency,
-'000000-9999-Proj0000-1' as DefaultDimensionDisplayValue,
- '21100-000000-9999-Proj0000-1' as OFFSETACCOUNTDISPLAYVALUE,
+concat(m1.d365mainaccount, '-', m2.d365department, '-','9999-1-Proj0000') as DefaultDimensionDisplayValue,
+concat(m1.d365mainaccount, '-', m2.d365department, '-','9999-1-Proj0000')  as OFFSETACCOUNTDISPLAYVALUE,
  'General' as PostingProfile,
  '00001' as Approvedby,
  1 as Approved
 --bring them over with today's date, just try to use their voucher numbers, currency USD
-from gss.dbo.PM20000 p
-where p.DOCTYPE = 1
+from  gss.dbo.pm20000 p
+join D365Migration.dbo.vendors v
+on v.OurAccountNumber = p.VENDORID
+and dataareaid = 'GTS'
+join gss.dbo.PM10100 pm
+on pm.VCHRNMBR = p.VCHRNMBR
+join gss.dbo.gl00100 g
+on pm.DSTINDX = g.ACTINDX
+join D365Migration.dbo.mainaccountmapping m1
+on m1.gpmainaccount = Trim(G.ACTNUMBR_1)
+and m1.dataareaid = 'GTS'
+join d365migration.dbo.departmentmapping m2
+	on m2.gpdepartment =  trim(G.ACTNUMBR_2)
 
 union
-
 select 
-'Blue',
-(select  journalbatchnumber from openAPHeaders where trim(substring(description, 19, len(description)-1)) = p.BACHNUMB and dataareaid = 'Blue') as JournalBatchNumber,
+'blue',
+(select  journalbatchnumber from openAPHeaders where trim(substring(description, 19, len(description)-1)) = p.BACHNUMB and dataareaid = 'blue') as JournalBatchNumber,
 row_number() over ( partition by BACHNUMB order by bachnumb ) as LineNumber,
-P.DOCAMNT AS CREDIT, 
+pm.CRDTAMNT,
+pm.DEBITAMT,
 p.DOCNUMBR as INVOICE,
 P.INVOICERECEIPTDATE AS INVOICEDATE,
 p.DUEDATE,
 p.VCHRNMBR as voucher,
-p.VENDORID as accountdisplayvalue,
+v.vendoraccountnumber as accountdisplayvalue,
 'vend' as AccountType,
 p.PYMTRMID as TermsOfPayment,
 'USD' as Currency,
-'000000-9999-Proj0000-1' as DefaultDimensionDisplayValue,
- '21100-000000-9999-Proj0000-1' as OFFSETACCOUNTDISPLAYVALUE,
+concat(m1.d365mainaccount, '-', m2.d365department, '-','9999-1-Proj0000') as DefaultDimensionDisplayValue,
+concat(m1.d365mainaccount, '-', m2.d365department, '-','9999-1-Proj0000')  as OFFSETACCOUNTDISPLAYVALUE,
  'General' as PostingProfile,
  '00001' as Approvedby,
  1 as Approved
-
 --bring them over with today's date, just try to use their voucher numbers, currency USD
-from BLUE.dbo.PM20000 p
-where p.DOCTYPE = 1
+from  blue.dbo.pm20000 p
+join D365Migration.dbo.vendors v
+on v.OurAccountNumber = p.VENDORID
+and dataareaid = 'blue'
+join blue.dbo.PM10100 pm
+on pm.VCHRNMBR = p.VCHRNMBR
+join blue.dbo.gl00100 g
+on pm.DSTINDX = g.ACTINDX
+join D365Migration.dbo.mainaccountmapping m1
+on m1.gpmainaccount = Trim(G.ACTNUMBR_1)
+and m1.dataareaid = 'blue'
+join d365migration.dbo.departmentmapping m2
+	on m2.gpdepartment =  trim(G.ACTNUMBR_2)
 
 )
 

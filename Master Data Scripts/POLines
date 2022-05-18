@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[PurchaseOrderLines_GPToD365DB]    Script Date: 4/4/2022 2:45:08 PM ******/
+/****** Object:  StoredProcedure [dbo].[PurchaseOrderLines_GPToD365DB]    Script Date: 5/11/2022 3:45:03 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -14,7 +14,7 @@ INSERT INTO [dbo].[PURCHASEORDERLines]
            ,[ItemNumber]
            ,[ReceivingWarehouseId]
            ,[PurchaseUnitSymbol]
-           ,[LineAmount]
+           ,PurchasePrice
            ,[DeliveryAddressStreet]
            ,[DeliveryAddressCity]
            ,[DeliveryAddressStateID]
@@ -24,28 +24,25 @@ INSERT INTO [dbo].[PURCHASEORDERLines]
            ,[DeliveryAddressDescription]
            ,[ORDEREDPURCHASEQUANTITY]
            ,PROCUREMENTPRODUCTCATEGORYNAME,
-		   LineDescription)
+		   LineDescription,
+		   GWCTCANCELDATE,
+		   DEFAULTLEDGERDIMENSIONDISPLAYVALUE)
 select 'GICT' as DataAreaId, poLine.PONUMBER as PURCHASEORDERNUMBER,
 poline.LineNumber,
 --poline.POLNESTA as PURCHASEORDERLINESTATUS,
 case
-		when poline.ITEMNMBR in (select i.ITEMNMBR
-									FROM gwc.dbo.[IV00101] I
-										left join gwc.dbo.GL00105 gl5
-										on gl5.ACTINDX = i.IVIVINDX
-										WHERE I.ITEMTYPE = 1
-										AND I.ITMCLSCD != 'Delete')
+		when poline.ITEMNMBR in (select ItemNumber
+									from ReleasedProducts)
 			then poline.ITEMNMBR
 		else ''
 end as ItemNumber,
---poLine.VENDORID as VendorNumber,
---poLine.VNDITNUM, --needed?
---poLine.NONINVEN, --noninventory, needed?
-
 case
-		when poLine.LOCNCODE like 'new%'
+		when poline.ITEMNMBR not in (select ItemNumber from ReleasedProducts) 
+			then ''
+		when poLine.LOCNCODE like 'new%' and poline.ITEMNMBR in (select ItemNumber from ReleasedProducts)
 			then '100'
-		else poLine.LOCNCODE
+
+
 end as ReceivingWarehouseId,
 case
 	when poLine.UOFM = 'each'
@@ -75,21 +72,22 @@ poline.QTYORDER as ORDEREDPURCHASEQUANTITY
 --are comments/notes needed?
 --are costing fields needed?
 , case
-		when poline.ITEMNMBR not in (select i.ITEMNMBR
-									FROM gwc.dbo.[IV00101] I
-										left join gwc.dbo.GL00105 gl5
-										on gl5.ACTINDX = i.IVIVINDX
-										WHERE I.ITEMTYPE = 1
-										AND I.ITMCLSCD != 'Delete')
+		when poline.ITEMNMBR not in (select ItemNumber
+									from ReleasedProducts)
 			then 'Migration-PO'
 		else ''
 	end as PROCUREMENTPRODUCTCATEGORYNAME
-,poline.ITEMNMBR as LineDescription
-from gwc.dbo.POP10110 poLine
+,poline.ITEMDESC as LineDescription
+,poHeader.CONTENDDTE as GWCTCANCELDATE
+,concat('-', d.d365department,'-9999-1-Proj0000') as DEFAULTLEDGERDIMENSIONDISPLAYVALUE
+from gwc.dbo.POP10110 poLine 
 join gwc.dbo.pop10100 poHeader
 on poLine.PONUMBER = poHeader.ponumber
+left join D365Migration.dbo.departmentmapping d
+ on d.GPDepartment = trim (poline.locncode)
 where poHeader.POSTATUS in  (1,2,3)
 and poheader.VENDORID != ''
+
 
 Union
 
@@ -97,12 +95,8 @@ select 'GTS' as DataAReaId, poLine.PONUMBER as PURCHASEORDERNUMBER,
 poline.LineNumber,
 --poline.POLNESTA as PURCHASEORDERLINESTATUS,
 case
-		when poline.ITEMNMBR in (select i.ITEMNMBR
-									FROM gwc.dbo.[IV00101] I
-										left join gwc.dbo.GL00105 gl5
-										on gl5.ACTINDX = i.IVIVINDX
-										WHERE I.ITEMTYPE = 1
-										AND I.ITMCLSCD != 'Delete')
+		when poline.ITEMNMBR in (select ItemNumber
+									from ReleasedProducts)
 			then poline.ITEMNMBR
 		else ''
 end as ItemNumber,
@@ -110,9 +104,10 @@ end as ItemNumber,
 --poLine.VNDITNUM, --needed?
 --poLine.NONINVEN, --noninventory, needed?
 case
-		when poLine.LOCNCODE like 'new%'
+		when poline.ITEMNMBR not in (select ItemNumber from ReleasedProducts) 
+			then ''
+		when poLine.LOCNCODE like 'new%' and poline.ITEMNMBR in (select ItemNumber from ReleasedProducts)
 			then '100'
-		else poLine.LOCNCODE
 end as ReceivingWarehouseId,
 case
 	when poLine.UOFM = 'each'
@@ -142,19 +137,19 @@ poline.QTYORDER as ORDEREDPURCHASEQUANTITY
 --are comments/notes needed?
 --are costing fields needed?
 , case
-		when poline.ITEMNMBR not in (select i.ITEMNMBR
-									FROM gwc.dbo.[IV00101] I
-										left join gwc.dbo.GL00105 gl5
-										on gl5.ACTINDX = i.IVIVINDX
-										WHERE I.ITEMTYPE = 1
-										AND I.ITMCLSCD != 'Delete')
+		when poline.ITEMNMBR not in (select ItemNumber
+									from ReleasedProducts)
 			then 'Migration-PO'
 		else ''
 	end as PROCUREMENTPRODUCTCATEGORYNAME
-	,poline.ITEMNMBR as LineDescription
+	,poline.ITEMDESC as LineDescription
+,poHeader.CONTENDDTE as GWCTCANCELDATE
+,concat('-', d.d365department,'-9999-1-Proj0000') as DEFAULTLEDGERDIMENSIONDISPLAYVALUE
 from gss.dbo.POP10110 poLine
 join gss.dbo.pop10100 poHeader
 on poLine.PONUMBER = poHeader.ponumber
+left join D365Migration.dbo.departmentmapping d
+ on d.GPDepartment = trim (poline.locncode)
 where poHeader.POSTATUS in  (1,2,3)
 and poheader.VENDORID != ''
 
@@ -164,22 +159,16 @@ select 'BLUE' as DataAreaId, poLine.PONUMBER as PURCHASEORDERNUMBER,
 poline.LineNumber,
 --poline.POLNESTA as PURCHASEORDERLINESTATUS,
 case
-		when poline.ITEMNMBR in (select i.ITEMNMBR
-									FROM gwc.dbo.[IV00101] I
-										left join gwc.dbo.GL00105 gl5
-										on gl5.ACTINDX = i.IVIVINDX
-										WHERE I.ITEMTYPE = 1
-										AND I.ITMCLSCD != 'Delete')
+		when poline.ITEMNMBR in (select ItemNumber
+									from ReleasedProducts)
 			then poline.ITEMNMBR
 		else ''
 end as ItemNumber,
---poLine.VENDORID as VendorNumber,
---poLine.VNDITNUM, --needed?
---poLine.NONINVEN, --noninventory, needed?
 case
-		when poLine.LOCNCODE like 'new%'
+		when poline.ITEMNMBR not in (select ItemNumber from ReleasedProducts) 
+			then ''
+		when poLine.LOCNCODE like 'new%' and poline.ITEMNMBR in (select ItemNumber from ReleasedProducts)
 			then '100'
-		else poLine.LOCNCODE
 end as ReceivingWarehouseId,
 case
 	when poLine.UOFM = 'each'
@@ -209,19 +198,19 @@ poline.QTYORDER as ORDEREDPURCHASEQUANTITY
 --are comments/notes needed?
 --are costing fields needed?
 , case
-		when poline.ITEMNMBR not in (select i.ITEMNMBR
-									FROM gwc.dbo.[IV00101] I
-										left join gwc.dbo.GL00105 gl5
-										on gl5.ACTINDX = i.IVIVINDX
-										WHERE I.ITEMTYPE = 1
-										AND I.ITMCLSCD != 'Delete')
+		when poline.ITEMNMBR not in (select ItemNumber
+									from ReleasedProducts)
 			then 'Migration-PO'
 		else ''
 	end as PROCUREMENTPRODUCTCATEGORYNAME
-,poline.ITEMNMBR as LineDescription
+,poline.ITEMDESC as LineDescription
+,poHeader.CONTENDDTE as GWCTCANCELDATE
+,concat('-', d.d365department,'-9999-1-Proj0000') as DEFAULTLEDGERDIMENSIONDISPLAYVALUE
 from blue.dbo.POP10110 poLine
 join blue.dbo.pop10100 poHeader
 on poLine.PONUMBER = poHeader.ponumber
+left join D365Migration.dbo.departmentmapping d
+ on d.GPDepartment = trim (poline.locncode)
 where poHeader.POSTATUS in  (1,2,3)
 and poheader.VENDORID != ''
 
@@ -232,22 +221,16 @@ poLine.PONUMBER as PURCHASEORDERNUMBER,
 poline.LineNumber,
 --poline.POLNESTA as PURCHASEORDERLINESTATUS,
 case
-		when poline.ITEMNMBR in (select i.ITEMNMBR
-									FROM gwc.dbo.[IV00101] I
-										left join gwc.dbo.GL00105 gl5
-										on gl5.ACTINDX = i.IVIVINDX
-										WHERE I.ITEMTYPE = 1
-										AND I.ITMCLSCD != 'Delete')
+		when poline.ITEMNMBR in (select ItemNumber
+									from ReleasedProducts)
 			then poline.ITEMNMBR
 		else ''
 end as ItemNumber,
---poLine.VENDORID as VendorNumber,
---poLine.VNDITNUM, --needed?
---poLine.NONINVEN, --noninventory, needed?
 case
-		when poLine.LOCNCODE like 'new%'
+		when poline.ITEMNMBR not in (select ItemNumber from ReleasedProducts) 
+			then ''
+		when poLine.LOCNCODE like 'new%' and poline.ITEMNMBR in (select ItemNumber from ReleasedProducts)
 			then '100'
-		else poLine.LOCNCODE
 end as ReceivingWarehouseId,
 case
 	when poLine.UOFM = 'each'
@@ -277,19 +260,19 @@ poline.QTYORDER as ORDEREDPURCHASEQUANTITY
 --are comments/notes needed?
 --are costing fields needed?
 , case
-		when poline.ITEMNMBR not in (select i.ITEMNMBR
-									FROM gwc.dbo.[IV00101] I
-										left join gwc.dbo.GL00105 gl5
-										on gl5.ACTINDX = i.IVIVINDX
-										WHERE I.ITEMTYPE = 1
-										AND I.ITMCLSCD != 'Delete')
+		when poline.ITEMNMBR not in (select ItemNumber
+									from ReleasedProducts)
 			then 'Migration-PO'
 		else ''
 	end as PROCUREMENTPRODUCTCATEGORYNAME
-,poline.ITEMNMBR as LineDescription
+,poline.ITEMDESC as LineDescription
+,poHeader.CONTENDDTE as GWCTCANCELDATE
+,concat('-', d.d365department,'-9999-1-Proj0000') as DEFAULTLEDGERDIMENSIONDISPLAYVALUE
 from excel.dbo.POP10110 poLine
 join excel.dbo.pop10100 poHeader
 on poLine.PONUMBER = poHeader.ponumber
+left join D365Migration.dbo.departmentmapping d
+ on d.GPDepartment = trim (poline.locncode)
 where poHeader.POSTATUS in  (1,2,3)
 and poheader.VENDORID != ''
 

@@ -1,7 +1,12 @@
 USE [D365Migration]
 GO
+/****** Object:  StoredProcedure [dbo].[OpenGLBalances_GPToD365DB]    Script Date: 4/19/2022 4:50:04 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
 
-Alter procedure OpenGLBalances_GPToD365DB
+ALTER procedure [dbo].[OpenGLBalances_GPToD365DB]
 as
 INSERT INTO [dbo].[GeneralLedgerJournals]
            ([DataAreaId]
@@ -43,7 +48,7 @@ select
 'GICT'
 ,'journal_1'--TODO:fix
 ,row_number() over ( partition by G.ACTINDX order by G.ACTINDX)
-,concat(Trim(G.ACTNUMBR_1), '-', Trim(G.ACTNUMBR_2), '-', Trim(G.ACTNUMBR_3))--todo: Update mapping to new accounts
+,concat(trim(actmaster.ACTNUMBR_1), '-', trim(actmaster.ACTNUMBR_2), '-', trim(actmaster.ACTNUMBR_3))--todo: Update mapping to new accounts
 ,g.DEBITAMT
 ,g.CRDTAMNT
 ,'USD'
@@ -55,7 +60,9 @@ select
 ,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
 ,getDate()
 from gwc.dbo.GL10111 g
-where g.YEAR1 IN ('2021','2022')
+join gwc.dbo.GL00100 actmaster
+	on actmaster.ACTINDX = g.ACTINDX
+where g.YEAR1 = '2021'
 
 
 Union
@@ -83,7 +90,7 @@ select
 'blue'
 ,'journal_1'--TODO:fix
 ,row_number() over ( partition by G.ACTINDX order by G.ACTINDX)
-,concat(Trim(G.ACTNUMBR_1), '-', Trim(G.ACTNUMBR_2), '-', Trim(G.ACTNUMBR_3))--todo: Update mapping to new accounts
+,concat(trim(actmaster.ACTNUMBR_1), '-', trim(actmaster.ACTNUMBR_2), '-', trim(actmaster.ACTNUMBR_3))--todo: Update mapping to new accounts
 ,g.DEBITAMT
 ,g.CRDTAMNT
 ,'USD'
@@ -95,7 +102,9 @@ select
 ,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
 ,getDate()
 from blue.dbo.GL10111 g
-where g.YEAR1 IN ('2021','2022')
+join gwc.dbo.GL00100 actmaster
+	on actmaster.ACTINDX = g.ACTINDX
+where g.YEAR1 = '2021'
 
 
 Union
@@ -123,7 +132,7 @@ select
 'GTS'
 ,'journal_1'--TODO:fix
 ,row_number() over ( partition by G.ACTINDX order by G.ACTINDX)
-,concat(Trim(G.ACTNUMBR_1), '-', Trim(G.ACTNUMBR_2), '-', Trim(G.ACTNUMBR_3))--todo: Update mapping to new accounts
+,concat(trim(actmaster.ACTNUMBR_1), '-', trim(actmaster.ACTNUMBR_2), '-', trim(actmaster.ACTNUMBR_3))--todo: Update mapping to new accounts
 ,g.DEBITAMT
 ,g.CRDTAMNT
 ,'USD'
@@ -135,4 +144,6 @@ select
 ,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
 ,getDate()
 from gss.dbo.GL10111 g
-where g.YEAR1 IN ('2021','2022')
+join gwc.dbo.GL00100 actmaster
+	on actmaster.ACTINDX = g.ACTINDX
+where g.YEAR1 = '2021'

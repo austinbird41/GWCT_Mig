@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[BarCodes_GPToD365DB]    Script Date: 3/15/2022 11:44:15 AM ******/
+/****** Object:  StoredProcedure [dbo].[BarCodes_GPToD365DB]    Script Date: 5/16/2022 3:17:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -16,7 +16,8 @@ INSERT INTO [dbo].[BarCodes]
            ,[BARCODE]
            ,[ISDEFAULTSCANNEDBARCODE]
            ,[ISDEFAULTPRINTEDBARCODE]
-           ,[ISDEFAULTDISPLAYEDBARCODE])
+           ,[ISDEFAULTDISPLAYEDBARCODE],
+		   PRODUCTCONFIGURATIONID,[PRODUCTSTYLEID],[PRODUCTSIZEID],[PRODUCTCOLORID],[PRODUCTVERSIONID])
 (
 select 
 'GICT' as DataAreaId,
@@ -28,13 +29,40 @@ code as BarCode,
 0 ISDEFAULTSCANNEDBARCODE,
 0 ISDEFAULTPRINTEDBARCODE,
 0 ISDEFAULTDISPLAYEDBARCODE
+,'', '' ,'' ,'',''
 from [posdatabase].SiriusSQL.dbo.i_mcode
 where item in (
-select I.ITEMNMBR AS ITEMNUMBER
-FROM gwc.dbo.[IV00101] I
-left join gwc.dbo.GL00105 gl5
-on gl5.ACTINDX = i.IVIVINDX
-WHERE I.ITEMTYPE = 1
-AND I.ITMCLSCD != 'Delete')
+select ItemNumber
+from ReleasedProducts)
+
+union
+
+select 
+'GICT' as DataAreaId,
+i.ITEMNMBR as ItemNumber,
+0 as ProductQuantity,
+'ea' as PRODUCTQUANTITYUNITSYMBOL,
+Concat('UCC-12-',Cast(row_number() OVER(Partition by ITEMNMBR ORDER BY ITEMNMBR) AS NVARCHAR(10) ))  as BARCODESETUPID,
+ITMSHNAM as BarCode,
+0 ISDEFAULTSCANNEDBARCODE,
+0 ISDEFAULTPRINTEDBARCODE,
+0 ISDEFAULTDISPLAYEDBARCODE
+,'', '' ,'' ,'',''
+from gwc.dbo.IV00101 i
+where  i.ITMSHNAM like '[0-9]%'
+and i.ITEMNMBR in (select ItemNumber
+					from ReleasedProducts) and  i.ITMSHNAM not in (
+					select code
+					from [posdatabase].SiriusSQL.dbo.i_mcode
+					where item in (
+					select ItemNumber
+					from ReleasedProducts))
+
 )
+
+
+
+
+
+
 

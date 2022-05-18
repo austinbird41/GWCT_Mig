@@ -1,15 +1,11 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[Vendors_GPToD365DB]    Script Date: 4/12/2022 12:05:03 PM ******/
+/****** Object:  StoredProcedure [dbo].[Vendors_GPToD365DB]    Script Date: 5/10/2022 1:45:55 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-
-/*
-
-*/
 
 ALTER PROCEDURE [dbo].[Vendors_GPToD365DB]
 as
@@ -45,6 +41,7 @@ INSERT INTO [dbo].[Vendors]
 		   ,[OurAccountNumber],
 		   DEFAULTLEDGERDIMENSIONDISPLAYVALUE,
 		   TAX1099BOXID
+		   ,Tax1099Type
 		   )
 
 select 
@@ -95,10 +92,25 @@ vendname as vendororganizationname,
 	end),'') as VendorGroupID,
 'USD' as CurrencyCode,
 --PYMTRMID as DEFAULTPAYMENTTERMSNAME,
-vt.COMMENT1 as DEFAULTPAYMENTTERMSNAME,
-vt.comment2 as DEFAULTVENDORPAYMENTMETHODNAME,
+--case
+--	when vt.COMMENT2 like 'du%'
+--		then 'Due Upon Receipt'
+--	when vt.comment2 like 'net%'
+--		then 'Net 15'
+--	else vt.COMMENT2
+--end as DEFAULTPAYMENTTERMSNAME,
+vt.comment2,
+case
+	when vt.comment1 like 'man%'
+		then 'Manual'
+	when vt.COMMENT1 = 'rft'
+		then 'eft'
+	when vt.comment1 like 'client%'
+		then 'CltAssist'
+	else vt.comment1
+end as DEFAULTVENDORPAYMENTMETHODNAME,
 hold as OnHoldStatus,
-vt.ten99type as TAX1099IDTYPE,
+IsNULL(vt.ten99type,'') as TAX1099IDTYPE,
 case
 	when UserDef1 like '%1099%'
 		then 'Yes'
@@ -147,8 +159,15 @@ case
 	when t.TEN99BOXTEXT = '18' then 'MISC-03'
 else ''
 end as TAX1099BOXID
+,case 
+	when t.TEN99BOXTEXT in ('1','2','3','4','5','6','8','10','13','14','15a','15b','16','18')
+		then '1099-MISC'
+	when t.TEN99BOXTEXT = '7'
+		then '1099-NEC'
+	else ''
+end as  'Tax1099Type'
 from gwc.dbo.PM00200 vt
-left join blue.[dbo].[PM40104] t
+left join gwc.[dbo].[PM40104] t
 on t.TEN99BOXNUMBER = vt.TEN99BOXNUMBER
 and t.TEN99TYPE = 3
 where vt.vendstts = 1
@@ -204,10 +223,25 @@ vendname as vendororganizationname,
 
 'USD' as CurrencyCode,
 --PYMTRMID as DEFAULTPAYMENTTERMSNAME,
-vt.COMMENT1 as DEFAULTPAYMENTTERMSNAME,
-vt.comment2 as DEFAULTVENDORPAYMENTMETHODNAME,
+--case
+--	when vt.COMMENT2 like 'du%'
+--		then 'Due Upon Receipt'
+--	when vt.comment2 like 'net%'
+--		then 'Net 15'
+--	else vt.COMMENT2
+--end as DEFAULTPAYMENTTERMSNAME,
+vt.comment2,
+case
+	when vt.comment1 like 'man%'
+		then 'Manual'
+	when vt.COMMENT1 = 'rft'
+		then 'eft'
+	when vt.comment1 like 'client%'
+		then 'CltAssist'
+	else vt.comment1
+end as DEFAULTVENDORPAYMENTMETHODNAME,
 hold as OnHoldStatus,
-vt.ten99type as  TAX1099IDTYPE,
+IsNULL(vt.ten99type,'') as TAX1099IDTYPE,
 case
 	when UserDef1 like '%1099%'
 		then 'Yes'
@@ -258,7 +292,13 @@ case
 	when t.TEN99BOXTEXT = '18' then 'MISC-03'
 else ''
 end as TAX1099BOXID
-
+,case 
+	when t.TEN99BOXTEXT in ('1','2','3','4','5','6','8','10','13','14','15a','15b','16','18')
+		then '1099-MISC'
+	when t.TEN99BOXTEXT = '7'
+		then '1099-NEC'
+	else ''
+end as  'Tax1099Type'
 from blue.dbo.PM00200 vt
 left join blue.[dbo].[PM40104] t
 on t.TEN99BOXNUMBER = vt.TEN99BOXNUMBER
@@ -316,10 +356,25 @@ vendname as vendororganizationname,
 
 'USD' as CurrencyCode,
 --PYMTRMID as DEFAULTPAYMENTTERMSNAME,
-vt.COMMENT1 as DEFAULTPAYMENTTERMSNAME,
-vt.comment2 as DEFAULTVENDORPAYMENTMETHODNAME,
+--case
+--	when vt.COMMENT2 like 'du%'
+--		then 'Due Upon Receipt'
+--	when vt.comment2 like 'net%'
+--		then 'Net 15'
+--	else vt.COMMENT2
+--end as DEFAULTPAYMENTTERMSNAME,
+vt.comment2,
+case
+	when vt.comment1 like 'man%'
+		then 'Manual'
+	when vt.COMMENT1 = 'rft'
+		then 'eft'
+	when vt.comment1 like 'client%'
+		then 'CltAssist'
+	else vt.comment1
+end as DEFAULTVENDORPAYMENTMETHODNAME,
 hold as OnHoldStatus,
-t.ten99type as TAX1099IDTYPE,
+IsNULL(vt.ten99type,'') as TAX1099IDTYPE,
 case
 	when UserDef1 like '%1099%'
 		then 'Yes'
@@ -369,6 +424,13 @@ case
 	when t.TEN99BOXTEXT = '18' then 'MISC-03'
 else ''
 end as TAX1099BOXID
+,case 
+	when t.TEN99BOXTEXT in ('1','2','3','4','5','6','8','10','13','14','15a','15b','16','18')
+		then '1099-MISC'
+	when t.TEN99BOXTEXT = '7'
+		then '1099-NEC'
+	else ''
+end as  'Tax1099Type'
 from excel.dbo.PM00200 vt
 join excel.dbo.PM40104 t
 on t.TEN99BOXNUMBER = vt.TEN99BOXNUMBER
@@ -462,10 +524,25 @@ vendname as vendororganizationname,
 
 'USD' as CurrencyCode,
 --PYMTRMID as DEFAULTPAYMENTTERMSNAME,
-vt.COMMENT1 as DEFAULTPAYMENTTERMSNAME,
-vt.comment2 as DEFAULTVENDORPAYMENTMETHODNAME,
+--case
+--	when vt.COMMENT2 like 'du%'
+--		then 'Due Upon Receipt'
+--	when vt.comment2 like 'net%'
+--		then 'Net 15'
+--	else vt.COMMENT2
+--end as DEFAULTPAYMENTTERMSNAME,
+vt.comment2,
+case
+	when vt.comment1 like 'man%'
+		then 'Manual'
+	when vt.COMMENT1 = 'rft'
+		then 'eft'
+	when vt.comment1 like 'client%'
+		then 'CltAssist'
+	else vt.comment1
+end as DEFAULTVENDORPAYMENTMETHODNAME,
 hold as OnHoldStatus,
-t.ten99type as TAX1099IDTYPE,
+IsNULL(vt.ten99type,'') as TAX1099IDTYPE,
 case
 	when UserDef1 like '%1099%'
 		then 'Yes'
@@ -515,8 +592,15 @@ case
 	when t.TEN99BOXTEXT = '18' then 'MISC-03'
 else ''
 end as TAX1099BOXID
+,case 
+	when t.TEN99BOXTEXT in ('1','2','3','4','5','6','8','10','13','14','15a','15b','16','18')
+		then '1099-MISC'
+	when t.TEN99BOXTEXT = '7'
+		then '1099-NEC'
+	else ''
+end as  'Tax1099Type'
 from gss.dbo.PM00200 vt
-join gss.dbo.PM40104 t
+left join gss.dbo.PM40104 t
 on t.TEN99BOXNUMBER = vt.TEN99BOXNUMBER
 and t.TEN99TYPE = 3
 where vt.vendstts = 1

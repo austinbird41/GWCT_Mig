@@ -1,20 +1,59 @@
+USE [D365Migration]
+GO
+/****** Object:  StoredProcedure [dbo].[SalvageCustomers_GPToD365DB]    Script Date: 4/27/2022 12:41:40 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER Procedure [dbo].[SalvageCustomers_GPToD365DB]
+as
+
+
+
+INSERT INTO D365Migration.dbo.[SalvageCustomers]
+           (Dataareaid 
+		   ,PartyNumber
+		   ,[CustomerAccount]
+           ,[OrganizationName]
+           ,[NameAlias]
+           ,[CustomerGroupID]
+           ,[AddressBooks]
+		   ,[PrimaryContactEmail]
+		   ,[PrimaryContactPhone]
+		    ,[addressstreet]
+           ,[AddressCountryRegionId]
+           ,[AddressCity]
+           ,[addressState]
+           ,[AddressZipCode]
+           ,[PaymentTerms]
+           ,[salesCurrencyCode]
+           ,[DiscountPriceGroupId]
+           ,[onHoldstatus]
+		   ,languageId
+		   ,CredManCustomerSince
+		   ,SalesAccountNumber
+		   ,DefaultDimensionDisplayValue)
+
+
+
 SELECT 'GICT' as DataAreaId,
 	Concat('Party-','GICT-',full_name) as PartyNumber,
 					case 
 	when len(dense_rank() over (order by [full_name])) = 1
-		then '2000000' + Cast((dense_rank() over (order by [full_name])) as Nvarchar(10))
+		then '2000000' + Cast((dense_rank() over (order by [full_name]))  as Nvarchar(10)) +200
 	when len(dense_rank() over (order by [full_name])) = 2
-		then '200000' + Cast((dense_rank() over (order by [full_name])) as Nvarchar(10))
+		then '200000' + Cast((dense_rank() over (order by [full_name])) as Nvarchar(10)) +200
 	when len(dense_rank() over (order by [full_name])) = 3
-		then '20000' + Cast((dense_rank() over (order by [full_name])) as Nvarchar(10))
+		then '20000' + Cast((dense_rank() over (order by [full_name])) as Nvarchar(10)) +200
 	when len(dense_rank() over (order by [full_name])) = 4
-		then '2000' + Cast((dense_rank() over (order by [full_name])) as Nvarchar(10))
+		then '2000' + Cast((dense_rank() over (order by [full_name])) as Nvarchar(10)) +200
 	when len(dense_rank() over (order by [full_name])) = 5
-		then '200' + Cast((dense_rank() over (order by [full_name])) as Nvarchar(10))
+		then '200' + Cast((dense_rank() over (order by [full_name])) as Nvarchar(10)) +200
 	when len(dense_rank() over (order by [full_name])) = 6
-		then '20' + Cast((dense_rank() over (order by [full_name])) as Nvarchar(10))
+		then '20' + Cast((dense_rank() over (order by [full_name])) as Nvarchar(10)) +200
 	when len(dense_rank() over (order by [full_name])) = 7
-		then '2' + Cast((dense_rank() over (order by [full_name])) as Nvarchar(10))
+		then '2' + Cast((dense_rank() over (order by [full_name])) as Nvarchar(10)) +200
 	end as customeraccount,
 		full_name as OrganizationName
       ,full_name as NameAlias
@@ -42,9 +81,11 @@ SELECT 'GICT' as DataAreaId,
       ,'Net 30' as PaymentTerms
       ,'USD' as salesCurrencyCode
 	  ,'AllStores' as DiscountPriceGroupId --Price Group, to default once configure
-      ,0 as onHoldstatus	 ,'en-us' as LanguageId
+      ,0 as onHoldstatus
+	 ,'en-us' as LanguageId
 	  ,date_time as CredManCustomerSince
 	  ,full_name as SalesAccountNumber
 	  ,'-146000-9999-1-Proj0000'
 from [posdatabase].SiriusSQL.dbo.accounts s
 where acct_name like 'salvage%'
+

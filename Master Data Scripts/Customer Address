@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[CustomerAddress_GPToD365DB]    Script Date: 3/18/2022 2:25:09 PM ******/
+/****** Object:  StoredProcedure [dbo].[CustomerAddress_GPToD365DB]    Script Date: 4/26/2022 2:28:45 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -25,7 +25,7 @@ INSERT INTO [dbo].[CustomerAddress]
 select 
 CAST ( (ROW_NUMBER() OVER(ORDER BY r2.CUSTNMBR ASC)) AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
 'GICT' as DataAreaId,
-(select salesaccountnumber from D365Migration.dbo.Customers where CustomerAccount = trim(r2.CUSTNMBR) and dataareaid = 'gict') as CustomerAccountNumber, --CustomerAccountNumber
+(select customeraccount from D365Migration.dbo.Customers where SalesAccountNumber= trim(r2.CUSTNMBR) and dataareaid = 'gict') as CustomerAccountNumber, --CustomerAccountNumber
  replace(REPLACE ( REPLACE ( CONCAT(Trim(r2.address1), ' ',Trim(r2.address2), ' ', Trim(r2.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
 r1.CUSTNAME as Addressdescription,
  --r2.VNDCNTCT,
@@ -51,7 +51,7 @@ union
 select 
 CAST ( (ROW_NUMBER() OVER(ORDER BY r2.CUSTNMBR ASC)) AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
 'BLUE' as DataAreaId,
-(select salesaccountnumber from D365Migration.dbo.Customers where CustomerAccount = trim(r2.CUSTNMBR) and dataareaid = 'blue') as CustomerAccountNumber, --CustomerAccountNumber
+(select customeraccount from D365Migration.dbo.Customers where SalesAccountNumber= trim(r2.CUSTNMBR) and dataareaid = 'blue') as CustomerAccountNumber, --CustomerAccountNumber
  replace(REPLACE ( REPLACE ( CONCAT(Trim(r2.address1), ' ',Trim(r2.address2), ' ', Trim(r2.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
 r1.CUSTNAME as Addressdescription,
  --r2.VNDCNTCT,
@@ -76,8 +76,8 @@ union
 
 select 
 CAST ( (ROW_NUMBER() OVER(ORDER BY r2.CUSTNMBR ASC)) AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
-'GWFD' as DataAreaId,
-(select salesaccountnumber from D365Migration.dbo.Customers where CustomerAccount = trim(r2.CUSTNMBR) and dataareaid = 'GWFD') as CustomerAccountNumber, --CustomerAccountNumber
+'EXCL' as DataAreaId,
+(select customeraccount from D365Migration.dbo.Customers where SalesAccountNumber= trim(r2.CUSTNMBR) and dataareaid = 'EXCL') as CustomerAccountNumber, --CustomerAccountNumber
  replace(REPLACE ( REPLACE ( CONCAT(Trim(r2.address1), ' ',Trim(r2.address2), ' ', Trim(r2.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
 r1.CUSTNAME  as Addressdescription,
  --r2.VNDCNTCT,
@@ -89,7 +89,7 @@ case
 		then 'CAN'
 	else 'USA'
 end AddressCountryRegionId,
-'GWFD' as CustomerLegalEntityId
+'EXCL' as CustomerLegalEntityId
  from excel.dbo.RM00102 r2
 join excel.dbo.RM00101 r1
 on r1.CUSTNMBR = r2.CUSTNMBR
@@ -103,7 +103,7 @@ union
 select 
 CAST ( (ROW_NUMBER() OVER(ORDER BY r2.CUSTNMBR ASC)) AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
 'GTS' as dataareaid,
-(select salesaccountnumber from D365Migration.dbo.Customers where CustomerAccount = trim(r2.CUSTNMBR) and dataareaid = 'GTS') as CustomerAccountNumber, --CustomerAccountNumber
+(select customeraccount from D365Migration.dbo.Customers where SalesAccountNumber= trim(r2.CUSTNMBR) and dataareaid = 'GTS') as CustomerAccountNumber, --CustomerAccountNumber
  replace(REPLACE ( REPLACE ( CONCAT(Trim(r2.address1), ' ',Trim(r2.address2), ' ', Trim(r2.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
 r1.CUSTNAME as Addressdescription,
  --r2.VNDCNTCT,

@@ -1,0 +1,84 @@
+USE [D365Migration]
+GO
+
+Alter procedure VendorBankAccounts_GPToD365DB
+as
+
+INSERT INTO [dbo].[VendorBankAccounts]
+           ([DataAreaId]
+           ,[VendorBankAccountId]
+           ,[BankName]
+           ,[BankAccountNumber]
+           ,[vendoraccountnumber]
+           ,[RoutingNumber]
+           ,[CurrentCurrencyCode])
+		   (
+
+select distinct
+'GICT',
+concat(substring(trim(s.VENDORID),0,4)  , '-', s.BANKNAME)	as VendorBankAccountId,
+s.BANKNAME as BankName,
+s.EFTBankAcct as BankAccountNumber,
+v.vendoraccountnumber,
+s.EFTTransitRoutingNo as RoutingNumber,
+'USD' as CurrentCurrencyCode
+from gwc.dbo.SY06000 s
+join D365Migration.dbo.vendors v
+on v.ouraccountnumber = s.VENDORID
+and v.DataAreaId = 'gict'
+where inactive = 0
+
+
+
+
+union
+
+select 
+'Blue',
+concat(substring(trim(s.VENDORID),0,4)  , '-', s.BANKNAME)	as VendorBankAccountId,
+s.BANKNAME as BankName,
+s.EFTBankAcct as BankAccountNumber,
+
+v.vendoraccountnumber,
+s.EFTTransitRoutingNo as RoutingNumber,
+'USD' as CurrentCurrencyCode
+from blue.dbo.SY06000 s
+join D365Migration.dbo.vendors v
+on v.ouraccountnumber = s.VENDORID
+and v.DataAreaId = 'blue'
+where inactive = 0
+
+
+union
+
+select 
+'GTS',
+concat(substring(trim(s.VENDORID),0,4)  , '-', s.BANKNAME)	as VendorBankAccountId,
+s.BANKNAME as BankName,
+s.EFTBankAcct as BankAccountNumber,
+
+v.vendoraccountnumber,
+s.EFTTransitRoutingNo as RoutingNumber,
+'USD' as CurrentCurrencyCode
+from gss.dbo.SY06000 s
+join D365Migration.dbo.vendors v
+on v.ouraccountnumber = s.VENDORID
+and v.DataAreaId = 'gts'
+where inactive = 0
+
+union
+select 
+'EXCL',
+concat(substring(trim(s.VENDORID),0,4)  , '-', s.BANKNAME)	as VendorBankAccountId,
+s.BANKNAME as BankName,
+s.EFTBankAcct as BankAccountNumber,
+
+v.vendoraccountnumber,
+s.EFTTransitRoutingNo as RoutingNumber,
+'USD' as CurrentCurrencyCode
+from EXCEL.dbo.SY06000 s
+join D365Migration.dbo.vendors v
+on v.ouraccountnumber = s.VENDORID
+and v.DataAreaId = 'excl'
+where inactive = 0
+)

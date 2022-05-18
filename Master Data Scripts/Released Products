@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[ReleasedProducts_GPToD365DB]    Script Date: 3/28/2022 10:45:46 AM ******/
+/****** Object:  StoredProcedure [dbo].[ReleasedProducts_GPToD365DB]    Script Date: 5/12/2022 8:12:04 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -222,9 +222,10 @@ when itmgedsc = 'YSY ENT' then 'YSY ENTERPRISE'
 FROM gwc.dbo.[IV00101] I
 left join gwc.dbo.GL00105 gl5
 on gl5.ACTINDX = i.IVIVINDX
-WHERE I.ITEMTYPE = 1
+WHERE (I.ITEMTYPE = 1
 AND I.ITMCLSCD != 'Delete'
-and i.ITEMNMBR in (select p.item from POSDatabase.[SiriusSQL].[dbo].[items] p)
+and i.ITEMNMBR in (select p.item from POSDatabase.[SiriusSQL].[dbo].[items] p))
+or (i.USCATVLS_1 like 'supplies%' or i.USCATVLS_1 like 'uniform%')
 
 
 --Union
@@ -328,7 +329,7 @@ and i.ITEMNMBR in (select p.item from POSDatabase.[SiriusSQL].[dbo].[items] p)
 --union 
 
 --select distinct
---'GWFD' as DataAreaId, 
+--'EXCL' as DataAreaId, 
 --poline.ITEMNMBR AS ITEMNUMBER, 
 --poline.ITEMNMBR AS ITEMNUMBER, 
 --''      AS  STORAGEDIMENSIONGROUPNAME,

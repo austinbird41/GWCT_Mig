@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[VendorAddress_GPToD365DB]    Script Date: 3/17/2022 8:34:29 AM ******/
+/****** Object:  StoredProcedure [dbo].[VendorAddress_GPToD365DB]    Script Date: 4/27/2022 11:21:32 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -23,9 +23,9 @@ INSERT INTO [dbo].[VendorAddress]
            ,[VendorLegalEntityId])
 select 
 'GICT' as DataAreaId,
-CAST ( (ROW_NUMBER() OVER(ORDER BY p3.vendorId ASC)) AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
+CAST ( (ROW_NUMBER() OVER(ORDER BY p3.vendorId ASC))+1000 AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
 --getdate() as AddressValidFrom, 
-trim(p3.vendorId) as VendorAccountNumber, --VendorAccountNumber
+trim(p2.vendoraccountnumber) as VendorAccountNumber, --VendorAccountNumber
  replace(REPLACE ( REPLACE ( CONCAT(Trim(p3.address1), ' ',Trim(p3.address2), ' ', Trim(p3.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
 p3.vendorid as AddressDescription,
  --p3.VNDCNTCT,
@@ -39,19 +39,17 @@ case
 end AddressCountryRegionId,
 'GICT' as VendorLegalEntityId
  from gwc.dbo.PM00300 p3
-join gwc.dbo.pm00200 p2
-on p2.vendorId = p3.vendorId
-where p2.vendstts = 1
-
-and CONCAT(p3.address1,p3.address2,p3.address3) != ''
+join d365migration.dbo.vendors p2
+on p2.ouraccountnumber = p3.vendorId
+where CONCAT(p3.address1,p3.address2,p3.address3) != ''
 
 union
 
 select 
 'BLUE' as DataAreaId,
-CAST ( (ROW_NUMBER() OVER(ORDER BY p3.vendorId ASC)) AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
+CAST ( (ROW_NUMBER() OVER(ORDER BY p3.vendorId ASC))+1000 AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
 --getdate() as AddressValidFrom, 
-trim(p3.vendorId) as VendorAccountNumber, --VendorAccountNumber
+trim(p2.vendoraccountnumber) as VendorAccountNumber, --VendorAccountNumber
  replace(REPLACE ( REPLACE ( CONCAT(Trim(p3.address1), ' ',Trim(p3.address2), ' ', Trim(p3.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
 p3.vendorid as AddressDescription,
  --p3.VNDCNTCT,
@@ -65,20 +63,18 @@ case
 end AddressCountryRegionId,
 'BLUE' as VendorLegalEntityId
  from blue.dbo.PM00300 p3
-join blue.dbo.pm00200 p2
-on p2.vendorId = p3.vendorId
-where p2.vendstts = 1
-
-and CONCAT(p3.address1,p3.address2,p3.address3) != ''
+join d365migration.dbo.vendors p2
+on p2.ouraccountnumber = p3.vendorId
+where CONCAT(p3.address1,p3.address2,p3.address3) != ''
 
 
 union
 
 select 
-'GWFD' as DataAreaId,
-CAST ( (ROW_NUMBER() OVER(ORDER BY p3.vendorId ASC)) AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
+'EXCL' as DataAreaId,
+CAST ( (ROW_NUMBER() OVER(ORDER BY p3.vendorId ASC))+1000 AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
 --getdate() as AddressValidFrom, 
-trim(p3.vendorId) as VendorAccountNumber, --VendorAccountNumber
+trim(p2.vendoraccountnumber) as VendorAccountNumber, --VendorAccountNumber
  replace(REPLACE ( REPLACE ( CONCAT(Trim(p3.address1), ' ',Trim(p3.address2), ' ', Trim(p3.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
 p3.vendorid as AddressDescription,
  --p3.VNDCNTCT,
@@ -90,22 +86,20 @@ case
 		then 'CAN'
 	else 'USA'
 end AddressCountryRegionId,
-'GWFD' as VendorLegalEntityId
+'EXCL' as VendorLegalEntityId
  from excel.dbo.PM00300 p3
-join excel.dbo.pm00200 p2
-on p2.vendorId = p3.vendorId
-where p2.vendstts = 1
-
-and CONCAT(p3.address1,p3.address2,p3.address3) != ''
+join d365migration.dbo.vendors p2
+on p2.ouraccountnumber = p3.vendorId
+where CONCAT(p3.address1,p3.address2,p3.address3) != ''
 
 
 union
 
 select 
 'GTS' as dataareaid,
-CAST ( (ROW_NUMBER() OVER(ORDER BY p3.vendorId ASC)) AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
+CAST ( (ROW_NUMBER() OVER(ORDER BY p3.vendorId ASC))+1000 AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
 --getdate() as AddressValidFrom, 
-trim(p3.vendorId) as VendorAccountNumber, --VendorAccountNumber
+trim(p2.vendoraccountnumber) as VendorAccountNumber, --VendorAccountNumber
  replace(REPLACE ( REPLACE ( CONCAT(Trim(p3.address1), ' ',Trim(p3.address2), ' ', Trim(p3.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
 p3.vendorid as Addressdescription,
  --p3.VNDCNTCT,
@@ -119,8 +113,7 @@ case
 end AddressCountryRegionId,
 'GTS' as VendorLegalEntityId
  from gss.dbo.PM00300 p3
-join gss.dbo.pm00200 p2
-on p2.vendorId = p3.vendorId
-where p2.vendstts = 1
-and CONCAT(p3.address1,p3.address2,p3.address3) != ''
+join d365migration.dbo.vendors p2
+on p2.ouraccountnumber = p3.vendorId
+where CONCAT(p3.address1,p3.address2,p3.address3) != ''
 

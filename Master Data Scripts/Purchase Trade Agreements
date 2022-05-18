@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[PurchaseTradeAgreement_GPToD365DB]    Script Date: 3/23/2022 9:53:33 AM ******/
+/****** Object:  StoredProcedure [dbo].[PurchaseTradeAgreement_GPToD365DB]    Script Date: 4/27/2022 3:29:50 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -60,3 +60,4 @@ left join gwc.dbo.GL00105 gl5
 on gl5.ACTINDX = i.IVIVINDX
 WHERE I.ITEMTYPE = 1
 AND I.ITMCLSCD != 'Delete'
+and i.ITEMNMBR in (select p.item from POSDatabase.[SiriusSQL].[dbo].[items] p)
