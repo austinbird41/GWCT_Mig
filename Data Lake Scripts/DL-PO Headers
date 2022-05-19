@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[DataLake_PurchaseOrderHeaders_GPToD365DB]    Script Date: 4/27/2022 9:33:34 AM ******/
+/****** Object:  StoredProcedure [dbo].[DataLake_PurchaseOrderHeaders_GPToD365DB]    Script Date: 5/18/2022 1:56:49 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -14,42 +14,58 @@ INSERT INTO [dbo].[DATALAKE_PurchaseOrderHeaders]
            ,[PurchaseOrderNumber]
            ,[ORDERVENDORACCOUNTNUMBER]
            ,[PurchaseOrderName]
-           ,[DeliveryAddressCountryRegionId]
+		   ,DELIVERYADDRESSDESCRIPTION
            ,[DELIVERYADDRESSSTREET]
            ,[DELIVERYADDRESSCITY]
            ,[DELIVERYADDRESSSTATEID]
            ,[DELIVERYADDRESSZIPCODE]
            ,[DELIVERYADDRESSCOUNTRYREGIONISOCODE]
+		              ,[DeliveryAddressCountryRegionId]
            ,[PaymentTermsName]
            ,[currencycode]
+           ,[AREPRICESINCLUDINGSALESTAX]
            ,[iNVOICEADDRESSSTREET]
            ,[INVOICEADDRESSCITY]
            ,[INVOICEADDRESSSTATE]
            ,[INVOICEADDRESSZIPCODE]
            ,[REQUESTEDDELIVERYDATE]
            ,[CONFIRMEDDELIVERYDATE]
-           ,[FixedDueDate])
+           ,[FixedDueDate],
+			PURCHASEORDERPOOLID,
+			DEFAULTRECEIVINGSITEID,
+			DEFAULTRECEIVINGWAREHOUSEID,
+			GWCTCANCELDATE)
 select 
 'GICT' as dataareaid,
 p.PONUMBEr as PurchaseOrderNumber,
 --p.POSTATUS as PurchaseOrderStatus,
 --p.POTYPE, --could map to delivery terms or mode 1=standard, 2= dropship, 3=blanket, 4=blanket drop ship
 --p.TXRGNNUM,
-p.vendorid AS ORDERVENDORACCOUNTNUMBER,
+v.vendoraccountnumber AS ORDERVENDORACCOUNTNUMBER,
 p.VENDNAME as PurchaseOrderName
 --p.VADCDPAD --vendor address code
 --,CMPANYID --not sure what this would be used for
 --,contact
+,p.vendname as DELIVERYADDRESSDESCRIPTION
 ,concat(trim(address1),' ', trim(address2),' ', trim(address3)) AS DELIVERYADDRESSSTREET
 ,city DELIVERYADDRESSCITY
 ,state as DELIVERYADDRESSSTATEID
 ,ZIPCODE as DELIVERYADDRESSZIPCODE
-,CCode as DELIVERYADDRESSCOUNTRYREGIONISOCODE
+,case
+	when CCode = ''
+		then 'usa'
+	else CCode
+end as DELIVERYADDRESSCOUNTRYREGIONISOCODE
 ,country as DELIVERYADDRESSCOUNTRYREGIONID
-,PYMTRMID as PaymentTermsName
+,case
+	when PYMTRMID = '3 months'
+		then 'Net 90'
+	else PYMTRMID
+end as PaymentTermsName
 ,'USD' as currencycode
 --BUYERID --??
 --TXSCHSRC 
+,1 as AREPRICESINCLUDINGSALESTAX --verify
 --,Purchase_Freight_Taxable
 --,Purchase_Misc_Taxable
 ,concat(trim(purchaddress1), ' ', trim(purchaddress2),' ', trim(purchaddress3)) AS iNVOICEADDRESSSTREET
@@ -60,19 +76,24 @@ p.VENDNAME as PurchaseOrderName
 --DATES
 ,p.PRMDATE as REQUESTEDDELIVERYDATE,
 p.PRMSHPDTE  as CONFIRMEDDELIVERYDATE,
-p.REQDATE AS FixedDueDate
---DUEDATE as FixedDueDate,
---AMOUNTS (only stored at line level in D365)
---p.REMSUBTO
---,OREMSUBT --Originating Remaining Subtotal
---,ORSUBTOT --originating subtotal
-
---Remaining Questions
---do we need any of the workflow fields? 
---do we need purhcase order notes?
-
+p.REQDATE AS FixedDueDate,
+'Regular' as PURCHASEORDERPOOLID,
+case 
+	when (select v.vendorgroupid from vendors v where v.DataAreaId = 'gict' and v.vendoraccountnumber = p.vendorid) = '100'
+		then (select v.DEFAULTPURCHASESITEID from vendors v where v.DataAreaId = 'gict' and v.vendoraccountnumber = p.vendorid)
+	else ''	
+end as	DEFAULTRECEIVINGSITEID,
+case 
+	when (select v.vendorgroupid from vendors v where v.DataAreaId = 'gict' and v.vendoraccountnumber = p.vendorid) = '100'
+		then (select v.DEFAULTPROCUMENTWAREHOUSEID from vendors v where v.DataAreaId = 'gict' and v.vendoraccountnumber = p.vendorid)
+	else ''	
+	end as DEFAULTRECEIVINGWAREHOUSEID
+, p.CONTENDDTE as GWCTCANCELDATE
 from gwc.dbo.POP30100 p
-where p.VENDORID != '' and p.REQDATE >= '2017-01-01'
+left join D365Migration.dbo.Vendors v
+on v.ouraccountnumber = p.VENDORID
+and v.DataAreaId = 'gict'
+where p.VENDORID != '' and p.reqdate > '2017-01-01'
 
 
 union
@@ -83,21 +104,31 @@ p.PONUMBER as PurchaseOrderNumber,
 --p.POSTATUS as PurchaseOrderStatus,
 --p.POTYPE, --could map to delivery terms or mode 1=standard, 2= dropship, 3=blanket, 4=blanket drop ship
 --p.TXRGNNUM,
-p.vendorid AS ORDERVENDORACCOUNTNUMBER,
+v.vendoraccountnumber AS ORDERVENDORACCOUNTNUMBER,
 p.VENDNAME as PurchaseOrderName
 --p.VADCDPAD --vendor address code
 --,CMPANYID --not sure what this would be used for
 --,contact
+,p.vendname as DELIVERYADDRESSDESCRIPTION
 ,concat(trim(address1),' ', trim(address2),' ', trim(address3)) AS DELIVERYADDRESSSTREET
 ,city DELIVERYADDRESSCITY
 ,state as DELIVERYADDRESSSTATEID
 ,ZIPCODE as DELIVERYADDRESSZIPCODE
-,CCode as DELIVERYADDRESSCOUNTRYREGIONISOCODE
+,case
+	when CCode = ''
+		then 'usa'
+	else CCode
+end as DELIVERYADDRESSCOUNTRYREGIONISOCODE
 ,country as DELIVERYADDRESSCOUNTRYREGIONID
-,PYMTRMID as PaymentTermsName
+,case
+	when PYMTRMID = '3 months'
+		then 'Net 90'
+	else PYMTRMID
+end as PaymentTermsName
 ,'USD' as currencycode
 --BUYERID --??
 --TXSCHSRC 
+,1 as AREPRICESINCLUDINGSALESTAX --verify
 --,Purchase_Freight_Taxable
 --,Purchase_Misc_Taxable
 ,concat(trim(purchaddress1), ' ', trim(purchaddress2),' ', trim(purchaddress3)) AS iNVOICEADDRESSSTREET
@@ -107,7 +138,18 @@ p.VENDNAME as PurchaseOrderName
 --DATES
 ,p.PRMDATE as REQUESTEDDELIVERYDATE,
 p.PRMSHPDTE  as CONFIRMEDDELIVERYDATE,
-p.REQDATE AS FixedDueDate
+p.REQDATE AS FixedDueDate,
+'Regular' as PURCHASEORDERPOOLID,
+case 
+	when (select v.vendorgroupid from vendors v where v.DataAreaId = 'gts' and v.vendoraccountnumber = p.vendorid) = '100'
+		then (select v.DEFAULTPURCHASESITEID from vendors v where v.DataAreaId = 'gts' and v.vendoraccountnumber = p.vendorid)
+	else ''	
+end as	DEFAULTRECEIVINGSITEID,
+case 
+	when (select v.vendorgroupid from vendors v where v.DataAreaId = 'gts' and v.vendoraccountnumber = p.vendorid) = '100'
+		then (select v.DEFAULTPROCUMENTWAREHOUSEID from vendors v where v.DataAreaId = 'gts' and v.vendoraccountnumber = p.vendorid)
+	else ''	
+	end as DEFAULTRECEIVINGWAREHOUSEID
 --DUEDATE as FixedDueDate,
 --AMOUNTS (only stored at line level in D365)
 --p.REMSUBTO
@@ -117,9 +159,13 @@ p.REQDATE AS FixedDueDate
 --Remaining Questions
 --do we need any of the workflow fields? 
 --do we need purhcase order notes?
-
+, p.CONTENDDTE as GWCTCANCELDATE
 from GSS.dbo.POP30100 p
-where p.VENDORID != '' and p.REQDATE >= '2017-01-01'
+left join D365Migration.dbo.Vendors v
+on v.ouraccountnumber = p.VENDORID
+and v.DataAreaId = 'GTS'
+where p.VENDORID != '' and p.reqdate > '2017-01-01'
+
 
 union
 
@@ -129,21 +175,31 @@ p.PONUMBER as PurchaseOrderNumber,
 --p.POSTATUS as PurchaseOrderStatus,
 --p.POTYPE, --could map to delivery terms or mode 1=standard, 2= dropship, 3=blanket, 4=blanket drop ship
 --p.TXRGNNUM,
-p.vendorid AS ORDERVENDORACCOUNTNUMBER,
+v.vendoraccountnumber AS ORDERVENDORACCOUNTNUMBER,
 p.VENDNAME as PurchaseOrderName
 --p.VADCDPAD --vendor address code
 --,CMPANYID --not sure what this would be used for
 --,contact
+,p.vendname as DELIVERYADDRESSDESCRIPTION
 ,concat(trim(address1),' ', trim(address2),' ', trim(address3)) AS DELIVERYADDRESSSTREET
 ,city DELIVERYADDRESSCITY
 ,state as DELIVERYADDRESSSTATEID
 ,ZIPCODE as DELIVERYADDRESSZIPCODE
-,CCode as DELIVERYADDRESSCOUNTRYREGIONISOCODE
+,case
+	when CCode = ''
+		then 'usa'
+	else CCode
+end as DELIVERYADDRESSCOUNTRYREGIONISOCODE
 ,country as DELIVERYADDRESSCOUNTRYREGIONID
-,PYMTRMID as PaymentTermsName
+,case
+	when PYMTRMID = '3 months'
+		then 'Net 90'
+	else PYMTRMID
+end as PaymentTermsName
 ,'USD' as currencycode
 --BUYERID --??
 --TXSCHSRC 
+,1 as AREPRICESINCLUDINGSALESTAX --verify
 --,Purchase_Freight_Taxable
 --,Purchase_Misc_Taxable
 ,concat(trim(purchaddress1), ' ', trim(purchaddress2),' ', trim(purchaddress3)) AS iNVOICEADDRESSSTREET
@@ -153,7 +209,18 @@ p.VENDNAME as PurchaseOrderName
 --DATES
 ,p.PRMDATE as REQUESTEDDELIVERYDATE,
 p.PRMSHPDTE  as CONFIRMEDDELIVERYDATE,
-p.REQDATE AS FixedDueDate
+p.REQDATE AS FixedDueDate,
+'Regular' as PURCHASEORDERPOOLID,
+case 
+	when (select v.vendorgroupid from vendors v where v.DataAreaId = 'blue' and v.vendoraccountnumber = p.vendorid) = '100'
+		then (select v.DEFAULTPURCHASESITEID from vendors v where v.DataAreaId = 'blue' and v.vendoraccountnumber = p.vendorid)
+	else ''	
+end as	DEFAULTRECEIVINGSITEID,
+case 
+	when (select v.vendorgroupid from vendors v where v.DataAreaId = 'blue' and v.vendoraccountnumber = p.vendorid) = '100'
+		then (select v.DEFAULTPROCUMENTWAREHOUSEID from vendors v where v.DataAreaId = 'blue' and v.vendoraccountnumber = p.vendorid)
+	else ''	
+	end as DEFAULTRECEIVINGWAREHOUSEID
 --DUEDATE as FixedDueDate,
 --AMOUNTS (only stored at line level in D365)
 --p.REMSUBTO
@@ -163,33 +230,47 @@ p.REQDATE AS FixedDueDate
 --Remaining Questions
 --do we need any of the workflow fields? 
 --do we need purhcase order notes?
-
+, p.CONTENDDTE as GWCTCANCELDATE
 from blue.dbo.POP30100 p
-where p.VENDORID != '' and p.REQDATE >= '2017-01-01'
+left join D365Migration.dbo.Vendors v
+on v.ouraccountnumber = p.VENDORID
+and v.DataAreaId = 'blue'
+where p.VENDORID != '' and p.reqdate > '2017-01-01'
+
 
 union
 
 select
-'Excl' as dataareaid,
+'EXCL' as dataareaid,
 p.PONUMBER as PurchaseOrderNumber,
 --p.POSTATUS as PurchaseOrderStatus,
 --p.POTYPE, --could map to delivery terms or mode 1=standard, 2= dropship, 3=blanket, 4=blanket drop ship
 --p.TXRGNNUM,
-p.vendorid AS ORDERVENDORACCOUNTNUMBER,
+V.vendoraccountnumber AS ORDERVENDORACCOUNTNUMBER,
 p.VENDNAME as PurchaseOrderName
 --p.VADCDPAD --vendor address code
 --,CMPANYID --not sure what this would be used for
 --,contact
+,p.vendname as DELIVERYADDRESSDESCRIPTION
 ,concat(trim(address1),' ', trim(address2),' ', trim(address3)) AS DELIVERYADDRESSSTREET
 ,city DELIVERYADDRESSCITY
 ,state as DELIVERYADDRESSSTATEID
 ,ZIPCODE as DELIVERYADDRESSZIPCODE
-,CCode as DELIVERYADDRESSCOUNTRYREGIONISOCODE
+,case
+	when CCode = ''
+		then 'usa'
+	else CCode
+end as DELIVERYADDRESSCOUNTRYREGIONISOCODE
 ,country as DELIVERYADDRESSCOUNTRYREGIONID
-,PYMTRMID as PaymentTermsName
+,case
+	when PYMTRMID = '3 months'
+		then 'Net 90'
+	else PYMTRMID
+end as PaymentTermsName
 ,'USD' as currencycode
 --BUYERID --??
 --TXSCHSRC 
+,1 as AREPRICESINCLUDINGSALESTAX --verify
 --,Purchase_Freight_Taxable
 --,Purchase_Misc_Taxable
 ,concat(trim(purchaddress1), ' ', trim(purchaddress2),' ', trim(purchaddress3)) AS iNVOICEADDRESSSTREET
@@ -199,7 +280,18 @@ p.VENDNAME as PurchaseOrderName
 --DATES
 ,p.PRMDATE as REQUESTEDDELIVERYDATE,
 p.PRMSHPDTE  as CONFIRMEDDELIVERYDATE,
-p.REQDATE AS FixedDueDate
+p.REQDATE AS FixedDueDate,
+'Regular' as PURCHASEORDERPOOLID,
+case 
+	when (select v.vendorgroupid from vendors v where v.DataAreaId = 'EXCL' and v.vendoraccountnumber = p.vendorid) = '100'
+		then (select v.DEFAULTPURCHASESITEID from vendors v where v.DataAreaId = 'EXCL' and v.vendoraccountnumber = p.vendorid)
+	else ''	
+end as	DEFAULTRECEIVINGSITEID,
+case 
+	when (select v.vendorgroupid from vendors v where v.DataAreaId = 'EXCL' and v.vendoraccountnumber = p.vendorid) = '100'
+		then (select v.DEFAULTPROCUMENTWAREHOUSEID from vendors v where v.DataAreaId = 'EXCL' and v.vendoraccountnumber = p.vendorid)
+	else ''	
+	end as DEFAULTRECEIVINGWAREHOUSEID
 --DUEDATE as FixedDueDate,
 --AMOUNTS (only stored at line level in D365)
 --p.REMSUBTO
@@ -209,9 +301,13 @@ p.REQDATE AS FixedDueDate
 --Remaining Questions
 --do we need any of the workflow fields? 
 --do we need purhcase order notes?
+, p.CONTENDDTE as GWCTCANCELDATE
+from excel.dbo.POP30100 p
+left join D365Migration.DBO.Vendors V
+ON V.OurAccountNumber = P.VENDORID
+AND V.DATAAREAID = 'EXCL'
+where p.VENDORID != '' and p.reqdate > '2017-01-01'
 
-from excel.dbo.pop10100 p
-where p.VENDORID != '' and p.REQDATE >= '2017-01-01' and p.REQDATE >= '2017-01-01'
 
 
 

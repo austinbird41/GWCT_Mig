@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[DataLake_Vendors_GPToD365DB]    Script Date: 3/14/2022 9:24:01 PM ******/
+/****** Object:  StoredProcedure [dbo].[DataLake_Vendors_GPToD365DB]    Script Date: 5/18/2022 3:41:03 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -17,19 +17,18 @@ all "New-goods" vendors make a note in your script that they'll we will need to 
 ALTER PROCEDURE [dbo].[DataLake_Vendors_GPToD365DB]
 as
 INSERT INTO [dbo].DATALAKE_VENDORS
-           ([DataAreaId],
-		   VendorPartyNumber
+           ([DataAreaId]
            ,[vendoraccountnumber]
            ,[vendorsearchname]
            ,[vendororganizationname]
-           --,[AddressStreet]
-           --,[addresscity]
-           --,[addressstateid]
-           --,[addresscountryregionid]
-           --,[ADDRESSCOUNTRYREGIONISOCODE]
-           --,[addresszipcode]
-           --,[PrimaryPhoneNumber]
-           --,[PrimaryFaxNumber]
+           ,[AddressStreet]
+           ,[addresscity]
+           ,[addressstateid]
+           ,[addresscountryregionid]
+           ,[ADDRESSCOUNTRYREGIONISOCODE]
+           ,[addresszipcode]
+           ,[PrimaryPhoneNumber]
+           ,[PrimaryFaxNumber]
            ,[VendorGroupID]
            ,[CurrencyCode]
            ,[DEFAULTPAYMENTTERMSNAME]
@@ -44,16 +43,39 @@ INSERT INTO [dbo].DATALAKE_VENDORS
            ,[TAX1099DOINGBUSINESSASNAME]
            ,TAX1099NAMETOUSE
 		   ,TAX1099FEDERALTAXID
-		   ,bankaccountId
+		   ,bankaccountId,
+		   DEFAULTLEDGERDIMENSIONDISPLAYVALUE,
+		   TAX1099BOXID
+		   ,Tax1099Type
 		   )
+
 
 select 
 'GICT' as DataAreaId,
-Concat('Party-', 'GICT-',VENDORID) as VendorPartyNumber,
-vt.VENDORID as vendoraccountnumber,
+vendorid vendoraccountnumber,
 vendname as vendorsearchname,
 vendname as vendororganizationname,
-	case 
+Concat(Address1,address2,address3) as AddressStreet
+,city as addresscity
+,state as addressstateid
+,case 
+	when country = 'Canada' or CCode = 'Canada'
+		then 'CAN'
+	else 'USA'
+end as addresscountryregionid, 
+case
+	when country = 'Canada' or CCode = 'Canada'
+		then 'CA'
+	else 'US' --addresscountryregionid
+end as ADDRESSCOUNTRYREGIONISOCODE,
+zipcode as addresszipcode,
+case
+	when PHNUMBR1 like '00%' 
+		then ''
+	else left(PHNUMBR1,10)
+end as PrimaryPhoneNumber,
+FAXNUMBR as PrimaryFaxNumber,
+	ISNULL((case 
 		when ACNMVNDR = 'New goods'
 			then '100'
 		when ACNMVNDR = 'Rent'
@@ -76,13 +98,22 @@ vendname as vendororganizationname,
 			then '850'
 		when ACNMVNDR = 'Garnishments'
 			then 900
-	end as VendorGroupID,
+		else '100'
+	end),'') as VendorGroupID,
 'USD' as CurrencyCode,
---PYMTRMID as DEFAULTPAYMENTTERMSNAME,
-vt.COMMENT1 as DEFAULTPAYMENTTERMSNAME,
-vt.comment2 as DEFAULTVENDORPAYMENTMETHODNAME,
+
+vt.comment2,
+case
+	when vt.comment1 like 'man%'
+		then 'Manual'
+	when vt.COMMENT1 = 'rft'
+		then 'eft'
+	when vt.comment1 like 'client%'
+		then 'CltAssist'
+	else vt.comment1
+end as DEFAULTVENDORPAYMENTMETHODNAME,
 hold as OnHoldStatus,
-ten99type as TAX1099IDTYPE,
+IsNULL(vt.ten99type,'') as TAX1099IDTYPE,
 case
 	when UserDef1 like '%1099%'
 		then 'Yes'
@@ -90,36 +121,88 @@ case
 end as IsReportingTax1099,
 CREDTLMT as CreditRating,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then '100'
 		else ''
 	end as DEFAULTPROCUMENTWAREHOUSEID,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then '10'
 		else ''
 	end as DEFAULTPURCHASESITEID,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then 1
 		else ''
 	end as VENDORINVOICELINEMATCHINGPOLICY
 ,VNDCHKNM as TAX1099DOINGBUSINESSASNAME
 ,1 as TAX1099NAMETOUSE
 ,TXIDNMBR AS TAX1099FEDERALTAXID
-,'' AS BANKACCOUNTID --CHEKBKID
+,'' AS BANKACCOUNTID 
+,case
+	when ACNMVNDR = 'New goods'
+		then '-160000-9999-1-Proj0000'
+	else '--9999-1-Proj0000'
+end as DEFAULTLEDGERDIMENSIONDISPLAYVALUE,
+case
+	when t.TEN99BOXTEXT = '1' then 'MISC-01'
+	when t.TEN99BOXTEXT = '2' then 'MISC-02'
+	when t.TEN99BOXTEXT = '3' then 'MISC-03'
+	when t.TEN99BOXTEXT = '4' then 'MISC-04'
+	when t.TEN99BOXTEXT = '5' then 'MISC-05'
+	when t.TEN99BOXTEXT = '6' then 'MISC-06'
+	when t.TEN99BOXTEXT = '7' then 'NEC-01'
+	when t.TEN99BOXTEXT = '8' then 'MISC-08'
+	when t.TEN99BOXTEXT = '10' then 'MISC-09'
+	when t.TEN99BOXTEXT = '13' then 'MISC-13'
+	when t.TEN99BOXTEXT = '14' then 'MISC-10'
+	when t.TEN99BOXTEXT = '15a' then 'MISC-12'
+	when t.TEN99BOXTEXT = '15b' then 'MISC-14'
+	when t.TEN99BOXTEXT = '16' then 'MISC-15'
+	when t.TEN99BOXTEXT = '18' then 'MISC-03'
+else ''
+end as TAX1099BOXID
+,case 
+	when t.TEN99BOXTEXT in ('1','2','3','4','5','6','8','10','13','14','15a','15b','16','18')
+		then '1099-MISC'
+	when t.TEN99BOXTEXT = '7'
+		then '1099-NEC'
+	else ''
+end as  'Tax1099Type'
 from gwc.dbo.PM00200 vt
-
+left join gwc.[dbo].[PM40104] t
+on t.TEN99BOXNUMBER = vt.TEN99BOXNUMBER
+and t.TEN99TYPE = 3
+where vt.vendstts = 1
 
 union
 
 select 
 'BLUE' as DataAreaId,
-Concat('Party-', 'BLUE-',VENDORID) as VendorPartyNumber,
-vt.VENDORID as vendoraccountnumber,
+vendorid vendoraccountnumber,
 vendname as vendorsearchname,
 vendname as vendororganizationname,
-	case 
+Concat(Address1,address2,address3) as AddressStreet
+,city as addresscity
+,state as addressstateid
+,case 
+	when country = 'Canada' or CCode = 'Canada'
+		then 'CAN'
+	else 'USA'
+end as addresscountryregionid, 
+case
+	when country = 'Canada' or CCode = 'Canada'
+		then 'CA'
+	else 'US' --addresscountryregionid
+end as ADDRESSCOUNTRYREGIONISOCODE,
+zipcode as addresszipcode,
+case
+	when PHNUMBR1 like '00%' 
+		then ''
+	else left(PHNUMBR1,10)
+end as PrimaryPhoneNumber,
+FAXNUMBR as PrimaryFaxNumber,
+	ISNULL((case 
 		when ACNMVNDR = 'New goods'
 			then '100'
 		when ACNMVNDR = 'Rent'
@@ -142,14 +225,23 @@ vendname as vendororganizationname,
 			then '850'
 		when ACNMVNDR = 'Garnishments'
 			then 900
-	end as VendorGroupID,
+		else '100'
+	end),'') as VendorGroupID,
 
 'USD' as CurrencyCode,
---PYMTRMID as DEFAULTPAYMENTTERMSNAME,
-vt.COMMENT1 as DEFAULTPAYMENTTERMSNAME,
-vt.comment2 as DEFAULTVENDORPAYMENTMETHODNAME,
+
+vt.comment2,
+case
+	when vt.comment1 like 'man%'
+		then 'Manual'
+	when vt.COMMENT1 = 'rft'
+		then 'eft'
+	when vt.comment1 like 'client%'
+		then 'CltAssist'
+	else vt.comment1
+end as DEFAULTVENDORPAYMENTMETHODNAME,
 hold as OnHoldStatus,
-ten99type as  TAX1099IDTYPE,
+IsNULL(vt.ten99type,'') as TAX1099IDTYPE,
 case
 	when UserDef1 like '%1099%'
 		then 'Yes'
@@ -157,17 +249,17 @@ case
 end as IsReportingTax1099,
 CREDTLMT as CreditRating,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then '100'
 		else ''
 	end as DEFAULTPROCUMENTWAREHOUSEID,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then '10'
 		else ''
 	end as DEFAULTPURCHASESITEID,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then 1
 		else ''
 	end as VENDORINVOICELINEMATCHINGPOLICY
@@ -175,19 +267,73 @@ CREDTLMT as CreditRating,
 ,1 as TAX1099NAMETOUSE
 ,TXIDNMBR AS TAX1099FEDERALTAXID
 
-,'' AS BANKACCOUNTID --CHEKBKID 
+,'' AS BANKACCOUNTID  
+,case
+	when ACNMVNDR = 'New goods'
+		then '-160000-9999-1-Proj0000'
+	else '--9999-1-Proj0000'
+end as DEFAULTLEDGERDIMENSIONDISPLAYVALUE
+, 
+case
+	when t.TEN99BOXTEXT = '1' then 'MISC-01'
+	when t.TEN99BOXTEXT = '2' then 'MISC-02'
+	when t.TEN99BOXTEXT = '3' then 'MISC-03'
+	when t.TEN99BOXTEXT = '4' then 'MISC-04'
+	when t.TEN99BOXTEXT = '5' then 'MISC-05'
+	when t.TEN99BOXTEXT = '6' then 'MISC-06'
+	when t.TEN99BOXTEXT = '7' then 'NEC-01'
+	when t.TEN99BOXTEXT = '8' then 'MISC-08'
+	when t.TEN99BOXTEXT = '10' then 'MISC-09'
+	when t.TEN99BOXTEXT = '13' then 'MISC-13'
+	when t.TEN99BOXTEXT = '14' then 'MISC-10'
+	when t.TEN99BOXTEXT = '15a' then 'MISC-12'
+	when t.TEN99BOXTEXT = '15b' then 'MISC-14'
+	when t.TEN99BOXTEXT = '16' then 'MISC-15'
+	when t.TEN99BOXTEXT = '18' then 'MISC-03'
+else ''
+end as TAX1099BOXID
+,case 
+	when t.TEN99BOXTEXT in ('1','2','3','4','5','6','8','10','13','14','15a','15b','16','18')
+		then '1099-MISC'
+	when t.TEN99BOXTEXT = '7'
+		then '1099-NEC'
+	else ''
+end as  'Tax1099Type'
 from blue.dbo.PM00200 vt
-
+left join blue.[dbo].[PM40104] t
+on t.TEN99BOXNUMBER = vt.TEN99BOXNUMBER
+and t.TEN99TYPE = 3
+where vt.vendstts = 1
 
 union
 
 select 
-'GWFD' as DataAreaId,
-Concat('Party-', 'GWFD-',VENDORID) as VendorPartyNumber,
-vt.VENDORID as vendoraccountnumber,
+'EXCL' as DataAreaId,
+vendorid vendoraccountnumber,
 vendname as vendorsearchname,
 vendname as vendororganizationname,
-	case 
+Concat(Address1,address2,address3) as AddressStreet
+,city as addresscity
+,state as addressstateid
+,case 
+	when country = 'Canada' or CCode = 'Canada'
+		then 'CAN'
+	else 'USA'
+end as addresscountryregionid, 
+case
+	when country = 'Canada' or CCode = 'Canada'
+		then 'CA'
+	else 'US' --addresscountryregionid
+end as ADDRESSCOUNTRYREGIONISOCODE,
+zipcode as addresszipcode,
+case
+	when PHNUMBR1 like '00%' 
+		then ''
+	else left(PHNUMBR1,10)
+end as PrimaryPhoneNumber,
+FAXNUMBR as PrimaryFaxNumber,
+
+	ISNULL((case 
 		when ACNMVNDR = 'New goods'
 			then '100'
 		when ACNMVNDR = 'Rent'
@@ -210,14 +356,23 @@ vendname as vendororganizationname,
 			then '850'
 		when ACNMVNDR = 'Garnishments'
 			then 900
-	end as VendorGroupID,
+		else '100'
+	end),'') as VendorGroupID,
 
 'USD' as CurrencyCode,
---PYMTRMID as DEFAULTPAYMENTTERMSNAME,
-vt.COMMENT1 as DEFAULTPAYMENTTERMSNAME,
-vt.comment2 as DEFAULTVENDORPAYMENTMETHODNAME,
+
+vt.comment2,
+case
+	when vt.comment1 like 'man%'
+		then 'Manual'
+	when vt.COMMENT1 = 'rft'
+		then 'eft'
+	when vt.comment1 like 'client%'
+		then 'CltAssist'
+	else vt.comment1
+end as DEFAULTVENDORPAYMENTMETHODNAME,
 hold as OnHoldStatus,
-ten99type as TAX1099IDTYPE,
+IsNULL(vt.ten99type,'') as TAX1099IDTYPE,
 case
 	when UserDef1 like '%1099%'
 		then 'Yes'
@@ -225,17 +380,17 @@ case
 end as IsReportingTax1099,
 CREDTLMT as CreditRating ,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then '100'
 		else ''
 	end as DEFAULTPROCUMENTWAREHOUSEID,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then '10'
 		else ''
 	end as DEFAULTPURCHASESITEID,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then 1
 		else ''
 	end as VENDORINVOICELINEMATCHINGPOLICY
@@ -243,55 +398,73 @@ CREDTLMT as CreditRating ,
 ,1 as TAX1099NAMETOUSE
 ,TXIDNMBR AS TAX1099FEDERALTAXID
 
-,'' AS BANKACCOUNTID --CHEKBKID
+,'' AS BANKACCOUNTID 
+,case
+	when ACNMVNDR = 'New goods'
+		then '-160000-9999-1-Proj0000'
+	else '--9999-1-Proj0000'
+end as DEFAULTLEDGERDIMENSIONDISPLAYVALUE,
+case
+	when t.TEN99BOXTEXT = '1' then 'MISC-01'
+	when t.TEN99BOXTEXT = '2' then 'MISC-02'
+	when t.TEN99BOXTEXT = '3' then 'MISC-03'
+	when t.TEN99BOXTEXT = '4' then 'MISC-04'
+	when t.TEN99BOXTEXT = '5' then 'MISC-05'
+	when t.TEN99BOXTEXT = '6' then 'MISC-06'
+	when t.TEN99BOXTEXT = '7' then 'NEC-01'
+	when t.TEN99BOXTEXT = '8' then 'MISC-08'
+	when t.TEN99BOXTEXT = '10' then 'MISC-09'
+	when t.TEN99BOXTEXT = '13' then 'MISC-13'
+	when t.TEN99BOXTEXT = '14' then 'MISC-10'
+	when t.TEN99BOXTEXT = '15a' then 'MISC-12'
+	when t.TEN99BOXTEXT = '15b' then 'MISC-14'
+	when t.TEN99BOXTEXT = '16' then 'MISC-15'
+	when t.TEN99BOXTEXT = '18' then 'MISC-03'
+else ''
+end as TAX1099BOXID
+,case 
+	when t.TEN99BOXTEXT in ('1','2','3','4','5','6','8','10','13','14','15a','15b','16','18')
+		then '1099-MISC'
+	when t.TEN99BOXTEXT = '7'
+		then '1099-NEC'
+	else ''
+end as  'Tax1099Type'
 from excel.dbo.PM00200 vt
-
+join excel.dbo.PM40104 t
+on t.TEN99BOXNUMBER = vt.TEN99BOXNUMBER
+and t.TEN99TYPE = 3
+where vt.vendstts = 1
 
 
 union
 
 select 
 'GTS' as DataAreaId,
-Concat('Party-', 'GTS-',VENDORID) as VendorPartyNumber,
-vt.VENDORID as vendoraccountnumber,
+vendorid vendoraccountnumber,
 vendname as vendorsearchname,
 vendname as vendororganizationname,
---Concat(Address1,address2,address3) as AddressStreet
---,city as addresscity
---,state as addressstateid
---,case 
---	when country = 'Canada' or CCode = 'Canada'
---		then 'CAN'
---	else 'USA'
---end as addresscountryregionid, 
---case
---	when country = 'Canada' or CCode = 'Canada'
---		then 'CA'
---	else 'US' --addresscountryregionid
---end as ADDRESSCOUNTRYREGIONISOCODE,
---zipcode as addresszipcode,
---case
---	when PHNUMBR1 like '00%' 
---		then ''
---	else left(PHNUMBR1,10)
---end as PrimaryPhoneNumber,
---FAXNUMBR as PrimaryFaxNumber,
-	--case 
-	--	when VNDCLSID = 'New goods'
-	--		then '100'
-	--	when VNDCLSID = 'Rent'
-	--		then '200'
-	--	when VNDCLSID = 'Tuition'
-	--		then '300'
-	--	when VNDCLSID = 'utilities'
-	--		then '400'
-	--	when VNDCLSID = 'Safe place voucher'
-	--		then '500'
-	--	when VNDCLSID = 'Trade accounts payable'
-	--		then '600'
-	--	else '700'
-	--end as VendorGroupID,
-	case 
+Concat(Address1,address2,address3) as AddressStreet
+,city as addresscity
+,state as addressstateid
+,case 
+	when country = 'Canada' or CCode = 'Canada'
+		then 'CAN'
+	else 'USA'
+end as addresscountryregionid, 
+case
+	when country = 'Canada' or CCode = 'Canada'
+		then 'CA'
+	else 'US' --addresscountryregionid
+end as ADDRESSCOUNTRYREGIONISOCODE,
+zipcode as addresszipcode,
+case
+	when PHNUMBR1 like '00%' 
+		then ''
+	else left(PHNUMBR1,10)
+end as PrimaryPhoneNumber,
+FAXNUMBR as PrimaryFaxNumber,
+
+	ISNULL((case 
 		when ACNMVNDR = 'New goods'
 			then '100'
 		when ACNMVNDR = 'Rent'
@@ -314,14 +487,22 @@ vendname as vendororganizationname,
 			then '850'
 		when ACNMVNDR = 'Garnishments'
 			then 900
-	end as VendorGroupID,
+		else '100'
+	end),'') as VendorGroupID,
 
 'USD' as CurrencyCode,
---PYMTRMID as DEFAULTPAYMENTTERMSNAME,
-vt.COMMENT1 as DEFAULTPAYMENTTERMSNAME,
-vt.comment2 as DEFAULTVENDORPAYMENTMETHODNAME,
+vt.comment2,
+case
+	when vt.comment1 like 'man%'
+		then 'Manual'
+	when vt.COMMENT1 = 'rft'
+		then 'eft'
+	when vt.comment1 like 'client%'
+		then 'CltAssist'
+	else vt.comment1
+end as DEFAULTVENDORPAYMENTMETHODNAME,
 hold as OnHoldStatus,
-ten99type as TAX1099IDTYPE,
+IsNULL(vt.ten99type,'') as TAX1099IDTYPE,
 case
 	when UserDef1 like '%1099%'
 		then 'Yes'
@@ -329,17 +510,17 @@ case
 end as IsReportingTax1099,
 CREDTLMT as CreditRating,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then '100'
 		else ''
 	end as DEFAULTPROCUMENTWAREHOUSEID,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then '10'
 		else ''
 	end as DEFAULTPURCHASESITEID,
 	case 
-		when VNDCLSID = 'New goods'
+		when ACNMVNDR = 'New goods'
 			then 1
 		else ''
 	end as VENDORINVOICELINEMATCHINGPOLICY
@@ -347,8 +528,42 @@ CREDTLMT as CreditRating,
 ,1 as TAX1099NAMETOUSE
 ,TXIDNMBR AS TAX1099FEDERALTAXID
 
-,'' AS BANKACCOUNTID --CHEKBKID 
+,'' AS BANKACCOUNTID 
+,case
+	when ACNMVNDR = 'New goods'
+		then '-160000-9999-1-Proj0000'
+	else '--9999-1-Proj0000'
+end as DEFAULTLEDGERDIMENSIONDISPLAYVALUE,
+case
+	when t.TEN99BOXTEXT = '1' then 'MISC-01'
+	when t.TEN99BOXTEXT = '2' then 'MISC-02'
+	when t.TEN99BOXTEXT = '3' then 'MISC-03'
+	when t.TEN99BOXTEXT = '4' then 'MISC-04'
+	when t.TEN99BOXTEXT = '5' then 'MISC-05'
+	when t.TEN99BOXTEXT = '6' then 'MISC-06'
+	when t.TEN99BOXTEXT = '7' then 'NEC-01'
+	when t.TEN99BOXTEXT = '8' then 'MISC-08'
+	when t.TEN99BOXTEXT = '10' then 'MISC-09'
+	when t.TEN99BOXTEXT = '13' then 'MISC-13'
+	when t.TEN99BOXTEXT = '14' then 'MISC-10'
+	when t.TEN99BOXTEXT = '15a' then 'MISC-12'
+	when t.TEN99BOXTEXT = '15b' then 'MISC-14'
+	when t.TEN99BOXTEXT = '16' then 'MISC-15'
+	when t.TEN99BOXTEXT = '18' then 'MISC-03'
+else ''
+end as TAX1099BOXID
+,case 
+	when t.TEN99BOXTEXT in ('1','2','3','4','5','6','8','10','13','14','15a','15b','16','18')
+		then '1099-MISC'
+	when t.TEN99BOXTEXT = '7'
+		then '1099-NEC'
+	else ''
+end as  'Tax1099Type'
 from gss.dbo.PM00200 vt
+left join gss.dbo.PM40104 t
+on t.TEN99BOXNUMBER = vt.TEN99BOXNUMBER
+and t.TEN99TYPE = 3
+
 
 
 

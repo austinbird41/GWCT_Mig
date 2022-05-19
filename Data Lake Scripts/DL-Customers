@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[DataLake_Customers_GPToD365DB]    Script Date: 3/14/2022 9:22:44 PM ******/
+/****** Object:  StoredProcedure [dbo].[DataLake_Customers_GPToD365DB]    Script Date: 5/18/2022 2:20:11 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -11,40 +11,147 @@ ALTER Procedure [dbo].[DataLake_Customers_GPToD365DB]
 as
 
 INSERT INTO D365Migration.dbo.[DataLake_Customers]
-           (Dataareaid, 
+           (Dataareaid,
 		   [CustomerAccount]
            ,[OrganizationName]
            ,[NameAlias]
            ,[CustomerGroupID]
            ,[AddressBooks]
-           ,[addressstreet]
-           ,[AddressCountryRegionId]
-           ,[AddressCity]
-           ,[addressState]
-           ,[AddressZipCode]
-           ,[PrimaryContactPhone]
            ,[PAYMENTBANKACCOUNT]
            ,[PaymentTerms]
            ,[CreditRating]
            ,[CreditLimit]
            ,[salesCurrencyCode]
-           ,[TotalDiscountCode]
+           ,[LineDiscountCode]
            ,[DiscountPriceGroupId]
            ,[onHoldstatus],
 		   InvoiceAccount,
-		   languageid,
-		   CredManCustomerSince)
+		   languageId,
+		   CredManCustomerSince, 
+		   DefaultDimensionDisplayValue,
+		   [addressstreet]
+        ,[AddressCountryRegionId]
+        ,[AddressCity]
+        ,[addressState]
+        ,[AddressZipCode]
+        ,[PrimaryContactPhone])
 
 
 
-SELECT 'GICT' as DataAreaId,
-		[CUSTNMBR] as CustomerAccount
-		,[CUSTNAME] as OrganizationName
+SELECT 
+	  'GICT' as DataAreaId, 
+		[CUSTNMBR] customeraccount
+		,case 
+				when [CUSTNAME] = ''
+					then [CUSTNMBR] 
+				else [CUSTNAME]
+			end as OrganizationName
       ,[CUSTNAME] as NameAlias
-      ,COMMENT1 as  CustomerGroupID 
+      ,case
+		when comment1 not in  ('1500', '1400','1000')
+			then 'migration'
+		else comment1
+		end as customergroupid
 	  ,'AllCust' as AddressBooks
-      --,[CNTCPRSN] as ContactPersonId
-      --,[SHIPMTHD] --shipment method, (terms or modes of delivery, we'll need to map this out)
+      ,[CHEKBKID] as [PAYMENTBANKACCOUNT]
+      ,[PYMTRMID] as PaymentTerms
+      ,[CRLMTTYP] as CreditRating --credit rating, need to map to D365 values
+	, case
+			when TRIM(CUSTNMBR) = 'B006' then 1
+			when TRIM(CUSTNMBR) = 'C450' then 1
+			when TRIM(CUSTNMBR) = 'DD001' then 1
+			when TRIM(CUSTNMBR) = 'E175' then 1
+			when TRIM(CUSTNMBR) = 'MB001' then 1
+			when TRIM(CUSTNMBR) = 'MT001' then 1
+			when TRIM(CUSTNMBR) = 'N150' then 1
+			when TRIM(CUSTNMBR) = 'P048' then 1
+			when TRIM(CUSTNMBR) = 'R001' then 1
+			when TRIM(CUSTNMBR) = 'RC001' then 1
+			when TRIM(CUSTNMBR) = 'RV001' then 1
+			when TRIM(CUSTNMBR) = 'S042' then 1
+			when TRIM(CUSTNMBR) = 'S050' then 1
+			when TRIM(CUSTNMBR) = 'V050' then 1
+			when TRIM(CUSTNMBR) = '5032' then 1
+			when TRIM(CUSTNMBR) = 'C113' then 350
+			when TRIM(CUSTNMBR) = 'R099' then 500
+			when TRIM(CUSTNMBR) = 'G470' then 10000
+			when TRIM(CUSTNMBR) = 'Q001' then 10000
+			when TRIM(CUSTNMBR) = 'B355' then 20000
+			when TRIM(CUSTNMBR) = 'A2399' then 25000
+			when TRIM(CUSTNMBR) = 'A007' then 50000
+			when TRIM(CUSTNMBR) = 'A110' then 50000
+			when TRIM(CUSTNMBR) = 'B075' then 50000
+			when TRIM(CUSTNMBR) = 'B099' then 50000
+			when TRIM(CUSTNMBR) = 'B210' then 50000
+			when TRIM(CUSTNMBR) = 'G999' then 50000
+			when TRIM(CUSTNMBR) = 'M151' then 50000
+			when TRIM(CUSTNMBR) = 'P126' then 50000
+			when TRIM(CUSTNMBR) = 'R025' then 50000
+			when TRIM(CUSTNMBR) = 'V025' then 50000
+			when TRIM(CUSTNMBR) = 'A156' then 50000
+			when TRIM(CUSTNMBR) = 'A257' then 50000
+			when TRIM(CUSTNMBR) = 'A301' then 50000
+			when TRIM(CUSTNMBR) = 'BP001' then 50000
+			when TRIM(CUSTNMBR) = 'C021' then 50000
+			when TRIM(CUSTNMBR) = 'CSI001' then 50000
+			when TRIM(CUSTNMBR) = 'D013' then 50000
+			when TRIM(CUSTNMBR) = 'D014' then 50000
+			when TRIM(CUSTNMBR) = 'D350' then 50000
+			when TRIM(CUSTNMBR) = 'E150' then 50000
+			when TRIM(CUSTNMBR) = 'E176' then 50000
+			when TRIM(CUSTNMBR) = 'F003' then 50000
+			when TRIM(CUSTNMBR) = 'F215' then 50000
+			when TRIM(CUSTNMBR) = 'G025' then 50000
+			when TRIM(CUSTNMBR) = 'G095' then 50000
+			when TRIM(CUSTNMBR) = 'G120' then 50000
+			when TRIM(CUSTNMBR) = 'H175' then 50000
+			when TRIM(CUSTNMBR) = 'H176' then 50000
+			when TRIM(CUSTNMBR) = 'ITRENEW' then 50000
+			when TRIM(CUSTNMBR) = 'J720' then 50000
+			when TRIM(CUSTNMBR) = 'L011' then 50000
+			when TRIM(CUSTNMBR) = 'LM001' then 50000
+			when TRIM(CUSTNMBR) = 'M021' then 50000
+			when TRIM(CUSTNMBR) = 'M152' then 50000
+			when TRIM(CUSTNMBR) = 'PMI001' then 50000
+			when TRIM(CUSTNMBR) = 'S421' then 50000
+			when TRIM(CUSTNMBR) = 'S787' then 50000
+			when TRIM(CUSTNMBR) = 'TL001' then 50000
+			when TRIM(CUSTNMBR) = 'V075' then 50000
+			when TRIM(CUSTNMBR) = 'VT001' then 50000
+			when TRIM(CUSTNMBR) = 'A149' then 50000
+			when TRIM(CUSTNMBR) = 'AUSTIN AREA URB' then 50000
+			when TRIM(CUSTNMBR) = 'C011' then 50000
+			when TRIM(CUSTNMBR) = 'C040' then 50000
+			when TRIM(CUSTNMBR) = 'C100' then 50000
+			when TRIM(CUSTNMBR) = 'C102' then 50000
+			when TRIM(CUSTNMBR) = 'C103' then 50000
+			when TRIM(CUSTNMBR) = 'C301' then 50000
+			when TRIM(CUSTNMBR) = 'D002' then 50000
+			when TRIM(CUSTNMBR) = 'TASUS' then 75000
+			when TRIM(CUSTNMBR) = 'B080' then 100000
+			when TRIM(CUSTNMBR) = 'F002' then 100000
+			when TRIM(CUSTNMBR) = 'I100' then 450000
+		else [CRLMTAMT]  
+		end as CreditLimit
+      ,'USD' as salesCurrencyCode
+      ,case
+		when [CUSTDISC] = 500
+			then '5%'
+		when custdisc = 600
+			then '6%'
+		else ''
+		end as TotalDiscountCode--totalDiscount field
+	  ,'AllStores' as DiscountPriceGroupId --Price Group, to default once configured
+
+      ,[HOLD] as onHoldstatus
+	  	  ,	TRIM(CUSTNMBR) as InvoiceAccount
+		  ,'en-us' as LanguageId
+		  ,CREATDDT as CredManCustomerSince
+		  ,case
+			when COMMENT1 = '1000'
+				then '-146000-9999-1-Proj0000'
+			else '--9999-1-Proj0000'
+			end
       ,concat([ADDRESS1],address2,ADDRESS3) as addressstreet
 	  ,case 
 		when[COUNTRY] = 'Canada' or [COUNTRY] = 'Canada'
@@ -64,26 +171,6 @@ SELECT 'GICT' as DataAreaId,
 				then ''
 			else PHONE1
 		end as PrimaryContactPhone
-      ,[CHEKBKID] as [PAYMENTBANKACCOUNT]
-      ,[PYMTRMID] as PaymentTerms
-      ,[CRLMTTYP] as CreditRating --credit rating, need to map to D365 values
-      ,[CRLMTAMT]  as CreditLimit--(preference: they will update in GP)
-      ,'USD' as salesCurrencyCode
-      ,case
-		when [CUSTDISC] = 500
-			then '5%'
-		when custdisc = 600
-			then '6%'
-		else ''
-		end as TotalDiscountCode--totalDiscount field
-	  ,'AllStores' as DiscountPriceGroupId --Price Group, to default once configured
-
-      ,[HOLD] as onHoldstatus
-	  	  ,[CUSTNMBR] as InvoiceAccount
-	,'en-us' as LanguageId
-	,CREATDDT as CredManCustomerSince
-   --   ,'site' as SiteId
-	  --,'warehouse' as WarehouseId-- will need to ask where to map sites/warehouses for customers
 
   FROM Gwc.Dbo.[RM00101]
 
@@ -92,13 +179,34 @@ SELECT 'GICT' as DataAreaId,
 union 
 
 SELECT 'Blue' as DataAreaId,
-		[CUSTNMBR] as CustomerAccount
-				,[CUSTNAME] as OrganizationName
+[CUSTNMBR] as CustomerAccount,
+		case 
+				when [CUSTNAME] = ''
+					then [CUSTNMBR] 
+				else [CUSTNAME]
+			end as OrganizationName
       ,[CUSTNAME] as NameAlias
-      ,COMMENT1 as  CustomerGroupID 
+      ,'1400' as customergroupid
 	  ,'AllCust' as AddressBooks
-      --,[CNTCPRSN] as ContactPersonId
-      --,[SHIPMTHD] --shipment method, (terms or modes of delivery, we'll need to map this out)
+
+      ,[CHEKBKID] as [PAYMENTBANKACCOUNT]
+      ,[PYMTRMID] as PaymentTerms
+      ,[CRLMTTYP] as CreditRating --credit rating, need to map to D365 values
+      ,[CRLMTAMT]  as CreditLimit--(preference: they will update in GP)
+      ,'USD' as salesCurrencyCode
+      ,case
+		when [CUSTDISC] = 500
+			then '5%'
+		when custdisc = 600
+			then '6%'
+		else ''
+		end as TotalDiscountCode--totalDiscount field
+	  ,'AllStores' as DiscountPriceGroupId --Price Group, to default once configured
+      ,[HOLD] as onHoldstatus
+	 ,CUSTNMBR as InvoiceAccount
+	 ,'en-us' as LanguageId
+	 ,CREATDDT as CredManCustomerSince
+	 ,'--9999-1-'
       ,concat([ADDRESS1],address2,ADDRESS3) as addressstreet
 	  ,case 
 		when[COUNTRY] = 'Canada' or [COUNTRY] = 'Canada'
@@ -118,58 +226,24 @@ SELECT 'Blue' as DataAreaId,
 				then ''
 			else PHONE1
 		end as PrimaryContactPhone
-      ,[CHEKBKID] as [PAYMENTBANKACCOUNT]
-      ,[PYMTRMID] as PaymentTerms
-      ,[CRLMTTYP] as CreditRating --credit rating, need to map to D365 values
-      ,[CRLMTAMT]  as CreditLimit--(preference: they will update in GP)
-      ,'USD' as salesCurrencyCode
-      ,case
-		when [CUSTDISC] = 500
-			then '5%'
-		when custdisc = 600
-			then '6%'
-		else ''
-		end as TotalDiscountCode--totalDiscount field
-	  ,'AllStores' as DiscountPriceGroupId --Price Group, to default once configured
-      ,[HOLD] as onHoldstatus
-	  	  ,[CUSTNMBR] as InvoiceAccount
-		  ,'en-us' as LanguageId
-		  ,CREATDDT as CredManCustomerSince
-     -- ,'site' as SiteId
-	 -- ,'warehouse' as warehouseId-- will need to ask where to map sites/warehouses for customers
+
 
   FROM blue.dbo.[RM00101]
 
 
 union
 
-SELECT 'GWFD' as DataAreaId,
-		[CUSTNMBR] as CustomerAccount
-		,[CUSTNAME] as OrganizationName
+SELECT 	  'EXCL' as DataAreaId,
+custnmbr as customeraccount
+		,			case 
+				when [CUSTNAME] = ''
+					then [CUSTNMBR] 
+				else [CUSTNAME]
+			end as OrganizationName
       ,[CUSTNAME] as NameAlias
-      ,COMMENT1 as  CustomerGroupID 
+      ,'1600' as customergroupid
 	  ,'AllCust' as AddressBooks
-      --,[CNTCPRSN] as ContactPersonId
-      --,[SHIPMTHD] --shipment method, (terms or modes of delivery, we'll need to map this out)
-      ,concat([ADDRESS1],address2,ADDRESS3) as addressstreet
-	  ,case 
-		when[COUNTRY] = 'Canada' or [COUNTRY] = 'Canada'
-			then 'CAN'
-		else 'USA'
-	end as AddressCountryRegionId
-      
-      ,[CITY] as AddressCity
-      , case
-		when [STATE] like '%.' then left(state,len(state)-1) 
-		when state = 'texas' then 'TX'
-		else state
-		end as addressState
-      ,[ZIP] as AddressZipCode
-      ,case
-			when [PHONE1] like '00%'
-				then ''
-			else PHONE1
-		end as PrimaryContactPhone
+
       ,[CHEKBKID] as [PAYMENTBANKACCOUNT]
       ,[PYMTRMID] as PaymentTerms
       ,[CRLMTTYP] as CreditRating --credit rating, need to map to D365 values
@@ -185,26 +259,13 @@ SELECT 'GWFD' as DataAreaId,
 	  ,'AllStores' as DiscountPriceGroupId --Price Group, to default once configured
 
       ,[HOLD] as onHoldstatus
-	  ,[CUSTNMBR] as InvoiceAccount
+	  ,custnmbr as InvoiceAccount
+	  ,'en-us' as LanguageId
       --,'site' as iteId
 	  --,'warehouse' as warehouseId-- will need to ask where to map sites/warehouses for customers
-	  		  ,'en-us' as LanguageId
-		  ,CREATDDT as CredManCustomerSince
-  FROM excel.dbo.[RM00101]
-
-
-union
-
-
-SELECT 'GTS' as DataAreaId,
-		[CUSTNMBR] as CustomerAccount
-		,[CUSTNAME] as OrganizationName
-      ,[CUSTNAME] as NameAlias
-      ,COMMENT1 as  CustomerGroupID 
-	  ,'AllCust' as AddressBooks
-      --,[CNTCPRSN] as ContactPersonId
-      --,[SHIPMTHD] --shipment method, (terms or modes of delivery, we'll need to map this out)
-      ,concat([ADDRESS1],address2,ADDRESS3) as addressstreet
+	  ,CREATDDT as CredManCustomerSince 
+	  ,'--9999-1-'
+	  , concat([ADDRESS1],address2,ADDRESS3) as addressstreet
 	  ,case 
 		when[COUNTRY] = 'Canada' or [COUNTRY] = 'Canada'
 			then 'CAN'
@@ -223,6 +284,26 @@ SELECT 'GTS' as DataAreaId,
 				then ''
 			else PHONE1
 		end as PrimaryContactPhone
+
+
+  FROM excel.dbo.[RM00101]
+
+
+union
+
+
+SELECT 
+	'GTS' as DataAreaId,
+custnmbr as customeraccount
+		,case 
+				when [CUSTNAME] = ''
+					then [CUSTNMBR] 
+				else [CUSTNAME]
+			end as OrganizationName
+      ,[CUSTNAME] as NameAlias
+      ,'1400' as customergroupid
+	  ,'AllCust' as AddressBooks
+
       ,[CHEKBKID] as [PAYMENTBANKACCOUNT]
       ,[PYMTRMID] as PaymentTerms
       ,[CRLMTTYP] as CreditRating --credit rating, need to map to D365 values
@@ -238,10 +319,31 @@ SELECT 'GTS' as DataAreaId,
 	  ,'AllStores' as DiscountPriceGroupId --Price Group, to default once configure
       ,[HOLD] as onHoldstatus
 	 ,'T1000' as InvoiceAccount
+	 ,'en-us' as LanguageId
       --,'site' as iteId
 	  --,'warehouse' as warehouseId-- will need to ask where to map sites/warehouses for customers
-	  ,'en-us' as LanguageId
-	,CREATDDT as CredManCustomerSince
+	  ,CREATDDT as CredManCustomerSince
+	  ,'--9999-1-'
+	        ,concat([ADDRESS1],address2,ADDRESS3) as addressstreet
+	  ,case 
+		when[COUNTRY] = 'Canada' or [COUNTRY] = 'Canada'
+			then 'CAN'
+		else 'USA'
+	end as AddressCountryRegionId
+      
+      ,[CITY] as AddressCity
+      , case
+		when [STATE] like '%.' then left(state,len(state)-1) 
+		when state = 'texas' then 'TX'
+		else state
+		end as addressState
+      ,[ZIP] as AddressZipCode
+      ,case
+			when [PHONE1] like '00%'
+				then ''
+			else PHONE1
+		end as PrimaryContactPhone
+
   FROM gss.dbo.[RM00101]
 
 
