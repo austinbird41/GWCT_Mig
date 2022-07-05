@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[OpenAPLines_GPToD365DB]    Script Date: 5/6/2022 5:21:22 PM ******/
+/****** Object:  StoredProcedure [dbo].[OpenAPLines_GPToD365DB]    Script Date: 6/21/2022 1:14:37 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -32,7 +32,7 @@ INSERT INTO [dbo].[OpenAPLines]
 select 
 'GICT',
 (select  journalbatchnumber from openAPHeaders where trim(substring(description, 19, len(description)-1)) = p.BACHNUMB and dataareaid = 'gict') as JournalBatchNumber,
-row_number() over ( partition by BACHNUMB order by bachnumb ) as LineNumber,
+dense_rank() over (partition by BACHNUMB order by DOCNUMBR)  as LineNumber,
 pm.CRDTAMNT,
 pm.DEBITAMT,
 p.DOCNUMBR as INVOICE,
@@ -43,11 +43,12 @@ v.vendoraccountnumber as accountdisplayvalue,
 'vend' as AccountType,
 p.PYMTRMID as TermsOfPayment,
 'USD' as Currency,
-concat(m1.d365mainaccount, '-', m2.d365department, '-','9999-1-Proj0000') as DefaultDimensionDisplayValue,
-concat(m1.d365mainaccount, '-', m2.d365department, '-','9999-1-Proj0000')  as OFFSETACCOUNTDISPLAYVALUE,
+concat(m1.d365mainaccount, '-', m2.d365department, '-','1-9999--Proj999999') as DefaultDimensionDisplayValue,
+concat(m1.d365mainaccount, '-', m2.d365department, '-','1-9999--Proj999999')  as OFFSETACCOUNTDISPLAYVALUE,
  'General' as PostingProfile,
- '00001' as Approvedby,
+ '000223' as Approvedby,
  1 as Approved
+
 --bring them over with today's date, just try to use their voucher numbers, currency USD
 from  gwc.dbo.pm20000 p
 join D365Migration.dbo.vendors v
@@ -55,20 +56,25 @@ on v.OurAccountNumber = p.VENDORID
 and dataareaid = 'gict'
 join gwc.dbo.PM10100 pm
 on pm.VCHRNMBR = p.VCHRNMBR
+and pm.disttype = 2 --this filters for only the payables type and removes the expenses
 join gwc.dbo.gl00100 g
 on pm.DSTINDX = g.ACTINDX
 join D365Migration.dbo.mainaccountmapping m1
 on m1.gpmainaccount = Trim(G.ACTNUMBR_1)
 and m1.dataareaid = 'gict'
 join d365migration.dbo.departmentmapping m2
-	on m2.gpdepartment =  trim(G.ACTNUMBR_2)
-
+        on m2.gpdepartment =
+        (case
+	        when g.ACTNUMBR_3 != '00'
+                then concat(Trim(G.ACTNUMBR_2),Trim(G.ACTNUMBR_3))
+	    else Trim(G.ACTNUMBR_2)
+        end) 
 
 union
 select 
 'GTS',
 (select  journalbatchnumber from openAPHeaders where trim(substring(description, 19, len(description)-1)) = p.BACHNUMB and dataareaid = 'GTS') as JournalBatchNumber,
-row_number() over ( partition by BACHNUMB order by bachnumb ) as LineNumber,
+dense_rank() over (partition by BACHNUMB order by DOCNUMBR)  as LineNumber,
 pm.CRDTAMNT,
 pm.DEBITAMT,
 p.DOCNUMBR as INVOICE,
@@ -83,10 +89,10 @@ case
 	else p.PYMTRMID
 end as TermsOfPayment,
 'USD' as Currency,
-concat(m1.d365mainaccount, '-', m2.d365department, '-','9999-1-Proj0000') as DefaultDimensionDisplayValue,
-concat(m1.d365mainaccount, '-', m2.d365department, '-','9999-1-Proj0000')  as OFFSETACCOUNTDISPLAYVALUE,
+concat(m1.d365mainaccount, '-', m2.d365department, '-','1-9999--') as DefaultDimensionDisplayValue,
+concat(m1.d365mainaccount, '-', m2.d365department, '-','1-9999--')  as OFFSETACCOUNTDISPLAYVALUE,
  'General' as PostingProfile,
- '00001' as Approvedby,
+ '000223' as Approvedby,
  1 as Approved
 --bring them over with today's date, just try to use their voucher numbers, currency USD
 from  gss.dbo.pm20000 p
@@ -95,19 +101,25 @@ on v.OurAccountNumber = p.VENDORID
 and dataareaid = 'GTS'
 join gss.dbo.PM10100 pm
 on pm.VCHRNMBR = p.VCHRNMBR
+and pm.disttype = 2 --this filters for only the payables type and removes the expenses
 join gss.dbo.gl00100 g
 on pm.DSTINDX = g.ACTINDX
 join D365Migration.dbo.mainaccountmapping m1
 on m1.gpmainaccount = Trim(G.ACTNUMBR_1)
 and m1.dataareaid = 'GTS'
 join d365migration.dbo.departmentmapping m2
-	on m2.gpdepartment =  trim(G.ACTNUMBR_2)
+        on m2.gpdepartment =
+        (case
+	        when g.ACTNUMBR_3 != '00'
+                then concat(Trim(G.ACTNUMBR_2),Trim(G.ACTNUMBR_3))
+	    else Trim(G.ACTNUMBR_2)
+        end) 
 
 union
 select 
 'blue',
 (select  journalbatchnumber from openAPHeaders where trim(substring(description, 19, len(description)-1)) = p.BACHNUMB and dataareaid = 'blue') as JournalBatchNumber,
-row_number() over ( partition by BACHNUMB order by bachnumb ) as LineNumber,
+dense_rank() over (partition by BACHNUMB order by DOCNUMBR)  as LineNumber,
 pm.CRDTAMNT,
 pm.DEBITAMT,
 p.DOCNUMBR as INVOICE,
@@ -118,10 +130,10 @@ v.vendoraccountnumber as accountdisplayvalue,
 'vend' as AccountType,
 p.PYMTRMID as TermsOfPayment,
 'USD' as Currency,
-concat(m1.d365mainaccount, '-', m2.d365department, '-','9999-1-Proj0000') as DefaultDimensionDisplayValue,
-concat(m1.d365mainaccount, '-', m2.d365department, '-','9999-1-Proj0000')  as OFFSETACCOUNTDISPLAYVALUE,
+concat(m1.d365mainaccount, '-', m2.d365department, '-','1-9999--') as DefaultDimensionDisplayValue,
+concat(m1.d365mainaccount, '-', m2.d365department, '-','1-9999--')  as OFFSETACCOUNTDISPLAYVALUE,
  'General' as PostingProfile,
- '00001' as Approvedby,
+ '000223' as Approvedby,
  1 as Approved
 --bring them over with today's date, just try to use their voucher numbers, currency USD
 from  blue.dbo.pm20000 p
@@ -130,13 +142,19 @@ on v.OurAccountNumber = p.VENDORID
 and dataareaid = 'blue'
 join blue.dbo.PM10100 pm
 on pm.VCHRNMBR = p.VCHRNMBR
+and pm.disttype = 2 --this filters for only the payables type and removes the expenses
 join blue.dbo.gl00100 g
 on pm.DSTINDX = g.ACTINDX
 join D365Migration.dbo.mainaccountmapping m1
 on m1.gpmainaccount = Trim(G.ACTNUMBR_1)
 and m1.dataareaid = 'blue'
 join d365migration.dbo.departmentmapping m2
-	on m2.gpdepartment =  trim(G.ACTNUMBR_2)
+        on m2.gpdepartment =
+        (case
+	        when g.ACTNUMBR_3 != '00'
+                then concat(Trim(G.ACTNUMBR_2),Trim(G.ACTNUMBR_3))
+	    else Trim(G.ACTNUMBR_2)
+        end) 
 
 )
 

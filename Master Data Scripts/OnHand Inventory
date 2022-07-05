@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[OnHandInventory_GPToD365DB]    Script Date: 3/31/2022 9:27:09 AM ******/
+/****** Object:  StoredProcedure [dbo].[OnHandInventory_GPToD365DB]    Script Date: 6/10/2022 2:27:42 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -45,8 +45,8 @@ select
 	--,gl5.ACTNUMST --DefaultledgerDimensionDisplayValue
 	,case
 		when i2.LOCNCODE like 'new%'
-			then'-160000-9999-1-Proj0000' 
-		else Concat('-',trim(i2.LOCNCODE), '00','-9999-1-Proj0000') 
+			then'-160000-1-9999-Proj999999-' 
+		else Concat('-',trim(i2.LOCNCODE), '00','-1-9999-Proj999999-') 
 	end as DefaultledgerDimensionDisplayValue
 	,Case
 		when USCATVLS_2 = 'Halloween'

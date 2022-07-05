@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[Vendors_GPToD365DB]    Script Date: 5/10/2022 1:45:55 PM ******/
+/****** Object:  StoredProcedure [dbo].[Vendors_GPToD365DB]    Script Date: 7/5/2022 4:18:20 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -30,6 +30,7 @@ INSERT INTO [dbo].[Vendors]
            ,[OnHoldStatus]
            ,[TAX1099IDTYPE]
            ,[IsReportingTax1099]
+		   ,IsW9Received
            ,[CreditRating]
 		    ,[DEFAULTPROCUMENTWAREHOUSEID]
 		    ,[DEFAULTPURCHASESITEID]
@@ -66,29 +67,29 @@ Concat('Party-', 'GICT-',VENDORID) as VendorPartyNumber,
 vendname as vendorsearchname,
 vendname as vendororganizationname,
 	ISNULL((case 
-		when ACNMVNDR = 'New goods'
+		when trim(ACNMVNDR) = 'New goods'
 			then '100'
-		when ACNMVNDR = 'Rent'
+		when trim(ACNMVNDR) = 'Rent'
 			then '200'
-		when ACNMVNDR = 'Standard'
+		when trim(ACNMVNDR) = 'Standard'
 			then '300'
-		when ACNMVNDR = 'Utility'
+		when trim(ACNMVNDR) = 'Utility'
 			then '400'
-		when ACNMVNDR = 'Priority'
+		when trim(ACNMVNDR) = 'Priority'
 			then '500'
-		when ACNMVNDR = 'Carrier'
+		when trim(ACNMVNDR) = 'Carrier'
 			then '600'
-		when ACNMVNDR = 'Software'
+		when trim(ACNMVNDR) = 'Software'
 			then '700'
-		when ACNMVNDR = 'Client Assist'
+		when trim(ACNMVNDR) = 'Client Assist'
 			then '800'
-		when ACNMVNDR = 'CONTRACTOR'
+		when trim(ACNMVNDR) = 'CONTRACTOR'
 			then '825'
-		when ACNMVNDR = 'GCTA Instructor'
+		when trim(ACNMVNDR) = 'GCTA Instructor'
 			then '850'
-		when ACNMVNDR = 'Garnishments'
+		when trim(ACNMVNDR) = 'Garnishments'
 			then 900
-		else '100'
+		else '300'
 	end),'') as VendorGroupID,
 'USD' as CurrencyCode,
 --PYMTRMID as DEFAULTPAYMENTTERMSNAME,
@@ -100,13 +101,9 @@ vendname as vendororganizationname,
 --	else vt.COMMENT2
 --end as DEFAULTPAYMENTTERMSNAME,
 vt.comment2,
-case
-	when vt.comment1 like 'man%'
-		then 'Manual'
-	when vt.COMMENT1 = 'rft'
-		then 'eft'
-	when vt.comment1 like 'client%'
-		then 'CltAssist'
+case when
+	vt.COMMENT1 like 'manual%'
+		then 'check'
 	else vt.comment1
 end as DEFAULTVENDORPAYMENTMETHODNAME,
 hold as OnHoldStatus,
@@ -116,19 +113,20 @@ case
 		then 'Yes'
 	else 'No'
 end as IsReportingTax1099,
+'Yes' as IsW9Received,
 CREDTLMT as CreditRating,
 	case 
-		when ACNMVNDR = 'New goods'
+		when trim(ACNMVNDR) = 'New goods'
 			then '100'
 		else ''
 	end as DEFAULTPROCUMENTWAREHOUSEID,
 	case 
-		when ACNMVNDR = 'New goods'
+		when trim(ACNMVNDR) = 'New goods'
 			then '10'
 		else ''
 	end as DEFAULTPURCHASESITEID,
 	case 
-		when ACNMVNDR = 'New goods'
+		when trim(ACNMVNDR) = 'New goods'
 			then 1
 		else ''
 	end as VENDORINVOICELINEMATCHINGPOLICY
@@ -138,8 +136,8 @@ CREDTLMT as CreditRating,
 ,'' AS BANKACCOUNTID , vt.vendorId as YourAccountNumber
 ,case
 	when ACNMVNDR = 'New goods'
-		then '-160000-9999-1-Proj0000'
-	else '--9999-1-Proj0000'
+		then '-160000-1-9999--Proj999999'
+	else '--1-9999--Proj999999'
 end as DEFAULTLEDGERDIMENSIONDISPLAYVALUE,
 case
 	when t.TEN99BOXTEXT = '1' then 'MISC-01'
@@ -196,29 +194,29 @@ Concat('Party-', 'BLUE-',VENDORID) as VendorPartyNumber,
 vendname as vendorsearchname,
 vendname as vendororganizationname,
 	ISNULL((case 
-		when ACNMVNDR = 'New goods'
+		when trim(ACNMVNDR) = 'New goods'
 			then '100'
-		when ACNMVNDR = 'Rent'
+		when trim(ACNMVNDR) = 'Rent'
 			then '200'
-		when ACNMVNDR = 'Standard'
+		when trim(ACNMVNDR) = 'Standard'
 			then '300'
-		when ACNMVNDR = 'Utility'
+		when trim(ACNMVNDR) = 'Utility'
 			then '400'
-		when ACNMVNDR = 'Priority'
+		when trim(ACNMVNDR) = 'Priority'
 			then '500'
-		when ACNMVNDR = 'Carrier'
+		when trim(ACNMVNDR) = 'Carrier'
 			then '600'
-		when ACNMVNDR = 'Software'
+		when trim(ACNMVNDR) = 'Software'
 			then '700'
-		when ACNMVNDR = 'Client Assist'
+		when trim(ACNMVNDR) = 'Client Assist'
 			then '800'
-		when ACNMVNDR = 'CONTRACTOR'
+		when trim(ACNMVNDR) = 'CONTRACTOR'
 			then '825'
-		when ACNMVNDR = 'GCTA Instructor'
+		when trim(ACNMVNDR) = 'GCTA Instructor'
 			then '850'
-		when ACNMVNDR = 'Garnishments'
+		when trim(ACNMVNDR) = 'Garnishments'
 			then 900
-		else '100'
+		else '300'
 	end),'') as VendorGroupID,
 
 'USD' as CurrencyCode,
@@ -231,13 +229,9 @@ vendname as vendororganizationname,
 --	else vt.COMMENT2
 --end as DEFAULTPAYMENTTERMSNAME,
 vt.comment2,
-case
-	when vt.comment1 like 'man%'
-		then 'Manual'
-	when vt.COMMENT1 = 'rft'
-		then 'eft'
-	when vt.comment1 like 'client%'
-		then 'CltAssist'
+case when
+	vt.COMMENT1 like 'manual%'
+		then 'check'
 	else vt.comment1
 end as DEFAULTVENDORPAYMENTMETHODNAME,
 hold as OnHoldStatus,
@@ -247,19 +241,20 @@ case
 		then 'Yes'
 	else 'No'
 end as IsReportingTax1099,
+'Yes' as IsW9Received,
 CREDTLMT as CreditRating,
 	case 
-		when ACNMVNDR = 'New goods'
+		when trim(ACNMVNDR) = 'New goods'
 			then '100'
 		else ''
 	end as DEFAULTPROCUMENTWAREHOUSEID,
 	case 
-		when ACNMVNDR = 'New goods'
+		when trim(ACNMVNDR) = 'New goods'
 			then '10'
 		else ''
 	end as DEFAULTPURCHASESITEID,
 	case 
-		when ACNMVNDR = 'New goods'
+		when trim(ACNMVNDR) = 'New goods'
 			then 1
 		else ''
 	end as VENDORINVOICELINEMATCHINGPOLICY
@@ -268,11 +263,7 @@ CREDTLMT as CreditRating,
 ,TXIDNMBR AS TAX1099FEDERALTAXID
 
 ,'' AS BANKACCOUNTID , vt.vendorId as YourAccountNumber 
-,case
-	when ACNMVNDR = 'New goods'
-		then '-160000-9999-1-Proj0000'
-	else '--9999-1-Proj0000'
-end as DEFAULTLEDGERDIMENSIONDISPLAYVALUE
+,'--1-9999--' DEFAULTLEDGERDIMENSIONDISPLAYVALUE
 , 
 case
 	when t.TEN99BOXTEXT = '1' then 'MISC-01'
@@ -329,29 +320,29 @@ Concat('Party-', 'EXCL-',VENDORID) as VendorPartyNumber,
 vendname as vendorsearchname,
 vendname as vendororganizationname,
 	ISNULL((case 
-		when ACNMVNDR = 'New goods'
+		when trim(ACNMVNDR) = 'New goods'
 			then '100'
-		when ACNMVNDR = 'Rent'
+		when trim(ACNMVNDR) = 'Rent'
 			then '200'
-		when ACNMVNDR = 'Standard'
+		when trim(ACNMVNDR) = 'Standard'
 			then '300'
-		when ACNMVNDR = 'Utility'
+		when trim(ACNMVNDR) = 'Utility'
 			then '400'
-		when ACNMVNDR = 'Priority'
+		when trim(ACNMVNDR) = 'Priority'
 			then '500'
-		when ACNMVNDR = 'Carrier'
+		when trim(ACNMVNDR) = 'Carrier'
 			then '600'
-		when ACNMVNDR = 'Software'
+		when trim(ACNMVNDR) = 'Software'
 			then '700'
-		when ACNMVNDR = 'Client Assist'
+		when trim(ACNMVNDR) = 'Client Assist'
 			then '800'
-		when ACNMVNDR = 'CONTRACTOR'
+		when trim(ACNMVNDR) = 'CONTRACTOR'
 			then '825'
-		when ACNMVNDR = 'GCTA Instructor'
+		when trim(ACNMVNDR) = 'GCTA Instructor'
 			then '850'
-		when ACNMVNDR = 'Garnishments'
+		when trim(ACNMVNDR) = 'Garnishments'
 			then 900
-		else '100'
+		else '300'
 	end),'') as VendorGroupID,
 
 'USD' as CurrencyCode,
@@ -364,13 +355,9 @@ vendname as vendororganizationname,
 --	else vt.COMMENT2
 --end as DEFAULTPAYMENTTERMSNAME,
 vt.comment2,
-case
-	when vt.comment1 like 'man%'
-		then 'Manual'
-	when vt.COMMENT1 = 'rft'
-		then 'eft'
-	when vt.comment1 like 'client%'
-		then 'CltAssist'
+case when
+	vt.COMMENT1 like 'manual%'
+		then 'check'
 	else vt.comment1
 end as DEFAULTVENDORPAYMENTMETHODNAME,
 hold as OnHoldStatus,
@@ -380,14 +367,15 @@ case
 		then 'Yes'
 	else 'No'
 end as IsReportingTax1099,
+'Yes' as IsW9Received,
 CREDTLMT as CreditRating ,
 	case 
-		when ACNMVNDR = 'New goods'
+		when trim(ACNMVNDR) = 'New goods'
 			then '100'
 		else ''
 	end as DEFAULTPROCUMENTWAREHOUSEID,
 	case 
-		when ACNMVNDR = 'New goods'
+		when trim(ACNMVNDR) = 'New goods'
 			then '10'
 		else ''
 	end as DEFAULTPURCHASESITEID,
@@ -401,11 +389,7 @@ CREDTLMT as CreditRating ,
 ,TXIDNMBR AS TAX1099FEDERALTAXID
 
 ,'' AS BANKACCOUNTID , vt.vendorId as YourAccountNumber
-,case
-	when ACNMVNDR = 'New goods'
-		then '-160000-9999-1-Proj0000'
-	else '--9999-1-Proj0000'
-end as DEFAULTLEDGERDIMENSIONDISPLAYVALUE,
+,'--1-9999--' DEFAULTLEDGERDIMENSIONDISPLAYVALUE,
 case
 	when t.TEN99BOXTEXT = '1' then 'MISC-01'
 	when t.TEN99BOXTEXT = '2' then 'MISC-02'
@@ -497,48 +481,36 @@ vendname as vendororganizationname,
 	--	else '700'
 	--end as VendorGroupID,
 	ISNULL((case 
-		when ACNMVNDR = 'New goods'
+		when trim(ACNMVNDR) = 'New goods'
 			then '100'
-		when ACNMVNDR = 'Rent'
+		when trim(ACNMVNDR) = 'Rent'
 			then '200'
-		when ACNMVNDR = 'Standard'
+		when trim(ACNMVNDR) = 'Standard'
 			then '300'
-		when ACNMVNDR = 'Utility'
+		when trim(ACNMVNDR) = 'Utility'
 			then '400'
-		when ACNMVNDR = 'Priority'
+		when trim(ACNMVNDR) = 'Priority'
 			then '500'
-		when ACNMVNDR = 'Carrier'
+		when trim(ACNMVNDR) = 'Carrier'
 			then '600'
-		when ACNMVNDR = 'Software'
+		when trim(ACNMVNDR) = 'Software'
 			then '700'
-		when ACNMVNDR = 'Client Assist'
+		when trim(ACNMVNDR) = 'Client Assist'
 			then '800'
-		when ACNMVNDR = 'CONTRACTOR'
+		when trim(ACNMVNDR) = 'CONTRACTOR'
 			then '825'
-		when ACNMVNDR = 'GCTA Instructor'
+		when trim(ACNMVNDR) = 'GCTA Instructor'
 			then '850'
-		when ACNMVNDR = 'Garnishments'
+		when trim(ACNMVNDR) = 'Garnishments'
 			then 900
-		else '100'
+		else '300'
 	end),'') as VendorGroupID,
 
 'USD' as CurrencyCode,
---PYMTRMID as DEFAULTPAYMENTTERMSNAME,
---case
---	when vt.COMMENT2 like 'du%'
---		then 'Due Upon Receipt'
---	when vt.comment2 like 'net%'
---		then 'Net 15'
---	else vt.COMMENT2
---end as DEFAULTPAYMENTTERMSNAME,
 vt.comment2,
-case
-	when vt.comment1 like 'man%'
-		then 'Manual'
-	when vt.COMMENT1 = 'rft'
-		then 'eft'
-	when vt.comment1 like 'client%'
-		then 'CltAssist'
+case when
+	vt.COMMENT1 like 'manual%'
+		then 'check'
 	else vt.comment1
 end as DEFAULTVENDORPAYMENTMETHODNAME,
 hold as OnHoldStatus,
@@ -548,19 +520,20 @@ case
 		then 'Yes'
 	else 'No'
 end as IsReportingTax1099,
+'Yes' as IsW9Received,
 CREDTLMT as CreditRating,
 	case 
-		when ACNMVNDR = 'New goods'
+		when trim(ACNMVNDR) = 'New goods'
 			then '100'
 		else ''
 	end as DEFAULTPROCUMENTWAREHOUSEID,
 	case 
-		when ACNMVNDR = 'New goods'
+		when trim(ACNMVNDR) = 'New goods'
 			then '10'
 		else ''
 	end as DEFAULTPURCHASESITEID,
 	case 
-		when ACNMVNDR = 'New goods'
+		when trim(ACNMVNDR) = 'New goods'
 			then 1
 		else ''
 	end as VENDORINVOICELINEMATCHINGPOLICY
@@ -569,11 +542,7 @@ CREDTLMT as CreditRating,
 ,TXIDNMBR AS TAX1099FEDERALTAXID
 
 ,'' AS BANKACCOUNTID , vt.vendorId as YourAccountNumber
-,case
-	when ACNMVNDR = 'New goods'
-		then '-160000-9999-1-Proj0000'
-	else '--9999-1-Proj0000'
-end as DEFAULTLEDGERDIMENSIONDISPLAYVALUE,
+,'--1-9999--'  DEFAULTLEDGERDIMENSIONDISPLAYVALUE,
 case
 	when t.TEN99BOXTEXT = '1' then 'MISC-01'
 	when t.TEN99BOXTEXT = '2' then 'MISC-02'

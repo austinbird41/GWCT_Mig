@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[OpenARLines_GPToD365DB]    Script Date: 5/10/2022 1:39:26 PM ******/
+/****** Object:  StoredProcedure [dbo].[OpenARLines_GPToD365DB]    Script Date: 7/5/2022 2:19:52 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -23,39 +23,41 @@ INSERT INTO [dbo].[OpenARLines]
            ,[OffsetAccountDisplayValue]
 		   ,DEFAULTDIMENSIONDISPLAYVALUE,
 		   approved,
-		   InvoiceDate, DocumentDate)
+		   InvoiceDate, DocumentDate,
+		   TransactionText, PaymReference)
 (
 select 
 'GICT',
 (select  journalbatchnumber from openARHeaders where trim(substring(description, 19, len(description)-1)) = p.BACHNUMB and dataareaid = 'gict') as JournalBatchNumber,
-row_number() over ( partition by BACHNUMB order by bachnumb ) as LineNumber,
+dense_rank() over (partition by BACHNUMB order by DOCNUMBR)  as LineNumber,
 case
 	when RMDTYPAL IN (1,3)
-		then p.ORTRXAMT
+		then p.CURTRXAM
 	else 0
 end as debitamount,
 case
 	when RMDTYPAL IN (7,9)
-		then p.ORTRXAMT
+		then p.CURTRXAM
 	else 0
 end as creditamount,
 p.DOCNUMBR as INVOICEID,
 p.DUEDATE, 
 --p. as voucher,
-c.CustomerAccount as Customeraccountdisplayvalue,
+trim(p.CUSTNMBR) as Customeraccountdisplayvalue,
 'Customer' as AccountType,
 p.PYMTRMID as TermsOfPayment,
 'USD' as Currency,
- '12110-000000-9999-1-Proj0000' as OFFSETACCOUNTDISPLAYVALUE,
- '12110-000000-9999-1-Proj0000' as DEFAULTDIMENSIONDISPLAYVALUE,
+ '12110-000000-1-9999--Proj999999' as OFFSETACCOUNTDISPLAYVALUE,
+ '12110-000000-1-9999--Proj999999' as DEFAULTDIMENSIONDISPLAYVALUE,
  1
  ,p.DOCDATE
   ,p.DOCDATE
+  ,''
+  ,p.CHEKNMBR
 from GWC.dbo.RM20101 p
-join D365Migration.dbo.customers c
-on c.SalesAccountNumber = p.CUSTNMBR
-and c.DataAreaId = 'gict'
-
+where p.CURTRXAM != 0
+and (trim(p.CUSTNMBR) in (select trim(c.SalesAccountNumber) from D365Migration.dbo.customers c where trim(c.SalesAccountNumber) = trim(p.CUSTNMBR) and c.DataAreaId = 'gict') or 
+trim(p.CUSTNMBR) in ('A149', 'C011', 'c100', 'c102', 'c103', 'c141', 'c142', 'd002', 'g482', 'g483', 'p055', 't112', 't114', 't132', 't133', 't143', 't115'))
 
 
 /*
@@ -70,33 +72,35 @@ union
 select 
 'Blue',
 (select  journalbatchnumber from openARHeaders where trim(substring(description, 19, len(description)-1)) = p.BACHNUMB and dataareaid = 'blue') as JournalBatchNumber,
-row_number() over (order by DOCNUMBR)  as LineNumber,
+dense_rank() over (partition by BACHNUMB order by DOCNUMBR)  as LineNumber,
 case
 	when RMDTYPAL IN (1,3)
-		then p.ORTRXAMT
+		then p.CURTRXAM
 	else 0
 end as debitamount,
 case
 	when RMDTYPAL IN (7,9)
-		then p.ORTRXAMT
+		then p.CURTRXAM
 	else 0
 end as creditamount,
 p.DOCNUMBR as INVOICEID,
 p.DUEDATE, 
 --p. as voucher,
-c.CustomerAccount as Customeraccountdisplayvalue,
+trim(p.CUSTNMBR) as Customeraccountdisplayvalue,
 'Customer' as AccountType,
 p.PYMTRMID as TermsOfPayment,
 'USD' as Currency,
- '12110-000000-9999-1-Proj0000' as OFFSETACCOUNTDISPLAYVALUE,
- '12110-000000-9999-1-Proj0000' as DEFAULTDIMENSIONDISPLAYVALUE,
+ '12110-000000-1-9999--Proj999999' as OFFSETACCOUNTDISPLAYVALUE,
+ '12110-000000-1-9999--Proj999999' as DEFAULTDIMENSIONDISPLAYVALUE,
  1
-   ,p.DOCDATE
+ ,p.DOCDATE
   ,p.DOCDATE
+  ,''
+  ,p.CHEKNMBR
 from blue.dbo.RM20101 p
-join D365Migration.dbo.customers c
-on c.SalesAccountNumber = p.CUSTNMBR
-and c.DataAreaId = 'blue'
+where p.CURTRXAM != 0
+and (trim(p.CUSTNMBR) in (select trim(c.SalesAccountNumber) from D365Migration.dbo.customers c where trim(c.SalesAccountNumber) = trim(p.CUSTNMBR) and c.DataAreaId = 'blue') or 
+trim(p.CUSTNMBR) in ('A149', 'C011', 'c100', 'c102', 'c103', 'c141', 'c142', 'd002', 'g482', 'g483', 'p055', 't112', 't114', 't132', 't133', 't143', 't115'))
 
 
 
@@ -104,32 +108,34 @@ union
 select 
 'GTS',
 (select  journalbatchnumber from openARHeaders where trim(substring(description, 19, len(description)-1)) = p.BACHNUMB and dataareaid = 'gts') as JournalBatchNumber,
-row_number() over (order by DOCNUMBR)  as LineNumber,
+dense_rank() over (partition by BACHNUMB order by DOCNUMBR)  as LineNumber,
 case
 	when RMDTYPAL IN (1,3)
-		then p.ORTRXAMT
+		then p.CURTRXAM
 	else 0
 end as debitamount,
 case
 	when RMDTYPAL IN (7,9)
-		then p.ORTRXAMT
+		then p.CURTRXAM
 	else 0
 end as creditamount,
 p.DOCNUMBR as INVOICEID,
 p.DUEDATE, 
 --p. as voucher,
-c.CustomerAccount as Customeraccountdisplayvalue,
+trim(p.CUSTNMBR) as Customeraccountdisplayvalue,
 'Customer' as AccountType,
 p.PYMTRMID as TermsOfPayment,
 'USD' as Currency,
- '12110-000000-9999-1-Proj0000' as OFFSETACCOUNTDISPLAYVALUE,
- '12110-000000-9999-1-Proj0000' as DEFAULTDIMENSIONDISPLAYVALUE,
+ '12110-000000-1-9999--Proj999999' as OFFSETACCOUNTDISPLAYVALUE,
+ '12110-000000-1-9999--Proj999999' as DEFAULTDIMENSIONDISPLAYVALUE,
  1
+ ,p.DOCDATE
   ,p.DOCDATE
-  ,p.DOCDATE
+  ,''
+  ,p.CHEKNMBR
 from gss.dbo.RM20101 p
-join D365Migration.dbo.customers c
-on c.SalesAccountNumber = p.CUSTNMBR
-and c.DataAreaId = 'gts'
+where p.CURTRXAM != 0
+and (trim(p.CUSTNMBR) in (select trim(c.SalesAccountNumber) from D365Migration.dbo.customers c where trim(c.SalesAccountNumber) = trim(p.CUSTNMBR) and c.DataAreaId = 'gts') or 
+trim(p.CUSTNMBR) in ('A149', 'C011', 'c100', 'c102', 'c103', 'c141', 'c142', 'd002', 'g482', 'g483', 'p055', 't112', 't114', 't132', 't133', 't143', 't115'))
 
 )

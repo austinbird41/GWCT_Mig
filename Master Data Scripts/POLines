@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[PurchaseOrderLines_GPToD365DB]    Script Date: 5/11/2022 3:45:03 PM ******/
+/****** Object:  StoredProcedure [dbo].[PurchaseOrderLines_GPToD365DB]    Script Date: 6/30/2022 3:30:30 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -37,34 +37,34 @@ case
 		else ''
 end as ItemNumber,
 case
-		when poline.ITEMNMBR not in (select ItemNumber from ReleasedProducts) 
+		when trim(poline.ITEMNMBR) not in (select ItemNumber from ReleasedProducts) 
 			then ''
 		when poLine.LOCNCODE like 'new%' and poline.ITEMNMBR in (select ItemNumber from ReleasedProducts)
 			then '100'
 
-
+		else ''
 end as ReceivingWarehouseId,
 case
 	when poLine.UOFM = 'each'
 		then 'ea'
 	else poLine.UOFM
 end as PurchaseUnitSymbol,
-poline.unitcost   as PURCHASEPRICE,
+poline.unitcost   as PURCHASEPRICE
 --poline.FREEONBOARD, --not sure what this is
 --poline.Change_Order_Flag, --needed?
-concat(poline.ADDRESS1,poline.address2, poline.address3) as DeliveryAddressStreet,
-poline.city as DeliveryAddressCity,
-poline.STATE as DeliveryAddressStateID,
-poline.ZIPCODE as DeliveryAddressZipCode,
-poline.CCode as DeliveryAddressCountryRegionIsoCode,
-case
-	when poline.country = ''
-		then 'USA'
-	else poline.country
-end as DeliveryAddressCountryRegionId,
-'Goodwill Industries Central Texas' as DeliveryAddressDescription,
+,concat(trim(poheader.address1),' ', trim(poheader.address2),' ', trim(poheader.address3)) AS DELIVERYADDRESSSTREET
+,poheader.city DELIVERYADDRESSCITY
+,poheader.state as DELIVERYADDRESSSTATEID
+,poheader.ZIPCODE as DELIVERYADDRESSZIPCODE
+,case
+	when poheader.CCode = ''
+		then 'usa'
+	else poheader.CCode
+end as DELIVERYADDRESSCOUNTRYREGIONISOCODE
+,poheader.country as DELIVERYADDRESSCOUNTRYREGIONID
+,poheader.vendname as DeliveryAddressDescription,
 --Quantity fields
-poline.QTYORDER as ORDEREDPURCHASEQUANTITY
+poline.QTYUNCMTBASE as ORDEREDPURCHASEQUANTITY
 --poline.QTYCANCE, --quantity cancelled?
 --poline.QTYUNCMTBASE --quantity uncommitted in base?
 --date fields?
@@ -72,14 +72,18 @@ poline.QTYORDER as ORDEREDPURCHASEQUANTITY
 --are comments/notes needed?
 --are costing fields needed?
 , case
-		when poline.ITEMNMBR not in (select ItemNumber
+		when trim(poline.ITEMNMBR) not in (select ItemNumber
 									from ReleasedProducts)
 			then 'Migration-PO'
 		else ''
 	end as PROCUREMENTPRODUCTCATEGORYNAME
-,poline.ITEMDESC as LineDescription
+,poline.itemnmbr as LineDescription
 ,poHeader.CONTENDDTE as GWCTCANCELDATE
-,concat('-', d.d365department,'-9999-1-Proj0000') as DEFAULTLEDGERDIMENSIONDISPLAYVALUE
+,case
+	when trim(poline.locncode) = 'newgoods'
+		then '-160000-1-9999--Proj999999' 
+	else concat('-', d.d365department,'-1-9999--Proj999999') 
+end as DEFAULTLEDGERDIMENSIONDISPLAYVALUE
 from gwc.dbo.POP10110 poLine 
 join gwc.dbo.pop10100 poHeader
 on poLine.PONUMBER = poHeader.ponumber
@@ -87,6 +91,8 @@ left join D365Migration.dbo.departmentmapping d
  on d.GPDepartment = trim (poline.locncode)
 where poHeader.POSTATUS in  (1,2,3)
 and poheader.VENDORID != ''
+and (poline.QTYUNCMTBASE  >0)
+
 
 
 Union
@@ -104,32 +110,33 @@ end as ItemNumber,
 --poLine.VNDITNUM, --needed?
 --poLine.NONINVEN, --noninventory, needed?
 case
-		when poline.ITEMNMBR not in (select ItemNumber from ReleasedProducts) 
+		when trim(poline.ITEMNMBR) not in (select ItemNumber from ReleasedProducts) 
 			then ''
 		when poLine.LOCNCODE like 'new%' and poline.ITEMNMBR in (select ItemNumber from ReleasedProducts)
 			then '100'
+		else ''
 end as ReceivingWarehouseId,
 case
 	when poLine.UOFM = 'each'
 		then 'ea'
 	else poLine.UOFM
 end as PurchaseUnitSymbol,
-poline.unitcost   as PURCHASEPRICE,
+poline.unitcost   as PURCHASEPRICE
 --poline.FREEONBOARD, --not sure what this is
 --poline.Change_Order_Flag, --needed?
-concat(poline.ADDRESS1,poline.address2, poline.address3) as DeliveryAddressStreet,
-poline.city as DeliveryAddressCity,
-poline.STATE as DeliveryAddressStateID,
-poline.ZIPCODE as DeliveryAddressZipCode,
-poline.CCode as DeliveryAddressCountryRegionIsoCode,
-case
-	when poline.country = ''
-		then 'USA'
-	else poline.country
-end as DeliveryAddressCountryRegionId,
-'Goodwill Industries Central Texas' as DeliveryAddressDescription,
+,concat(trim(poheader.address1),' ', trim(poheader.address2),' ', trim(poheader.address3)) AS DELIVERYADDRESSSTREET
+,poheader.city DELIVERYADDRESSCITY
+,poheader.state as DELIVERYADDRESSSTATEID
+,poheader.ZIPCODE as DELIVERYADDRESSZIPCODE
+,case
+	when poheader.CCode = ''
+		then 'usa'
+	else poheader.CCode
+end as DELIVERYADDRESSCOUNTRYREGIONISOCODE
+,poheader.country as DELIVERYADDRESSCOUNTRYREGIONID
+,poheader.vendname as DeliveryAddressDescription,
 --Quantity fields
-poline.QTYORDER as ORDEREDPURCHASEQUANTITY
+poline.QTYUNCMTBASE as ORDEREDPURCHASEQUANTITY
 --poline.QTYCANCE, --quantity cancelled?
 --poline.QTYUNCMTBASE --quantity uncommitted in base?
 --date fields?
@@ -137,14 +144,18 @@ poline.QTYORDER as ORDEREDPURCHASEQUANTITY
 --are comments/notes needed?
 --are costing fields needed?
 , case
-		when poline.ITEMNMBR not in (select ItemNumber
+		when trim(poline.ITEMNMBR) not in (select ItemNumber
 									from ReleasedProducts)
 			then 'Migration-PO'
 		else ''
 	end as PROCUREMENTPRODUCTCATEGORYNAME
-	,poline.ITEMDESC as LineDescription
+	,poline.itemnmbr as LineDescription
 ,poHeader.CONTENDDTE as GWCTCANCELDATE
-,concat('-', d.d365department,'-9999-1-Proj0000') as DEFAULTLEDGERDIMENSIONDISPLAYVALUE
+,case
+	when trim(poline.locncode) = 'newgoods'
+		then '-160000-1-9999--' 
+	else concat('-', d.d365department,'-1-9999--') 
+end as DEFAULTLEDGERDIMENSIONDISPLAYVALUE
 from gss.dbo.POP10110 poLine
 join gss.dbo.pop10100 poHeader
 on poLine.PONUMBER = poHeader.ponumber
@@ -152,6 +163,7 @@ left join D365Migration.dbo.departmentmapping d
  on d.GPDepartment = trim (poline.locncode)
 where poHeader.POSTATUS in  (1,2,3)
 and poheader.VENDORID != ''
+and (poline.QTYUNCMTBASE  >0)
 
 Union
 
@@ -165,47 +177,46 @@ case
 		else ''
 end as ItemNumber,
 case
-		when poline.ITEMNMBR not in (select ItemNumber from ReleasedProducts) 
+		when trim(poline.ITEMNMBR) not in (select ItemNumber from ReleasedProducts) 
 			then ''
 		when poLine.LOCNCODE like 'new%' and poline.ITEMNMBR in (select ItemNumber from ReleasedProducts)
 			then '100'
+				else ''
 end as ReceivingWarehouseId,
 case
 	when poLine.UOFM = 'each'
 		then 'ea'
 	else poLine.UOFM
 end as PurchaseUnitSymbol,
-poline.unitcost   as PURCHASEPRICE,
+poline.unitcost   as PURCHASEPRICE
 --poline.FREEONBOARD, --not sure what this is
 --poline.Change_Order_Flag, --needed?
-concat(poline.ADDRESS1,poline.address2, poline.address3) as DeliveryAddressStreet,
-poline.city as DeliveryAddressCity,
-poline.STATE as DeliveryAddressStateID,
-poline.ZIPCODE as DeliveryAddressZipCode,
-poline.CCode as DeliveryAddressCountryRegionIsoCode,
-case
-	when poline.country = ''
-		then 'USA'
-	else poline.country
-end as DeliveryAddressCountryRegionId,
-'Goodwill Industries Central Texas' as DeliveryAddressDescription,
+,concat(trim(poheader.address1),' ', trim(poheader.address2),' ', trim(poheader.address3)) AS DELIVERYADDRESSSTREET
+,poheader.city DELIVERYADDRESSCITY
+,poheader.state as DELIVERYADDRESSSTATEID
+,poheader.ZIPCODE as DELIVERYADDRESSZIPCODE
+,case
+	when poheader.CCode = ''
+		then 'usa'
+	else poheader.CCode
+end as DELIVERYADDRESSCOUNTRYREGIONISOCODE
+,poheader.country as DELIVERYADDRESSCOUNTRYREGIONID
+,poheader.vendname as DeliveryAddressDescription,
 --Quantity fields
-poline.QTYORDER as ORDEREDPURCHASEQUANTITY
---poline.QTYCANCE, --quantity cancelled?
---poline.QTYUNCMTBASE --quantity uncommitted in base?
---date fields?
---Other questions
---are comments/notes needed?
---are costing fields needed?
+poline.QTYUNCMTBASE as ORDEREDPURCHASEQUANTITY
 , case
-		when poline.ITEMNMBR not in (select ItemNumber
+		when trim(poline.ITEMNMBR) not in (select ItemNumber
 									from ReleasedProducts)
 			then 'Migration-PO'
 		else ''
 	end as PROCUREMENTPRODUCTCATEGORYNAME
-,poline.ITEMDESC as LineDescription
+,poline.itemnmbr as LineDescription
 ,poHeader.CONTENDDTE as GWCTCANCELDATE
-,concat('-', d.d365department,'-9999-1-Proj0000') as DEFAULTLEDGERDIMENSIONDISPLAYVALUE
+,case
+	when trim(poline.locncode) = 'newgoods'
+		then '-160000-1-9999--' 
+	else concat('-', d.d365department,'-1-9999--') 
+end as DEFAULTLEDGERDIMENSIONDISPLAYVALUE
 from blue.dbo.POP10110 poLine
 join blue.dbo.pop10100 poHeader
 on poLine.PONUMBER = poHeader.ponumber
@@ -213,10 +224,11 @@ left join D365Migration.dbo.departmentmapping d
  on d.GPDepartment = trim (poline.locncode)
 where poHeader.POSTATUS in  (1,2,3)
 and poheader.VENDORID != ''
+and (poline.QTYUNCMTBASE  >0)
 
 Union
 
-select 'GWFD' as DataAreaId, 
+select 'EXCL' as DataAreaId, 
 poLine.PONUMBER as PURCHASEORDERNUMBER,
 poline.LineNumber,
 --poline.POLNESTA as PURCHASEORDERLINESTATUS,
@@ -227,32 +239,33 @@ case
 		else ''
 end as ItemNumber,
 case
-		when poline.ITEMNMBR not in (select ItemNumber from ReleasedProducts) 
+		when trim(poline.ITEMNMBR) not in (select ItemNumber from ReleasedProducts) 
 			then ''
 		when poLine.LOCNCODE like 'new%' and poline.ITEMNMBR in (select ItemNumber from ReleasedProducts)
 			then '100'
+				else ''
 end as ReceivingWarehouseId,
 case
 	when poLine.UOFM = 'each'
 		then 'ea'
 	else poLine.UOFM
 end as PurchaseUnitSymbol,
-poline.unitcost   as PURCHASEPRICE,
+poline.unitcost   as PURCHASEPRICE
 --poline.FREEONBOARD, --not sure what this is
 --poline.Change_Order_Flag, --needed?
-concat(poline.ADDRESS1,poline.address2, poline.address3) as DeliveryAddressStreet,
-poline.city as DeliveryAddressCity,
-poline.STATE as DeliveryAddressStateID,
-poline.ZIPCODE as DeliveryAddressZipCode,
-poline.CCode as DeliveryAddressCountryRegionIsoCode,
-case
-	when poline.country = ''
-		then 'USA'
-	else poline.country
-end as DeliveryAddressCountryRegionId,
-'Goodwill Industries Central Texas' as DeliveryAddressDescription,
+,concat(trim(poheader.address1),' ', trim(poheader.address2),' ', trim(poheader.address3)) AS DELIVERYADDRESSSTREET
+,poheader.city DELIVERYADDRESSCITY
+,poheader.state as DELIVERYADDRESSSTATEID
+,poheader.ZIPCODE as DELIVERYADDRESSZIPCODE
+,case
+	when poheader.CCode = ''
+		then 'usa'
+	else poheader.CCode
+end as DELIVERYADDRESSCOUNTRYREGIONISOCODE
+,poheader.country as DELIVERYADDRESSCOUNTRYREGIONID
+,poheader.vendname as DeliveryAddressDescription,
 --Quantity fields
-poline.QTYORDER as ORDEREDPURCHASEQUANTITY
+poline.QTYUNCMTBASE as ORDEREDPURCHASEQUANTITY
 --poline.QTYCANCE, --quantity cancelled?
 --poline.QTYUNCMTBASE --quantity uncommitted in base?
 --date fields?
@@ -260,14 +273,18 @@ poline.QTYORDER as ORDEREDPURCHASEQUANTITY
 --are comments/notes needed?
 --are costing fields needed?
 , case
-		when poline.ITEMNMBR not in (select ItemNumber
+		when trim(poline.ITEMNMBR) not in (select ItemNumber
 									from ReleasedProducts)
 			then 'Migration-PO'
 		else ''
 	end as PROCUREMENTPRODUCTCATEGORYNAME
-,poline.ITEMDESC as LineDescription
+,poline.itemnmbr as LineDescription
 ,poHeader.CONTENDDTE as GWCTCANCELDATE
-,concat('-', d.d365department,'-9999-1-Proj0000') as DEFAULTLEDGERDIMENSIONDISPLAYVALUE
+,case
+	when trim(poline.locncode) = 'newgoods'
+		then '-160000-1-9999--' 
+	else concat('-', d.d365department,'-1-9999--') 
+end as DEFAULTLEDGERDIMENSIONDISPLAYVALUE
 from excel.dbo.POP10110 poLine
 join excel.dbo.pop10100 poHeader
 on poLine.PONUMBER = poHeader.ponumber
@@ -275,6 +292,7 @@ left join D365Migration.dbo.departmentmapping d
  on d.GPDepartment = trim (poline.locncode)
 where poHeader.POSTATUS in  (1,2,3)
 and poheader.VENDORID != ''
+and (poline.QTYUNCMTBASE  >0)
 
 
 

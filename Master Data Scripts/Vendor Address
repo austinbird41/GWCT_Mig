@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[VendorAddress_GPToD365DB]    Script Date: 4/27/2022 11:21:32 AM ******/
+/****** Object:  StoredProcedure [dbo].[VendorAddress_GPToD365DB]    Script Date: 5/26/2022 9:16:16 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -23,7 +23,7 @@ INSERT INTO [dbo].[VendorAddress]
            ,[VendorLegalEntityId])
 select 
 'GICT' as DataAreaId,
-CAST ( (ROW_NUMBER() OVER(ORDER BY p3.vendorId ASC))+1000 AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
+CONCAT('GICTVend-',CAST ( (ROW_NUMBER() OVER(ORDER BY p3.vendorId ASC)) AS NVARCHAR(50))) AS ADDRESSLOCATIONID,
 --getdate() as AddressValidFrom, 
 trim(p2.vendoraccountnumber) as VendorAccountNumber, --VendorAccountNumber
  replace(REPLACE ( REPLACE ( CONCAT(Trim(p3.address1), ' ',Trim(p3.address2), ' ', Trim(p3.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
@@ -41,13 +41,14 @@ end AddressCountryRegionId,
  from gwc.dbo.PM00300 p3
 join d365migration.dbo.vendors p2
 on p2.ouraccountnumber = p3.vendorId
+and dataareaid = 'gict'
 where CONCAT(p3.address1,p3.address2,p3.address3) != ''
 
 union
 
 select 
 'BLUE' as DataAreaId,
-CAST ( (ROW_NUMBER() OVER(ORDER BY p3.vendorId ASC))+1000 AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
+CONCAT('BLUEVend-',CAST ( (ROW_NUMBER() OVER(ORDER BY p3.vendorId ASC)) AS NVARCHAR(50))) AS ADDRESSLOCATIONID,
 --getdate() as AddressValidFrom, 
 trim(p2.vendoraccountnumber) as VendorAccountNumber, --VendorAccountNumber
  replace(REPLACE ( REPLACE ( CONCAT(Trim(p3.address1), ' ',Trim(p3.address2), ' ', Trim(p3.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
@@ -65,6 +66,7 @@ end AddressCountryRegionId,
  from blue.dbo.PM00300 p3
 join d365migration.dbo.vendors p2
 on p2.ouraccountnumber = p3.vendorId
+and dataareaid = 'blue'
 where CONCAT(p3.address1,p3.address2,p3.address3) != ''
 
 
@@ -72,7 +74,7 @@ union
 
 select 
 'EXCL' as DataAreaId,
-CAST ( (ROW_NUMBER() OVER(ORDER BY p3.vendorId ASC))+1000 AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
+CONCAT('EXCLVend-',CAST ( (ROW_NUMBER() OVER(ORDER BY p3.vendorId ASC)) AS NVARCHAR(50))) AS ADDRESSLOCATIONID,
 --getdate() as AddressValidFrom, 
 trim(p2.vendoraccountnumber) as VendorAccountNumber, --VendorAccountNumber
  replace(REPLACE ( REPLACE ( CONCAT(Trim(p3.address1), ' ',Trim(p3.address2), ' ', Trim(p3.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
@@ -90,6 +92,7 @@ end AddressCountryRegionId,
  from excel.dbo.PM00300 p3
 join d365migration.dbo.vendors p2
 on p2.ouraccountnumber = p3.vendorId
+and dataareaid = 'excl'
 where CONCAT(p3.address1,p3.address2,p3.address3) != ''
 
 
@@ -97,7 +100,7 @@ union
 
 select 
 'GTS' as dataareaid,
-CAST ( (ROW_NUMBER() OVER(ORDER BY p3.vendorId ASC))+1000 AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
+CONCAT('GTSVend-',CAST ( (ROW_NUMBER() OVER(ORDER BY p3.vendorId ASC)) AS NVARCHAR(50))) AS ADDRESSLOCATIONID,
 --getdate() as AddressValidFrom, 
 trim(p2.vendoraccountnumber) as VendorAccountNumber, --VendorAccountNumber
  replace(REPLACE ( REPLACE ( CONCAT(Trim(p3.address1), ' ',Trim(p3.address2), ' ', Trim(p3.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
@@ -115,5 +118,6 @@ end AddressCountryRegionId,
  from gss.dbo.PM00300 p3
 join d365migration.dbo.vendors p2
 on p2.ouraccountnumber = p3.vendorId
+and dataareaid = 'gts'
 where CONCAT(p3.address1,p3.address2,p3.address3) != ''
 

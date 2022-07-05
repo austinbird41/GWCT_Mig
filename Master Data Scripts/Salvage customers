@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[SalvageCustomers_GPToD365DB]    Script Date: 4/27/2022 12:41:40 PM ******/
+/****** Object:  StoredProcedure [dbo].[SalvageCustomers_GPToD365DB]    Script Date: 6/10/2022 2:31:38 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -67,14 +67,18 @@ SELECT 'GICT' as DataAreaId,
 		end as PrimaryContactPhone
        ,Concat(Address, ' ', Address2) as addressstreet
 	  ,case
-		when state = 'on'
+		when state IN ('ont','CAN')
 			then 'CAN'
+		when state in ('KR','PK')
+			then 'PAK'
 		else 'USA' 
 	end as AddressCountryRegionId
       ,city as AddressCity
       , case
 		when state IN ('ont','CAN')
 			then 'on'
+		when state in ('KR','PK')
+			then 'PK-SD'
 		else state
 		end  as addressState
       ,zip as AddressZipCode
@@ -85,7 +89,7 @@ SELECT 'GICT' as DataAreaId,
 	 ,'en-us' as LanguageId
 	  ,date_time as CredManCustomerSince
 	  ,full_name as SalesAccountNumber
-	  ,'-146000-9999-1-Proj0000'
+	  ,'-146000-1-9999--Proj999999'
 from [posdatabase].SiriusSQL.dbo.accounts s
 where acct_name like 'salvage%'
 

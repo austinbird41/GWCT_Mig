@@ -1,12 +1,12 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[OpenARHeaders_D365ToGP]    Script Date: 3/21/2022 2:05:15 PM ******/
+/****** Object:  StoredProcedure [dbo].[OpenARHeaders_GPToD365DB]    Script Date: 6/7/2022 9:12:37 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-Create Procedure [dbo].[OpenARHeaders_GPToD365DB]
+ALTER Procedure [dbo].[OpenARHeaders_GPToD365DB]
 
 as
 
@@ -22,18 +22,57 @@ select distinct
 'GICT',
 case 
 	when len(dense_rank() over (order by p.bachnumb) + 100) = 3
-		then 'GICT-000' + Cast((dense_rank() over (order by p.bachnumb) + 100) as Nvarchar(10))
+		then 'MIGR-000' + Cast((dense_rank() over (order by p.bachnumb) + 100) as Nvarchar(10))
 	when len(dense_rank() over (order by p.bachnumb) + 100) = 4
-		then 'GICT-00' + Cast((dense_rank() over (order by p.bachnumb) + 100) as Nvarchar(10))
+		then 'MIGR-00' + Cast((dense_rank() over (order by p.bachnumb) + 100) as Nvarchar(10))
 	when len(dense_rank() over (order by p.bachnumb) + 100) = 5
-		then 'GICT-0' + Cast((dense_rank() over (order by p.bachnumb) + 100) as Nvarchar(10))
+		then 'MIGR-0' + Cast((dense_rank() over (order by p.bachnumb) + 100) as Nvarchar(10))
 	when len(dense_rank() over (order by p.bachnumb) + 100) = 6
-		then 'GICT-' + Cast((dense_rank() over (order by p.bachnumb) + 100) as Nvarchar(10))
+		then 'MIGR-' + Cast((dense_rank() over (order by p.bachnumb) + 100) as Nvarchar(10))
 	end as JournalBatchNumber,
 'CUSINV' as JournalName,
 CONCAT('Open AR Migration- ', P.BACHNUMB) as Description
 --bring them over with today's date, just try to use their voucher numbers, currency USD
 from gwc.dbo.RM20101 p
-where p.RMDTYPAL = 1
+
+
+union
+select distinct
+'Blue',
+case 
+	when len(dense_rank() over (order by p.bachnumb) + 100) = 3
+		then 'MIGR-000' + Cast((dense_rank() over (order by p.bachnumb) + 100) as Nvarchar(10))
+	when len(dense_rank() over (order by p.bachnumb) + 100) = 4
+		then 'MIGR-00' + Cast((dense_rank() over (order by p.bachnumb) + 100) as Nvarchar(10))
+	when len(dense_rank() over (order by p.bachnumb) + 100) = 5
+		then 'MIGR-0' + Cast((dense_rank() over (order by p.bachnumb) + 100) as Nvarchar(10))
+	when len(dense_rank() over (order by p.bachnumb) + 100) = 6
+		then 'MIGR-' + Cast((dense_rank() over (order by p.bachnumb) + 100) as Nvarchar(10))
+	end as JournalBatchNumber,
+'CUSINV' as JournalName,
+CONCAT('Open AR Migration- ', P.BACHNUMB) as Description
+--bring them over with today's date, just try to use their voucher numbers, currency USD
+from blue.dbo.RM20101 p
+
+
+union
+
+select distinct
+'GTS',
+case 
+	when len(dense_rank() over (order by p.bachnumb) + 100) = 3
+		then 'MIGR-000' + Cast((dense_rank() over (order by p.bachnumb) + 100) as Nvarchar(10))
+	when len(dense_rank() over (order by p.bachnumb) + 100) = 4
+		then 'MIGR-00' + Cast((dense_rank() over (order by p.bachnumb) + 100) as Nvarchar(10))
+	when len(dense_rank() over (order by p.bachnumb) + 100) = 5
+		then 'MIGR-0' + Cast((dense_rank() over (order by p.bachnumb) + 100) as Nvarchar(10))
+	when len(dense_rank() over (order by p.bachnumb) + 100) = 6
+		then 'MIGR-' + Cast((dense_rank() over (order by p.bachnumb) + 100) as Nvarchar(10))
+	end as JournalBatchNumber,
+'CUSINV' as JournalName,
+CONCAT('Open AR Migration- ', P.BACHNUMB) as Description
+--bring them over with today's date, just try to use their voucher numbers, currency USD
+from gss.dbo.RM20101 p
+
 )
 

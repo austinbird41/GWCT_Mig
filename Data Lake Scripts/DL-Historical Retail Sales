@@ -1,0 +1,53 @@
+USE [D365Migration]
+GO
+/****** Object:  StoredProcedure [dbo].[DataLake_SalesOrderHeaders_GPToD365DB]    Script Date: 6/27/2022 2:58:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+alter PRocedure [dbo].[DataLake_HistoricalRetailSalesOrder_GPToD365DB]
+
+as
+
+;with TerritoriesAndStores as
+(
+SELECT	[SALSTERR] Terr_No
+		,[SLTERDSC] Territory
+		,[ACTDESCR] Location
+		,[ACTNUMBR_2] Locn_No
+		,[ACTNUMBR_3] Territory_No
+		,[ACTIVE]
+		,[INACTIVE]
+FROM	gwc.dbo.[RM00303] left join 
+		gwc.dbo.[GL00100] on [ACTNUMBR_3] = [SALSTERR]
+where	[ACTIVE] = 1
+)
+
+
+INSERT INTO [dbo].[DATALAKE_HISTORICALRETAILSALESORDERS]
+           ([TerritoryNumber]
+           ,[RetailStore]
+           ,[RetailStoreDescription]
+           ,[Amount]
+           ,[TransactionDate])
+
+SELECT	[Terr_No]
+		,[Locn_No]	
+		,rtrim([Locn_No])+'-'+rtrim([Location]) Location
+		,-sum([Amount]) Amount
+		,[TRXDATE]
+FROM	TerritoriesAndStores tas LEFT JOIN
+		gwc.dbo.[aztec_GL_Transactions010] glt ON glt.Locn = tas.Locn_No 
+where	
+		[AC] between '400' and '599' AND[AC] != '509' AND
+		[TRXDATE] between '2021-01-01' and GETUTCDATE()
+		and tas.Location is not null
+		--and  [AC] not in ('413','415','423','424','425','509','518') --Vouched this exclusion list with Dodie Brown 5/23/12
+group by [Terr_No],[Locn_No],rtrim([Locn_No])+'-'+rtrim([Location]),[TRXDATE],amount
+
+
+
+
+Go

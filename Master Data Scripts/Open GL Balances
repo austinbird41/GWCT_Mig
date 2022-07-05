@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[OpenGLBalances_GPToD365DB]    Script Date: 4/19/2022 4:50:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[OpenGLBalances_GPToD365DB]    Script Date: 6/21/2022 8:49:49 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -23,15 +23,28 @@ INSERT INTO [dbo].[GeneralLedgerJournals]
            ,[PostingLayer]
            ,[Text]
            ,[TransDate]
+		   ,voucher, SalesTaxGroup, ItemSalesTaxGroup, SalesTaxCode
 		   )
 
 select
 'GICT'
-,'journal_1'--TODO:fix
+,'MIG-0000001'--TODO:fix
 ,row_number() over ( partition by G.ACTINDX order by G.ACTINDX)
-,concat(Trim(G.ACTNUMBR_1), '-', Trim(G.ACTNUMBR_2), '-', Trim(G.ACTNUMBR_3))--todo: Update mapping to new accounts
-,g.DEBITAMT
-,g.CRDTAMNT
+,case
+	when g.ACTNUMBR_2 in ('1219','1257','1259','3200','3201','0082','0083','0084')
+		then concat(m1.d365mainaccount, '-', '000000', '-','1-9999--Proj999999') 
+else concat(m1.d365mainaccount, '-', m2.d365department, '-','1-9999--Proj999999') 
+end
+, case
+	when g.DEBITAMT - g.CRDTAMNT > 0
+		then g.debitamt - g.crdtamnt
+	else 0
+end
+,case
+	when g.DEBITAMT - g.CRDTAMNT < 0
+		then (g.debitamt - g.crdtamnt)
+	else 0
+end
 ,'USD'
 ,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
 ,100 --Follow up on exchange rate
@@ -39,18 +52,91 @@ select
 ,'Ledger'
 ,'Current'
 ,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
-,getDate()
-from gwc.dbo.GL11110 g
+, case
+	when PERIODID = 0
+		then '01/15/2022'
+	when PERIODID = 1
+		then '01/15/2022'
+	when PERIODID = 2
+		then '02/15/2022'
+	when PERIODID = 3
+		then '03/15/2022'
+	when PERIODID = 4
+		then '04/15/2022'
+	when PERIODID = 5
+		then '05/15/2022'
+	when PERIODID = 6
+		then '06/15/2022'
+	when PERIODID = 7
+		then '07/15/2022'
+	when PERIODID = 8
+		then '08/15/2022'
+	when PERIODID = 9
+		then '09/15/2022'
+	when PERIODID = 10
+		then '10/15/2022'
+	when PERIODID = 11
+		then '11/15/2022'
+	when PERIODID = 12
+		then '12/15/2022'
+	end
+, CONCAT('Period ', Cast(g.periodID as nvarchar(10)), ' ', g.YEAR1)
+,case 
+	when m1.D365MainAccount = '21400'
+		then 'Exempt'
+	else ''
+end
+,case 
+	when m1.D365MainAccount = '21400'
+		then 'Exempt'
+	else ''
+end
+,case 
+	when m1.D365MainAccount = '21400'
+		then 'EX'
+	else ''
+end
+from zgwc2.dbo.GL11110 g
+join D365Migration.dbo.mainaccountmapping m1
+on m1.gpmainaccount =
+--when department field is one of the new accounts mapping to a main account, join here on acctnumber_2, otherwise jst join to acctnumber_1
+(case
+	when g.ACTNUMBR_2 in ('1219','1257','1259','3200','3201','0082','0083','0084')
+		then  Trim(G.ACTNUMBR_2)
+	else Trim(G.ACTNUMBR_1)
+end)
+and m1.dataareaid = 'gict'
+join d365migration.dbo.departmentmapping m2
+	on m2.gpdepartment =
+        (case
+	        when g.ACTNUMBR_3 != '00'
+                then concat(Trim(G.ACTNUMBR_2),Trim(G.ACTNUMBR_3))
+	    else Trim(G.ACTNUMBR_2)
+        end)  
+where ((g.DEBITAMT - g.CRDTAMNT) != 0)
+
 
 union
 
 select
 'GICT'
-,'journal_1'--TODO:fix
+,'MIG-0000001'--TODO:fix
 ,row_number() over ( partition by G.ACTINDX order by G.ACTINDX)
-,concat(trim(actmaster.ACTNUMBR_1), '-', trim(actmaster.ACTNUMBR_2), '-', trim(actmaster.ACTNUMBR_3))--todo: Update mapping to new accounts
-,g.DEBITAMT
-,g.CRDTAMNT
+,case
+	when g.ACTNUMBR_2 in ('1219','1257','1259','3200','3201','0082','0083','0084')
+		then concat(m1.d365mainaccount, '-', '000000', '-','1-9999--Proj999999') 
+else concat(m1.d365mainaccount, '-', m2.d365department, '-','1-9999--Proj999999') 
+end
+ ,case
+	when g.DEBITAMT - g.CRDTAMNT > 0
+		then g.debitamt - g.crdtamnt
+	else 0
+end
+,case
+	when g.DEBITAMT - g.CRDTAMNT < 0
+		then (g.debitamt - g.crdtamnt)
+	else 0
+end
 ,'USD'
 ,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
 ,100 --Follow up on exchange rate
@@ -58,22 +144,94 @@ select
 ,'Ledger'
 ,'Current'
 ,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
-,getDate()
-from gwc.dbo.GL10111 g
-join gwc.dbo.GL00100 actmaster
+, case
+	when PERIODID = 0
+		then '01/15/2021'
+	when PERIODID = 1
+		then '01/15/2021'
+	when PERIODID = 2
+		then '02/15/2021'
+	when PERIODID = 3
+		then '03/15/2021'
+	when PERIODID = 4
+		then '04/15/2021'
+	when PERIODID = 5
+		then '05/15/2021'
+	when PERIODID = 6
+		then '06/15/2021'
+	when PERIODID = 7
+		then '07/15/2021'
+	when PERIODID = 8
+		then '08/15/2021'
+	when PERIODID = 9
+		then '09/15/2021'
+	when PERIODID = 10
+		then '10/15/2021'
+	when PERIODID = 11
+		then '11/15/2021'
+	when PERIODID = 12
+		then '12/15/2021'
+	end
+,
+CONCAT('Period ', Cast(g.periodID as nvarchar(10)), ' ', g.YEAR1)
+,case 
+	when m1.D365MainAccount = '21400'
+		then 'Exempt'
+	else ''
+end
+,case 
+	when m1.D365MainAccount = '21400'
+		then 'Exempt'
+	else ''
+end
+,case 
+	when m1.D365MainAccount = '21400'
+		then 'EX'
+	else ''
+end
+from zgwc2.dbo.GL10111 g
+join zgwc2.dbo.GL00100 actmaster
 	on actmaster.ACTINDX = g.ACTINDX
-where g.YEAR1 = '2021'
+join D365Migration.dbo.mainaccountmapping m1
+	on m1.gpmainaccount = 
+    (case
+	when g.ACTNUMBR_2 in ('1219','1257','1259','3200','3201','0082','0083','0084')
+		then  Trim(actmaster.ACTNUMBR_2)
+	else Trim(actmaster.ACTNUMBR_1)
+end)
+    and m1.dataareaid = 'GICT'
+join d365migration.dbo.departmentmapping m2
+    on m2.gpdepartment =
+        (case
+	        when actmaster.ACTNUMBR_3 != '00'
+                then concat(Trim(actmaster.ACTNUMBR_2),Trim(actmaster.ACTNUMBR_3))
+	    else Trim(actmaster.ACTNUMBR_2)
+        end) 
+where g.YEAR1 = '2021' and ((g.DEBITAMT - g.CRDTAMNT) != 0)
+
 
 
 Union
 
 select
-'blue'
-,'journal_1'--TODO:fix
+'Blue'
+,'MIG-0000001'--TODO:fix
 ,row_number() over ( partition by G.ACTINDX order by G.ACTINDX)
-,concat(Trim(G.ACTNUMBR_1), '-', Trim(G.ACTNUMBR_2), '-', Trim(G.ACTNUMBR_3))--todo: Update mapping to new accounts
-,g.DEBITAMT
-,g.CRDTAMNT
+,case
+	when g.ACTNUMBR_2 in ('1219','1257','1259','3200','3201','0082','0083','0084')
+		then concat(m1.d365mainaccount, '-', '000000', '-','1-9999--') 
+else concat(m1.d365mainaccount, '-', m2.d365department, '-','1-9999--') 
+end
+, case
+	when g.DEBITAMT - g.CRDTAMNT > 0
+		then g.debitamt - g.crdtamnt
+	else 0
+end
+,case
+	when g.DEBITAMT - g.CRDTAMNT < 0
+		then (g.debitamt - g.crdtamnt)
+	else 0
+end
 ,'USD'
 ,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
 ,100 --Follow up on exchange rate
@@ -81,18 +239,90 @@ select
 ,'Ledger'
 ,'Current'
 ,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
-,getDate()
+, case
+	when PERIODID = 0
+		then '01/15/2022'
+	when PERIODID = 1
+		then '01/15/2022'
+	when PERIODID = 2
+		then '02/15/2022'
+	when PERIODID = 3
+		then '03/15/2022'
+	when PERIODID = 4
+		then '04/15/2022'
+	when PERIODID = 5
+		then '05/15/2022'
+	when PERIODID = 6
+		then '06/15/2022'
+	when PERIODID = 7
+		then '07/15/2022'
+	when PERIODID = 8
+		then '08/15/2022'
+	when PERIODID = 9
+		then '09/15/2022'
+	when PERIODID = 10
+		then '10/15/2022'
+	when PERIODID = 11
+		then '11/15/2022'
+	when PERIODID = 12
+		then '12/15/2022'
+	end
+, CONCAT('Period ', Cast(g.periodID as nvarchar(10)), ' ', g.YEAR1)
+,case 
+	when m1.D365MainAccount = '21400'
+		then 'Exempt'
+	else ''
+end
+,case 
+	when m1.D365MainAccount = '21400'
+		then 'Exempt'
+	else ''
+end
+,case 
+	when m1.D365MainAccount = '21400'
+		then 'EX'
+	else ''
+end
 from blue.dbo.GL11110 g
+join D365Migration.dbo.mainaccountmapping m1
+on m1.gpmainaccount =
+--when department field is one of the new accounts mapping to a main account, join here on acctnumber_2, otherwise jst join to acctnumber_1
+(case
+	when g.ACTNUMBR_2 in ('1219','1257','1259','3200','3201','0082','0083','0084')
+		then  Trim(G.ACTNUMBR_2)
+	else Trim(G.ACTNUMBR_1)
+end)
+and m1.dataareaid = 'blue'
+join d365migration.dbo.departmentmapping m2
+    on m2.gpdepartment =
+        (case
+	        when g.ACTNUMBR_3 != '00'
+                then concat(Trim(G.ACTNUMBR_2),Trim(G.ACTNUMBR_3))
+	    else Trim(G.ACTNUMBR_2)
+        end)  
+where ((g.DEBITAMT - g.CRDTAMNT) != 0)
 
 union
 
 select
-'blue'
-,'journal_1'--TODO:fix
+'Blue'
+,'MIG-0000001'--TODO:fix
 ,row_number() over ( partition by G.ACTINDX order by G.ACTINDX)
-,concat(trim(actmaster.ACTNUMBR_1), '-', trim(actmaster.ACTNUMBR_2), '-', trim(actmaster.ACTNUMBR_3))--todo: Update mapping to new accounts
-,g.DEBITAMT
-,g.CRDTAMNT
+,case
+	when g.ACTNUMBR_2 in ('1219','1257','1259','3200','3201','0082','0083','0084')
+		then concat(m1.d365mainaccount, '-', '000000', '-','1-9999--') 
+else concat(m1.d365mainaccount, '-', m2.d365department, '-','1-9999--') 
+end
+ ,case
+	when g.DEBITAMT - g.CRDTAMNT > 0
+		then g.debitamt - g.crdtamnt
+	else 0
+end
+,case
+	when g.DEBITAMT - g.CRDTAMNT < 0
+		then (g.debitamt - g.crdtamnt)
+	else 0
+end
 ,'USD'
 ,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
 ,100 --Follow up on exchange rate
@@ -100,22 +330,92 @@ select
 ,'Ledger'
 ,'Current'
 ,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
-,getDate()
+, case
+	when PERIODID = 0
+		then '01/15/2021'
+	when PERIODID = 1
+		then '01/15/2021'
+	when PERIODID = 2
+		then '02/15/2021'
+	when PERIODID = 3
+		then '03/15/2021'
+	when PERIODID = 4
+		then '04/15/2021'
+	when PERIODID = 5
+		then '05/15/2021'
+	when PERIODID = 6
+		then '06/15/2021'
+	when PERIODID = 7
+		then '07/15/2021'
+	when PERIODID = 8
+		then '08/15/2021'
+	when PERIODID = 9
+		then '09/15/2021'
+	when PERIODID = 10
+		then '10/15/2021'
+	when PERIODID = 11
+		then '11/15/2021'
+	when PERIODID = 12
+		then '12/15/2021'
+	end
+,
+CONCAT('Period ', Cast(g.periodID as nvarchar(10)), ' ', g.YEAR1)
+,case 
+	when m1.D365MainAccount = '21400'
+		then 'Exempt'
+	else ''
+end
+,case 
+	when m1.D365MainAccount = '21400'
+		then 'Exempt'
+	else ''
+end
+,case 
+	when m1.D365MainAccount = '21400'
+		then 'EX'
+	else ''
+end
 from blue.dbo.GL10111 g
-join gwc.dbo.GL00100 actmaster
+join blue.dbo.GL00100 actmaster
 	on actmaster.ACTINDX = g.ACTINDX
-where g.YEAR1 = '2021'
+join D365Migration.dbo.mainaccountmapping m1
+	on m1.gpmainaccount = 
+    (case
+	when g.ACTNUMBR_2 in ('1219','1257','1259','3200','3201','0082','0083','0084')
+		then  Trim(actmaster.ACTNUMBR_2)
+	else Trim(actmaster.ACTNUMBR_1)
+end)
+    and m1.dataareaid = 'blue'
+join d365migration.dbo.departmentmapping m2
+    on m2.gpdepartment =
+        (case
+	        when actmaster.ACTNUMBR_3 != '00'
+                then concat(Trim(actmaster.ACTNUMBR_2),Trim(actmaster.ACTNUMBR_3))
+	    else Trim(actmaster.ACTNUMBR_2)
+        end) 
+where g.YEAR1 = '2021' and ((g.DEBITAMT - g.CRDTAMNT) != 0)
 
 
 Union
-
 select
 'GTS'
-,'journal_1'--TODO:fix
+,'MIG-1000001'--TODO:fix
 ,row_number() over ( partition by G.ACTINDX order by G.ACTINDX)
-,concat(Trim(G.ACTNUMBR_1), '-', Trim(G.ACTNUMBR_2), '-', Trim(G.ACTNUMBR_3))--todo: Update mapping to new accounts
-,g.DEBITAMT
-,g.CRDTAMNT
+,case
+	when g.ACTNUMBR_2 in ('1219','1257','1259','3200','3201','0082','0083','0084')
+		then concat(m1.d365mainaccount, '-', '000000', '-','1-9999--') 
+else concat(m1.d365mainaccount, '-', m2.d365department, '-','1-9999--') 
+end
+, case
+	when g.DEBITAMT - g.CRDTAMNT > 0
+		then g.debitamt - g.crdtamnt
+	else 0
+end
+,case
+	when g.DEBITAMT - g.CRDTAMNT < 0
+		then (g.debitamt - g.crdtamnt)
+	else 0
+end
 ,'USD'
 ,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
 ,100 --Follow up on exchange rate
@@ -123,18 +423,91 @@ select
 ,'Ledger'
 ,'Current'
 ,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
-,getDate()
-from gss.dbo.GL11110 g
+, case
+	when PERIODID = 0
+		then '01/15/2022'
+	when PERIODID = 1
+		then '01/15/2022'
+	when PERIODID = 2
+		then '02/15/2022'
+	when PERIODID = 3
+		then '03/15/2022'
+	when PERIODID = 4
+		then '04/15/2022'
+	when PERIODID = 5
+		then '05/15/2022'
+	when PERIODID = 6
+		then '06/15/2022'
+	when PERIODID = 7
+		then '07/15/2022'
+	when PERIODID = 8
+		then '08/15/2022'
+	when PERIODID = 9
+		then '09/15/2022'
+	when PERIODID = 10
+		then '10/15/2022'
+	when PERIODID = 11
+		then '11/15/2022'
+	when PERIODID = 12
+		then '12/15/2022'
+	end
+, CONCAT('Period ', Cast(g.periodID as nvarchar(10)), ' ', g.YEAR1)
+,case 
+	when m1.D365MainAccount = '21400'
+		then 'Exempt'
+	else ''
+end
+,case 
+	when m1.D365MainAccount = '21400'
+		then 'Exempt'
+	else ''
+end
+,case 
+	when m1.D365MainAccount = '21400'
+		then 'EX'
+	else ''
+end
+from zgss.dbo.GL11110 g
+join D365Migration.dbo.mainaccountmapping m1
+on m1.gpmainaccount =
+--when department field is one of the new accounts mapping to a main account, join here on acctnumber_2, otherwise jst join to acctnumber_1
+(case
+	when g.ACTNUMBR_2 in ('1219','1257','1259','3200','3201','0082','0083','0084')
+		then  Trim(G.ACTNUMBR_2)
+	else Trim(G.ACTNUMBR_1)
+end)
+and m1.dataareaid = 'gict'
+join d365migration.dbo.departmentmapping m2
+    on m2.gpdepartment =
+        (case
+	        when g.ACTNUMBR_3 != '00'
+                then concat(Trim(G.ACTNUMBR_2),Trim(G.ACTNUMBR_3))
+	    else Trim(G.ACTNUMBR_2)
+        end)  
+where ((g.DEBITAMT - g.CRDTAMNT) != 0)
+
+
 
 union
-
 select
 'GTS'
-,'journal_1'--TODO:fix
+,'MIG-1000001'--TODO:fix
 ,row_number() over ( partition by G.ACTINDX order by G.ACTINDX)
-,concat(trim(actmaster.ACTNUMBR_1), '-', trim(actmaster.ACTNUMBR_2), '-', trim(actmaster.ACTNUMBR_3))--todo: Update mapping to new accounts
-,g.DEBITAMT
-,g.CRDTAMNT
+,case
+	when g.ACTNUMBR_2 in ('1219','1257','1259','3200','3201','0082','0083','0084')
+		then concat(m1.d365mainaccount, '-', '000000', '-','1-9999--') 
+else concat(m1.d365mainaccount, '-', m2.d365department, '-','1-9999--') 
+end
+ ,case
+	when g.DEBITAMT - g.CRDTAMNT > 0
+		then g.debitamt - g.crdtamnt
+	else 0
+end
+,case
+	when g.DEBITAMT - g.CRDTAMNT < 0
+		then (g.debitamt - g.crdtamnt)
+	else 0
+end
 ,'USD'
 ,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
 ,100 --Follow up on exchange rate
@@ -142,8 +515,68 @@ select
 ,'Ledger'
 ,'Current'
 ,Concat('Migration Balances from GP for Period ', Cast(g.periodID as nvarchar(10)), ' - ', g.YEAR1)
-,getDate()
-from gss.dbo.GL10111 g
-join gwc.dbo.GL00100 actmaster
+, case
+	when PERIODID = 0
+		then '01/15/2021'
+	when PERIODID = 1
+		then '01/15/2021'
+	when PERIODID = 2
+		then '02/15/2021'
+	when PERIODID = 3
+		then '03/15/2021'
+	when PERIODID = 4
+		then '04/15/2021'
+	when PERIODID = 5
+		then '05/15/2021'
+	when PERIODID = 6
+		then '06/15/2021'
+	when PERIODID = 7
+		then '07/15/2021'
+	when PERIODID = 8
+		then '08/15/2021'
+	when PERIODID = 9
+		then '09/15/2021'
+	when PERIODID = 10
+		then '10/15/2021'
+	when PERIODID = 11
+		then '11/15/2021'
+	when PERIODID = 12
+		then '12/15/2021'
+	end
+,
+CONCAT('Period ', Cast(g.periodID as nvarchar(10)), ' ', g.YEAR1)
+,case 
+	when m1.D365MainAccount = '21400'
+		then 'Exempt'
+	else ''
+end
+,case 
+	when m1.D365MainAccount = '21400'
+		then 'Exempt'
+	else ''
+end
+,case 
+	when m1.D365MainAccount = '21400'
+		then 'EX'
+	else ''
+end
+from zgss.dbo.GL10111 g
+join zgss.dbo.GL00100 actmaster
 	on actmaster.ACTINDX = g.ACTINDX
-where g.YEAR1 = '2021'
+join D365Migration.dbo.mainaccountmapping m1
+	on m1.gpmainaccount = 
+    (case
+	when g.ACTNUMBR_2 in ('1219','1257','1259','3200','3201','0082','0083','0084')
+		then  Trim(actmaster.ACTNUMBR_2)
+	else Trim(actmaster.ACTNUMBR_1)
+end)
+    and m1.dataareaid = 'GICT'
+join d365migration.dbo.departmentmapping m2
+    on m2.gpdepartment =
+        (case
+	        when actmaster.ACTNUMBR_3 != '00'
+                then concat(Trim(actmaster.ACTNUMBR_2),Trim(actmaster.ACTNUMBR_3))
+	    else Trim(actmaster.ACTNUMBR_2)
+        end) 
+where g.YEAR1 = '2021' and ((g.DEBITAMT - g.CRDTAMNT) != 0)
+

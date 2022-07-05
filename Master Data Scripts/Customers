@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[Customers_GPToD365DB]    Script Date: 5/12/2022 9:23:03 PM ******/
+/****** Object:  StoredProcedure [dbo].[Customers_GPToD365DB]    Script Date: 6/27/2022 1:32:24 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -153,7 +153,7 @@ SELECT 'GICT' as DataAreaId,
 			then '6%'
 		else ''
 		end as TotalDiscountCode--totalDiscount field
-	  ,'AllStores' as DiscountPriceGroupId --Price Group, to default once configured
+	  ,'' as DiscountPriceGroupId --Price Group, to default once configured
 
       ,[HOLD] as onHoldstatus
 	  	  ,		case 
@@ -176,8 +176,8 @@ SELECT 'GICT' as DataAreaId,
 		  ,CREATDDT as CredManCustomerSince, custnmbr as SalesAccountNumber
 		  ,case
 			when COMMENT1 = '1000'
-				then '-146000-9999-1-Proj0000'
-			else '--9999-1-Proj0000'
+				then '-146000-1-9999--Proj999999'
+			else '--1-9999--Proj999999'
 			end
 
    --   ,'site' as SiteId
@@ -186,7 +186,26 @@ SELECT 'GICT' as DataAreaId,
   FROM Gwc.Dbo.[RM00101]
 where inactive = 0 
 and comment1 in ('1500', '1400','1000')
-or (CUSTNMBR like 'b099%' or CUSTNMBR like 'c100%')
+
+and trim(CUSTNMBR) not in (
+'A149',
+'C011',
+'C100',
+'C102',
+'C103',
+'C141',
+'C142',
+'D002',
+'G482',
+'G483',
+'P055',
+'T112',
+'T114',
+'T132',
+'T133',
+'T143',
+'T115')
+or (CUSTNMBR like 'b099%')
 
 
 union 
@@ -246,7 +265,7 @@ Concat('Party-','Blue-',[CUSTNMBR]) as PartyNumber,
 			then '6%'
 		else ''
 		end as TotalDiscountCode--totalDiscount field
-	  ,'AllStores' as DiscountPriceGroupId --Price Group, to default once configured
+	  ,'' as DiscountPriceGroupId --Price Group, to default once configured
       ,[HOLD] as onHoldstatus
 	 ,case 
 	when len(dense_rank() over (order by [CUSTNMBR])) = 1
@@ -266,7 +285,11 @@ Concat('Party-','Blue-',[CUSTNMBR]) as PartyNumber,
 	end as InvoiceAccount
 	 ,'en-us' as LanguageId
 	 ,CREATDDT as CredManCustomerSince, custnmbr as SalesAccountNumber
-	 ,'--9999-1-'
+	 ,case
+		when trim(custnmbr) = 'I100'
+			then  '-302000-1-9999--'
+		else '--1-9999--'
+		end 
      -- ,'site' as SiteId
 	 -- ,'warehouse' as warehouseId-- will need to ask where to map sites/warehouses for customers
   FROM blue.dbo.[RM00101]
@@ -322,7 +345,7 @@ Concat('Party-','Blue-',[CUSTNMBR]) as PartyNumber,
 			then '6%'
 		else ''
 		end as TotalDiscountCode--totalDiscount field
-	  ,'AllStores' as DiscountPriceGroupId --Price Group, to default once configured
+	  ,'' as DiscountPriceGroupId --Price Group, to default once configured
 
       ,[HOLD] as onHoldstatus
 	  ,case 
@@ -345,7 +368,7 @@ Concat('Party-','Blue-',[CUSTNMBR]) as PartyNumber,
       --,'site' as iteId
 	  --,'warehouse' as warehouseId-- will need to ask where to map sites/warehouses for customers
 	  ,CREATDDT as CredManCustomerSince, custnmbr as SalesAccountNumber
-	  ,'--9999-1-'
+	  ,'--1-9999--'
   FROM excel.dbo.[RM00101]
 where inactive = 0 
 --and comment1 in ('1500', '1400','1000')
@@ -412,14 +435,14 @@ Concat('Party-','GTS-',[CUSTNMBR]) as PartyNumber,
 			then '6%'
 		else ''
 		end as TotalDiscountCode--totalDiscount field
-	  ,'AllStores' as DiscountPriceGroupId --Price Group, to default once configure
+	  ,'' as DiscountPriceGroupId --Price Group, to default once configure
       ,[HOLD] as onHoldstatus
 	 ,'T1000' as InvoiceAccount
 	 ,'en-us' as LanguageId
       --,'site' as iteId
 	  --,'warehouse' as warehouseId-- will need to ask where to map sites/warehouses for customers
 	  ,CREATDDT as CredManCustomerSince, custnmbr as SalesAccountNumber
-	  ,'--9999-1-'
+	  ,'--1-9999--'
   FROM gss.dbo.[RM00101]
 where inactive = 0 
 --and comment1 in ('1500', '1400','1000')

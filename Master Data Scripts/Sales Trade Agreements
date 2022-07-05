@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[SalesTradeAgreement_GPToD365DB]    Script Date: 3/28/2022 10:47:40 AM ******/
+/****** Object:  StoredProcedure [dbo].[SalesTradeAgreement_GPToD365DB]    Script Date: 6/2/2022 10:56:38 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -23,7 +23,7 @@ INSERT INTO [dbo].[SalesTradeAgreement]
 		   [ITEMNUMBER])
 select distinct
 'GICT' as DATAAREAID,
-'GICT-000011' AS TRADEAGREEMENTJOURNALNUMBER,
+'GICT-000002' AS TRADEAGREEMENTJOURNALNUMBER,
 dense_rank() OVER(order by I.ITEMNMBR  desc ) AS LINENUMBER,
        --T1.quantityamountfrom              AS FROMQUANTITY, 
        --T1.quantityamountto                AS TOQUANTITY, 
@@ -31,9 +31,9 @@ dense_rank() OVER(order by I.ITEMNMBR  desc ) AS LINENUMBER,
        getdate()							AS PRICEAPPLICABLEFROMDATE, 
        --T1.todate                          AS PRICEAPPLICABLETODATE, 
        case 
-		when (select top 1 p.monday_0 from POSDatabase.[SiriusSQL].[dbo].[items] p where p.item = i.ITEMNMBR)	is null
+		when (select top 1 p.monday_0 from POSDatabase.[SiriusSQL].[dbo].[items] p where p.item = i.ITEMNMBR and  p.monday_0 > 0)	is null
 			then ''
-		else (select top 1 p.monday_0 from POSDatabase.[SiriusSQL].[dbo].[items] p where p.item = i.ITEMNMBR order by p.start_show)
+		else (select top 1 p.monday_0 from POSDatabase.[SiriusSQL].[dbo].[items] p where p.item = i.ITEMNMBR and p.monday_0 > 0 order by p.start_show)
 		end AS PRICE, 
        'USD'								AS PRICECURRENCYCODE, 
 	   'Table'								AS ITEMCODE,
@@ -44,7 +44,7 @@ FROM gwc.dbo.[IV00101] I
 --join inventdim T2 on t1.inventdimid=T2.inventdimid and T2.DATAAREAID=T1.DATAAREAID
 left join gwc.dbo.GL00105 gl5
 on gl5.ACTINDX = i.IVIVINDX
+WHERE i.ITEMNMBR in (select itemnumber from ReleasedProducts)
 
-WHERE I.ITEMTYPE = 1
-AND I.ITMCLSCD != 'Delete'
-and i.ITEMNMBR in (select p.item from POSDatabase.[SiriusSQL].[dbo].[items] p)
+
+

@@ -20,7 +20,7 @@ join papersave.dbo.HostApplicationLocalData host
 join d365migration.dbo.vendors vt
 	on VT.OURACCOUNTNUMBER = host.ParentID
 where d.removed = 0
-	and DocumentType_ID = 6
+	
 	";            
  
 # Open ADO.NET Connection
@@ -89,7 +89,7 @@ join papersave.dbo.HostApplicationLocalData host
 join d365migration.dbo.vendors vt
 	on VT.OURACCOUNTNUMBER = host.ParentID
 where d.removed = 0
-	and DocumentType_ID = 6
+	
 	";            
  
 # Open ADO.NET Connection
@@ -157,7 +157,7 @@ join papersave.dbo.HostApplicationLocalData host
 join d365migration.dbo.vendors vt
 	on VT.OURACCOUNTNUMBER = host.ParentID
 where d.removed = 0
-	and DocumentType_ID = 6
+	
 	";            
  
 # Open ADO.NET Connection

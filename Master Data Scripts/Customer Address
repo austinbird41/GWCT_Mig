@@ -1,6 +1,6 @@
 USE [D365Migration]
 GO
-/****** Object:  StoredProcedure [dbo].[CustomerAddress_GPToD365DB]    Script Date: 4/26/2022 2:28:45 PM ******/
+/****** Object:  StoredProcedure [dbo].[CustomerAddress_GPToD365DB]    Script Date: 5/26/2022 9:30:24 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -23,11 +23,11 @@ INSERT INTO [dbo].[CustomerAddress]
            ,[AddressCountryRegionId]
            ,[CustomerLegalEntityId])
 select 
-CAST ( (ROW_NUMBER() OVER(ORDER BY r2.CUSTNMBR ASC)) AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
+CONCAT('GICTCust-',CAST ( (ROW_NUMBER() OVER(ORDER BY r2.CUSTNMBR ASC)) AS NVARCHAR(50))) AS ADDRESSLOCATIONID,
 'GICT' as DataAreaId,
 (select customeraccount from D365Migration.dbo.Customers where SalesAccountNumber= trim(r2.CUSTNMBR) and dataareaid = 'gict') as CustomerAccountNumber, --CustomerAccountNumber
  replace(REPLACE ( REPLACE ( CONCAT(Trim(r2.address1), ' ',Trim(r2.address2), ' ', Trim(r2.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
-r1.CUSTNAME as Addressdescription,
+r1.NameAlias as Addressdescription,
  --r2.VNDCNTCT,
  r2.city as AddressCity,
  r2.state as AddressState,
@@ -39,21 +39,19 @@ case
 end AddressCountryRegionId,
 'GICT' as CustomerLegalEntityId
  from gwc.dbo.RM00102 r2
-join gwc.dbo.RM00101 r1
-on r1.CUSTNMBR = r2.CUSTNMBR
-where r1.INACTIVE = 0
---and [CUSTCLAS] != 'non-tax'
-and comment1 in ('1500', '1400','1000')
-and CONCAT(r2.address1,r2.address2,r2.address3) != ''
+join D365Migration.dbo.customers r1
+on r1.salesaccountnumber = r2.CUSTNMBR
+and r1.DataAreaId = 'gict'
+where CONCAT(r2.address1,r2.address2,r2.address3) != ''
 
 union
 
 select 
-CAST ( (ROW_NUMBER() OVER(ORDER BY r2.CUSTNMBR ASC)) AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
+CONCAT('BLUECust-',CAST ( (ROW_NUMBER() OVER(ORDER BY r2.CUSTNMBR ASC)) AS NVARCHAR(50))) AS ADDRESSLOCATIONID,
 'BLUE' as DataAreaId,
 (select customeraccount from D365Migration.dbo.Customers where SalesAccountNumber= trim(r2.CUSTNMBR) and dataareaid = 'blue') as CustomerAccountNumber, --CustomerAccountNumber
  replace(REPLACE ( REPLACE ( CONCAT(Trim(r2.address1), ' ',Trim(r2.address2), ' ', Trim(r2.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
-r1.CUSTNAME as Addressdescription,
+r1.NameAlias as Addressdescription,
  --r2.VNDCNTCT,
  r2.city as AddressCity,
  r2.state as AddressState,
@@ -65,21 +63,20 @@ case
 end AddressCountryRegionId,
 'BLUE' as CustomerLegalEntityId
  from blue.dbo.RM00102 r2
-join blue.dbo.RM00101 r1
-on r1.CUSTNMBR = r2.CUSTNMBR
-where r1.INACTIVE = 0
---and [CUSTCLAS] != 'non-tax'
-and CONCAT(r2.address1,r2.address2,r2.address3) != ''
+join D365Migration.dbo.customers r1
+on r1.salesaccountnumber = r2.CUSTNMBR
+and r1.DataAreaId = 'blue'
+where CONCAT(r2.address1,r2.address2,r2.address3) != ''
 
 
 union
 
 select 
-CAST ( (ROW_NUMBER() OVER(ORDER BY r2.CUSTNMBR ASC)) AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
+CONCAT('EXCLCust-',CAST ( (ROW_NUMBER() OVER(ORDER BY r2.CUSTNMBR ASC)) AS NVARCHAR(50))) AS ADDRESSLOCATIONID,
 'EXCL' as DataAreaId,
 (select customeraccount from D365Migration.dbo.Customers where SalesAccountNumber= trim(r2.CUSTNMBR) and dataareaid = 'EXCL') as CustomerAccountNumber, --CustomerAccountNumber
  replace(REPLACE ( REPLACE ( CONCAT(Trim(r2.address1), ' ',Trim(r2.address2), ' ', Trim(r2.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
-r1.CUSTNAME  as Addressdescription,
+r1.NameAlias  as Addressdescription,
  --r2.VNDCNTCT,
  r2.city as AddressCity,
  r2.state as AddressState,
@@ -91,21 +88,20 @@ case
 end AddressCountryRegionId,
 'EXCL' as CustomerLegalEntityId
  from excel.dbo.RM00102 r2
-join excel.dbo.RM00101 r1
-on r1.CUSTNMBR = r2.CUSTNMBR
-where r1.INACTIVE = 0
---and [CUSTCLAS] != 'non-tax'
-and CONCAT(r2.address1,r2.address2,r2.address3) != ''
+join D365Migration.dbo.customers r1
+on r1.salesaccountnumber = r2.CUSTNMBR
+and r1.DataAreaId = 'excl'
+where CONCAT(r2.address1,r2.address2,r2.address3) != ''
 
 
 union
 
 select 
-CAST ( (ROW_NUMBER() OVER(ORDER BY r2.CUSTNMBR ASC)) AS NVARCHAR(50)) AS ADDRESSLOCATIONID,
+CONCAT('GTSCust-',CAST ( (ROW_NUMBER() OVER(ORDER BY r2.CUSTNMBR ASC)) AS NVARCHAR(50))) AS ADDRESSLOCATIONID,
 'GTS' as dataareaid,
 (select customeraccount from D365Migration.dbo.Customers where SalesAccountNumber= trim(r2.CUSTNMBR) and dataareaid = 'GTS') as CustomerAccountNumber, --CustomerAccountNumber
  replace(REPLACE ( REPLACE ( CONCAT(Trim(r2.address1), ' ',Trim(r2.address2), ' ', Trim(r2.address3)) , CHAR(13) , '' ) , CHAR(10) , ' ' ),char(9),'') AS AddressStreet,
-r1.CUSTNAME as Addressdescription,
+r1.NameAlias as Addressdescription,
  --r2.VNDCNTCT,
  r2.city as AddressCity,
  r2.state as AddressState,
@@ -117,9 +113,8 @@ case
 end AddressCountryRegionId,
 'GTS' as CustomerLegalEntityId
  from gss.dbo.RM00102 r2
-join gss.dbo.RM00101 r1
-on r1.CUSTNMBR = r2.CUSTNMBR
-where r1.INACTIVE = 0
---and [CUSTCLAS] != 'non-tax'
-and CONCAT(r2.address1,r2.address2,r2.address3) != ''
+join D365Migration.dbo.customers r1
+on r1.salesaccountnumber = r2.CUSTNMBR
+and r1.DataAreaId = 'gts'
+where CONCAT(r2.address1,r2.address2,r2.address3) != ''
 

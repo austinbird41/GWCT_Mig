@@ -1,6 +1,13 @@
+USE [D365Migration]
+GO
+/****** Object:  StoredProcedure [dbo].[VendorDocuments_GPToD365DB]    Script Date: 6/8/2022 3:04:39 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
 --Vendor documents
 
-Alter Procedure VendorDocuments_GPToD365DB
+ALTER Procedure [dbo].[VendorDocuments_GPToD365DB]
 
 as
 
@@ -48,7 +55,7 @@ join papersave.dbo.HostApplicationLocalData host
 join d365migration.dbo.vendors vt
 	on VT.OURACCOUNTNUMBER = host.ParentID
 where d.removed = 0
-	and DocumentType_ID = 6
+
 	
 
 union
@@ -74,7 +81,9 @@ join papersave.dbo.HostApplicationLocalData host
 join d365migration.dbo.vendors vt
 	on VT.OURACCOUNTNUMBER = host.ParentID
 where d.removed = 0
-	and DocumentType_ID = 6
+
+
+
 	
 
 
@@ -101,7 +110,8 @@ join papersave.dbo.HostApplicationLocalData host
 join d365migration.dbo.vendors vt
 	on VT.OURACCOUNTNUMBER = host.ParentID
 where d.removed = 0
-	and DocumentType_ID = 6
+
+
 	
 
 
